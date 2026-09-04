@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { formatVND } from '../lib/storage'
+import { renderReceiptToBlob } from '../lib/receiptImage'
 
 const DEFAULT_SHOP_NAME = 'Bán Hàng POS'
 
@@ -14,25 +15,63 @@ function formatDateTime(iso) {
 }
 
 export default function ReceiptModal({ order, settings, onClose }) {
+  const [sharing, setSharing] = useState(false)
+
   if (!order) return null
 
   const shopName = settings?.shopName || DEFAULT_SHOP_NAME
   const shopAddress = settings?.shopAddress
 
+  async function handleShareImage() {
+    if (sharing) return
+    setSharing(true)
+    try {
+      const blob = await renderReceiptToBlob(order, settings)
+      const fileName = `hoa-don-${order.id.slice(-6).toUpperCase()}.png`
+      const file = new File([blob], fileName, { type: 'image/png' })
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'Hóa đơn' })
+        } catch {
+          // Nguoi dung huy chia se - khong lam gi them
+        }
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = fileName
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } finally {
+      setSharing(false)
+    }
+  }
+
   return (
     <div className="receipt-modal-wrapper fixed inset-0 z-50 flex flex-col bg-white">
-      <div className="no-print flex gap-2 p-3 border-b border-slate-100">
+      <div className="no-print flex flex-col gap-2 p-3 border-b border-slate-100">
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5"
+          >
+            ← Quay lại
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex-1 rounded-lg bg-brand-700 text-white text-sm font-semibold py-2.5"
+          >
+            🖨️ In
+          </button>
+        </div>
         <button
-          onClick={onClose}
-          className="flex-1 rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5"
+          onClick={handleShareImage}
+          disabled={sharing}
+          className="rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 disabled:opacity-50"
         >
-          ← Quay lại
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="flex-1 rounded-lg bg-brand-700 text-white text-sm font-semibold py-2.5"
-        >
-          🖨️ In
+          {sharing ? 'Đang tạo ảnh...' : '📤 Chia sẻ ảnh hóa đơn (in máy in nhiệt)'}
         </button>
       </div>
 
