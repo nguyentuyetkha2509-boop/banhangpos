@@ -13,10 +13,24 @@ body {
 }
 
 @media print {
+  html, body, #root {
+    height: auto !important;
+  }
   .app-main-content {
     display: none !important;
   }
   .no-print {
     display: none !important;
+  }
+  .receipt-modal-wrapper {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    height: auto !important;
+  }
+  .receipt-modal-scroll {
+    flex: none !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 }

@@ -20,7 +20,7 @@ export default function ReceiptModal({ order, settings, onClose }) {
   const shopAddress = settings?.shopAddress
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="receipt-modal-wrapper fixed inset-0 z-50 flex flex-col bg-white">
       <div className="no-print flex gap-2 p-3 border-b border-slate-100">
         <button
           onClick={onClose}
@@ -36,7 +36,7 @@ export default function ReceiptModal({ order, settings, onClose }) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="receipt-modal-scroll flex-1 overflow-y-auto">
         <div
           className="receipt-print-area mx-auto my-4"
           style={{ width: 300, fontFamily: "'Courier New', Courier, monospace", color: '#111' }}
