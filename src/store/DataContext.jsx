@@ -15,10 +15,12 @@ export function DataProvider({ children }) {
   const [products, setProducts] = useState(() => loadData('products', DEFAULT_PRODUCTS))
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [orders, setOrders] = useState(() => loadData('orders', []))
+  const [stockMovements, setStockMovements] = useState(() => loadData('stockMovements', []))
 
   useEffect(() => saveData('products', products), [products])
   useEffect(() => saveData('cart', cart), [cart])
   useEffect(() => saveData('orders', orders), [orders])
+  useEffect(() => saveData('stockMovements', stockMovements), [stockMovements])
 
   function addProduct(product) {
     setProducts((prev) => [...prev, { ...product, id: makeId() }])
@@ -58,6 +60,20 @@ export function DataProvider({ children }) {
     setCart((prev) => prev.filter((c) => c.productId !== productId))
   }
 
+  function restockProduct(productId, qty, note) {
+    const addQty = Math.max(0, Number(qty) || 0)
+    if (addQty <= 0) return
+    const product = products.find((p) => p.id === productId)
+    if (!product) return
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, stock: p.stock + addQty } : p))
+    )
+    setStockMovements((prev) => [
+      { id: makeId(), productId, productName: product.name, qty: addQty, note: note.trim(), createdAt: new Date().toISOString() },
+      ...prev
+    ])
+  }
+
   function findProductByBarcode(code) {
     const trimmed = code.trim()
     if (!trimmed) return null
@@ -87,6 +103,7 @@ export function DataProvider({ children }) {
     products,
     cart,
     orders,
+    stockMovements,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -95,7 +112,8 @@ export function DataProvider({ children }) {
     removeFromCart,
     clearCart,
     checkout,
-    findProductByBarcode
+    findProductByBarcode,
+    restockProduct
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>
