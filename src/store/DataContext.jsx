@@ -9,7 +9,7 @@ const DEFAULT_PRODUCTS = [
   { id: makeId(), name: 'Ca phe sua da', price: 18000, stock: 30, category: 'Do uong', barcode: '' }
 ]
 
-const DEFAULT_SETTINGS = { shopName: 'BanHang POS' }
+const DEFAULT_SETTINGS = { shopName: 'BanHang POS', shopAddress: '' }
 
 const DataContext = createContext(null)
 

@@ -4,18 +4,22 @@ import { useData } from '../store/DataContext'
 export default function SettingsSheet({ open, onClose }) {
   const { settings, updateSettings } = useData()
   const [shopName, setShopName] = useState('')
+  const [shopAddress, setShopAddress] = useState('')
 
   useEffect(() => {
-    if (open) setShopName(settings.shopName)
-  }, [open, settings.shopName])
+    if (open) {
+      setShopName(settings.shopName || '')
+      setShopAddress(settings.shopAddress || '')
+    }
+  }, [open, settings.shopName, settings.shopAddress])
 
   if (!open) return null
 
   function handleSubmit(e) {
     e.preventDefault()
-    const trimmed = shopName.trim()
-    if (!trimmed) return
-    updateSettings({ shopName: trimmed })
+    const trimmedName = shopName.trim()
+    if (!trimmedName) return
+    updateSettings({ shopName: trimmedName, shopAddress: shopAddress.trim() })
     onClose()
   }
 
@@ -37,6 +41,15 @@ export default function SettingsSheet({ open, onClose }) {
           placeholder="VD: Tap hoa Minh Anh"
         />
         <p className="text-xs text-slate-400 mb-4">Ten nay se hien tren hoa don khi in</p>
+
+        <label className="block text-xs font-medium text-slate-500 mb-1">Dia chi (tuy chon)</label>
+        <input
+          value={shopAddress}
+          onChange={(e) => setShopAddress(e.target.value)}
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          placeholder="VD: 123 Le Loi, Q.1, TP.HCM"
+        />
+        <p className="text-xs text-slate-400 mb-4">Dia chi se hien duoi ten cua hang tren hoa don</p>
 
         <div className="flex gap-2">
           <button

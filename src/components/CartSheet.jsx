@@ -33,7 +33,7 @@ export default function CartSheet({ open, onClose }) {
             <p className="font-bold text-lg text-slate-800">Thanh toan thanh cong</p>
             <p className="text-slate-500 text-sm">Tong tien: <span className="font-semibold text-slate-800">{formatVND(successOrder.total)}</span></p>
             <button
-              onClick={() => printReceipt(successOrder, settings.shopName)}
+              onClick={() => printReceipt(successOrder, settings)}
               className="mt-2 w-full bg-brand-50 text-brand-700 rounded-xl py-3 font-medium active:scale-[0.98] transition"
             >
               🖨️ In hoa don

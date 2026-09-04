@@ -20,7 +20,9 @@ function formatDateTime(iso) {
   })
 }
 
-function buildReceiptHtml(order, shopName) {
+function buildReceiptHtml(order, settings) {
+  const shopName = settings?.shopName
+  const shopAddress = settings?.shopAddress
   const rows = order.items
     .map(
       (item) => `
@@ -67,6 +69,7 @@ function buildReceiptHtml(order, shopName) {
 <body>
   <div class="center">
     <p class="shop-name">${escapeHtml(shopName || DEFAULT_SHOP_NAME)}</p>
+    ${shopAddress ? `<p class="meta">${escapeHtml(shopAddress)}</p>` : ''}
     <p class="meta">Hoa don ban hang</p>
   </div>
   <hr />
@@ -86,14 +89,14 @@ function buildReceiptHtml(order, shopName) {
 </html>`
 }
 
-export function printReceipt(order, shopName) {
+export function printReceipt(order, settings) {
   const receiptWindow = window.open('', '_blank', 'width=380,height=640')
   if (!receiptWindow) {
     alert('Trinh duyet dang chan cua so in. Vui long cho phep popup roi thu lai.')
     return
   }
   receiptWindow.document.open()
-  receiptWindow.document.write(buildReceiptHtml(order, shopName))
+  receiptWindow.document.write(buildReceiptHtml(order, settings))
   receiptWindow.document.close()
   receiptWindow.focus()
 
