@@ -2,14 +2,16 @@ import React, { Suspense, lazy, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import CartSheet from '../components/CartSheet'
+import SettingsSheet from '../components/SettingsSheet'
 
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
 export default function SalesPage() {
-  const { products, cart, addToCart, findProductByBarcode } = useData()
+  const { products, cart, addToCart, findProductByBarcode, settings } = useData()
   const [query, setQuery] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState('')
 
   const filtered = useMemo(() => {
@@ -55,7 +57,19 @@ export default function SalesPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 pt-4">
-      <h1 className="text-xl font-bold text-slate-800 mb-3">Ban hang</h1>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800">Ban hang</h1>
+          <p className="text-xs text-slate-400">{settings.shopName}</p>
+        </div>
+        <button
+          onClick={() => setSettingsOpen(true)}
+          aria-label="Cai dat cua hang"
+          className="shrink-0 rounded-full bg-white border border-slate-200 h-9 w-9 flex items-center justify-center shadow-sm active:scale-[0.95] transition"
+        >
+          ⚙️
+        </button>
+      </div>
 
       <div className="flex gap-2">
         <input
@@ -119,6 +133,7 @@ export default function SalesPage() {
       )}
 
       <CartSheet open={cartOpen} onClose={() => setCartOpen(false)} />
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       {scannerOpen && (
         <Suspense fallback={null}>
           <BarcodeScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDetected={handleDetected} />

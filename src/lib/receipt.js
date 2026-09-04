@@ -1,6 +1,6 @@
 import { formatVND } from './storage'
 
-const SHOP_NAME = 'BanHang POS'
+const DEFAULT_SHOP_NAME = 'BanHang POS'
 
 function escapeHtml(str) {
   return String(str)
@@ -20,7 +20,7 @@ function formatDateTime(iso) {
   })
 }
 
-function buildReceiptHtml(order) {
+function buildReceiptHtml(order, shopName) {
   const rows = order.items
     .map(
       (item) => `
@@ -66,7 +66,7 @@ function buildReceiptHtml(order) {
 </head>
 <body>
   <div class="center">
-    <p class="shop-name">${escapeHtml(SHOP_NAME)}</p>
+    <p class="shop-name">${escapeHtml(shopName || DEFAULT_SHOP_NAME)}</p>
     <p class="meta">Hoa don ban hang</p>
   </div>
   <hr />
@@ -86,14 +86,14 @@ function buildReceiptHtml(order) {
 </html>`
 }
 
-export function printReceipt(order) {
+export function printReceipt(order, shopName) {
   const receiptWindow = window.open('', '_blank', 'width=380,height=640')
   if (!receiptWindow) {
     alert('Trinh duyet dang chan cua so in. Vui long cho phep popup roi thu lai.')
     return
   }
   receiptWindow.document.open()
-  receiptWindow.document.write(buildReceiptHtml(order))
+  receiptWindow.document.write(buildReceiptHtml(order, shopName))
   receiptWindow.document.close()
   receiptWindow.focus()
 

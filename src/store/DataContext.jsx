@@ -9,6 +9,8 @@ const DEFAULT_PRODUCTS = [
   { id: makeId(), name: 'Ca phe sua da', price: 18000, stock: 30, category: 'Do uong', barcode: '' }
 ]
 
+const DEFAULT_SETTINGS = { shopName: 'BanHang POS' }
+
 const DataContext = createContext(null)
 
 export function DataProvider({ children }) {
@@ -16,11 +18,17 @@ export function DataProvider({ children }) {
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [orders, setOrders] = useState(() => loadData('orders', []))
   const [stockMovements, setStockMovements] = useState(() => loadData('stockMovements', []))
+  const [settings, setSettings] = useState(() => loadData('settings', DEFAULT_SETTINGS))
 
   useEffect(() => saveData('products', products), [products])
   useEffect(() => saveData('cart', cart), [cart])
   useEffect(() => saveData('orders', orders), [orders])
   useEffect(() => saveData('stockMovements', stockMovements), [stockMovements])
+  useEffect(() => saveData('settings', settings), [settings])
+
+  function updateSettings(patch) {
+    setSettings((prev) => ({ ...prev, ...patch }))
+  }
 
   function addProduct(product) {
     setProducts((prev) => [...prev, { ...product, id: makeId() }])
@@ -104,6 +112,7 @@ export function DataProvider({ children }) {
     cart,
     orders,
     stockMovements,
+    settings,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -113,7 +122,8 @@ export function DataProvider({ children }) {
     clearCart,
     checkout,
     findProductByBarcode,
-    restockProduct
+    restockProduct,
+    updateSettings
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>
