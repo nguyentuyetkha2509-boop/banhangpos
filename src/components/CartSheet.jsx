@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
-import { printReceipt } from '../lib/receipt'
 
 export default function CartSheet({ open, onClose }) {
-  const { cart, setCartQty, removeFromCart, checkout, settings } = useData()
+  const { cart, setCartQty, removeFromCart, checkout, requestPrint } = useData()
   const [successOrder, setSuccessOrder] = useState(null)
 
   if (!open) return null
@@ -33,7 +32,7 @@ export default function CartSheet({ open, onClose }) {
             <p className="font-bold text-lg text-slate-800">Thanh toán thành công</p>
             <p className="text-slate-500 text-sm">Tổng tiền: <span className="font-semibold text-slate-800">{formatVND(successOrder.total)}</span></p>
             <button
-              onClick={() => printReceipt(successOrder, settings)}
+              onClick={() => requestPrint(successOrder)}
               className="mt-2 w-full bg-brand-50 text-brand-700 rounded-xl py-3 font-medium active:scale-[0.98] transition"
             >
               🖨️ In hóa đơn

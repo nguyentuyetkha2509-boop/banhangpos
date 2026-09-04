@@ -19,6 +19,7 @@ export function DataProvider({ children }) {
   const [orders, setOrders] = useState(() => loadData('orders', []))
   const [stockMovements, setStockMovements] = useState(() => loadData('stockMovements', []))
   const [settings, setSettings] = useState(() => loadData('settings', DEFAULT_SETTINGS))
+  const [printOrder, setPrintOrder] = useState(null)
 
   useEffect(() => saveData('products', products), [products])
   useEffect(() => saveData('cart', cart), [cart])
@@ -28,6 +29,14 @@ export function DataProvider({ children }) {
 
   function updateSettings(patch) {
     setSettings((prev) => ({ ...prev, ...patch }))
+  }
+
+  function requestPrint(order) {
+    setPrintOrder(order)
+  }
+
+  function closePrint() {
+    setPrintOrder(null)
   }
 
   function addProduct(product) {
@@ -113,6 +122,9 @@ export function DataProvider({ children }) {
     orders,
     stockMovements,
     settings,
+    printOrder,
+    requestPrint,
+    closePrint,
     addProduct,
     updateProduct,
     deleteProduct,

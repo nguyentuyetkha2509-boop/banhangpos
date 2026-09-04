@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
-import { printReceipt } from '../lib/receipt'
 
 function formatTime(iso) {
   const d = new Date(iso)
@@ -9,7 +8,7 @@ function formatTime(iso) {
 }
 
 export default function OrdersPage() {
-  const { orders, settings } = useData()
+  const { orders, requestPrint } = useData()
   const [openId, setOpenId] = useState(null)
 
   const todayTotal = orders
@@ -52,7 +51,7 @@ export default function OrdersPage() {
                   ))}
                   <div className="pt-2">
                     <button
-                      onClick={() => printReceipt(o, settings)}
+                      onClick={() => requestPrint(o)}
                       className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
                     >
                       🖨️ In lại hóa đơn

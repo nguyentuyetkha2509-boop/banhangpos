@@ -11,3 +11,21 @@ body {
   background-color: #f8fafc;
   -webkit-tap-highlight-color: transparent;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-print-area,
+  .receipt-print-area * {
+    visibility: visible;
+  }
+  .receipt-print-area {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
