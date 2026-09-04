@@ -13,17 +13,8 @@ body {
 }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .receipt-print-area,
-  .receipt-print-area * {
-    visibility: visible;
-  }
-  .receipt-print-area {
-    position: fixed;
-    inset: 0;
-    width: 100%;
+  .app-main-content {
+    display: none !important;
   }
   .no-print {
     display: none !important;
