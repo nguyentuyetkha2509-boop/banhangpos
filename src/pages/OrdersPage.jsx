@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
+import { printReceipt } from '../lib/receipt'
 
 function formatTime(iso) {
   const d = new Date(iso)
@@ -49,6 +50,14 @@ export default function OrdersPage() {
                       <span className="text-slate-800 font-medium shrink-0">{formatVND(item.price * item.qty)}</span>
                     </div>
                   ))}
+                  <div className="pt-2">
+                    <button
+                      onClick={() => printReceipt(o)}
+                      className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
+                    >
+                      🖨️ In lai hoa don
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
