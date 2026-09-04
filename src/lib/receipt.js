@@ -54,19 +54,28 @@ function buildReceiptHtml(order, settings) {
     width: 100%;
     max-width: 300px;
     margin: 0 auto 12px;
+    display: flex;
+    gap: 8px;
   }
-  .back-btn {
+  .back-bar button {
     font-family: Arial, sans-serif;
     font-size: 14px;
     font-weight: 600;
-    color: #0f766e;
-    background: #f0fdfa;
     border: none;
     border-radius: 8px;
     padding: 10px 14px;
     cursor: pointer;
+    flex: 1;
   }
-  .back-btn:active { opacity: 0.8; }
+  .back-btn {
+    color: #0f766e;
+    background: #f0fdfa;
+  }
+  .print-btn {
+    color: #fff;
+    background: #0f766e;
+  }
+  .back-bar button:active { opacity: 0.8; }
   .center { text-align: center; }
   .shop-name { font-size: 18px; font-weight: 700; margin: 0 0 2px; }
   .meta { font-size: 12px; color: #333; margin: 2px 0; }
@@ -90,6 +99,7 @@ function buildReceiptHtml(order, settings) {
 <body>
   <div class="back-bar">
     <button class="back-btn" onclick="window.close()">← Quay lại</button>
+    <button class="print-btn" onclick="window.print()">🖨️ In</button>
   </div>
   <div class="center">
     <p class="shop-name">${escapeHtml(shopName || DEFAULT_SHOP_NAME)}</p>
@@ -123,13 +133,4 @@ export function printReceipt(order, settings) {
   receiptWindow.document.write(buildReceiptHtml(order, settings))
   receiptWindow.document.close()
   receiptWindow.focus()
-
-  const triggerPrint = () => {
-    receiptWindow.print()
-  }
-  if (receiptWindow.document.readyState === 'complete') {
-    triggerPrint()
-  } else {
-    receiptWindow.onload = triggerPrint
-  }
 }
