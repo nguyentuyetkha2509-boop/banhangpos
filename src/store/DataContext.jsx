@@ -2,14 +2,14 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { loadData, saveData, makeId } from '../lib/storage'
 
 const DEFAULT_PRODUCTS = [
-  { id: makeId(), name: 'Coca Cola lon', price: 12000, stock: 48, category: 'Nuoc giai khat', barcode: '8934588123451' },
-  { id: makeId(), name: 'Mi tom Hao Hao', price: 4500, stock: 100, category: 'Thuc pham', barcode: '8934588123468' },
-  { id: makeId(), name: 'Banh mi sandwich', price: 20000, stock: 15, category: 'Do an', barcode: '' },
-  { id: makeId(), name: 'Nuoc suoi Lavie 500ml', price: 6000, stock: 60, category: 'Nuoc giai khat', barcode: '8934588123475' },
-  { id: makeId(), name: 'Ca phe sua da', price: 18000, stock: 30, category: 'Do uong', barcode: '' }
+  { id: makeId(), name: 'Coca Cola lon', price: 12000, stock: 48, category: 'Nước giải khát', barcode: '8934588123451' },
+  { id: makeId(), name: 'Mì tôm Hảo Hảo', price: 4500, stock: 100, category: 'Thực phẩm', barcode: '8934588123468' },
+  { id: makeId(), name: 'Bánh mì sandwich', price: 20000, stock: 15, category: 'Đồ ăn', barcode: '' },
+  { id: makeId(), name: 'Nước suối Lavie 500ml', price: 6000, stock: 60, category: 'Nước giải khát', barcode: '8934588123475' },
+  { id: makeId(), name: 'Cà phê sữa đá', price: 18000, stock: 30, category: 'Đồ uống', barcode: '' }
 ]
 
-const DEFAULT_SETTINGS = { shopName: 'BanHang POS', shopAddress: '' }
+const DEFAULT_SETTINGS = { shopName: 'Bán Hàng POS', shopAddress: '' }
 
 const DataContext = createContext(null)
 
@@ -131,6 +131,6 @@ export function DataProvider({ children }) {
 
 export function useData() {
   const ctx = useContext(DataContext)
-  if (!ctx) throw new Error('useData phai duoc dung ben trong DataProvider')
+  if (!ctx) throw new Error('useData phải được dùng bên trong DataProvider')
   return ctx
 }

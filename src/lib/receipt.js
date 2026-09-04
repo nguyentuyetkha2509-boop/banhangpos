@@ -1,6 +1,6 @@
 import { formatVND } from './storage'
 
-const DEFAULT_SHOP_NAME = 'BanHang POS'
+const DEFAULT_SHOP_NAME = 'Bán Hàng POS'
 
 function escapeHtml(str) {
   return String(str)
@@ -40,7 +40,7 @@ function buildReceiptHtml(order, settings) {
 <html lang="vi">
 <head>
 <meta charset="UTF-8" />
-<title>Hoa don ${order.id}</title>
+<title>Hóa đơn ${order.id}</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -86,26 +86,26 @@ function buildReceiptHtml(order, settings) {
 </head>
 <body>
   <div class="back-bar">
-    <button class="back-btn" onclick="window.close()">← Quay lai</button>
+    <button class="back-btn" onclick="window.close()">← Quay lại</button>
   </div>
   <div class="center">
     <p class="shop-name">${escapeHtml(shopName || DEFAULT_SHOP_NAME)}</p>
     ${shopAddress ? `<p class="meta">${escapeHtml(shopAddress)}</p>` : ''}
-    <p class="meta">Hoa don ban hang</p>
+    <p class="meta">Hóa đơn bán hàng</p>
   </div>
   <hr />
-  <p class="meta">Ma hoa don: #${order.id.slice(-6).toUpperCase()}</p>
-  <p class="meta">Thoi gian: ${formatDateTime(order.createdAt)}</p>
+  <p class="meta">Mã hóa đơn: #${order.id.slice(-6).toUpperCase()}</p>
+  <p class="meta">Thời gian: ${formatDateTime(order.createdAt)}</p>
   <hr />
   <table>
     ${rows}
     <tr class="total-row">
-      <td>Tong cong</td>
+      <td>Tổng cộng</td>
       <td class="item-total">${formatVND(order.total)}</td>
     </tr>
   </table>
   <hr />
-  <p class="footer center">Cam on quy khach!</p>
+  <p class="footer center">Cảm ơn quý khách!</p>
 </body>
 </html>`
 }
@@ -113,7 +113,7 @@ function buildReceiptHtml(order, settings) {
 export function printReceipt(order, settings) {
   const receiptWindow = window.open('', '_blank', 'width=380,height=640')
   if (!receiptWindow) {
-    alert('Trinh duyet dang chan cua so in. Vui long cho phep popup roi thu lai.')
+    alert('Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.')
     return
   }
   receiptWindow.document.open()

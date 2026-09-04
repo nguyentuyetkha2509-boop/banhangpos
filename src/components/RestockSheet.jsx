@@ -34,9 +34,9 @@ export default function RestockSheet({ open, onClose, product }) {
         className="w-full max-w-md bg-white rounded-t-2xl p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-bold text-slate-800 mb-3">Nhap kho</h2>
+        <h2 className="font-bold text-slate-800 mb-3">Nhập kho</h2>
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">San pham</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Sản phẩm</label>
         <select
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
@@ -44,12 +44,12 @@ export default function RestockSheet({ open, onClose, product }) {
         >
           {products.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.name} (dang co {p.stock})
+              {p.name} (đang có {p.stock})
             </option>
           ))}
         </select>
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">So luong nhap them</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Số lượng nhập thêm</label>
         <input
           autoFocus
           type="number"
@@ -62,16 +62,16 @@ export default function RestockSheet({ open, onClose, product }) {
 
         {selected && qty && Number(qty) > 0 && (
           <p className="text-xs text-slate-500 mb-3">
-            Ton sau khi nhap: <span className="font-semibold text-brand-700">{selected.stock + Number(qty)}</span>
+            Tồn sau khi nhập: <span className="font-semibold text-brand-700">{selected.stock + Number(qty)}</span>
           </p>
         )}
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Ghi chu (tuy chon)</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Ghi chú (tùy chọn)</label>
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="VD: Nhap tu nha cung cap A"
+          placeholder="VD: Nhập từ nhà cung cấp A"
         />
 
         <div className="flex gap-2">
@@ -80,10 +80,10 @@ export default function RestockSheet({ open, onClose, product }) {
             onClick={onClose}
             className="flex-1 rounded-xl py-3 font-medium text-slate-600 bg-slate-100"
           >
-            Huy
+            Hủy
           </button>
           <button type="submit" className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700">
-            Nhap kho
+            Nhập kho
           </button>
         </div>
       </form>

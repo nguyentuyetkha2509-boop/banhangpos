@@ -40,7 +40,7 @@ export default function SalesPage() {
     if (product) {
       addToCart(product)
       setQuery('')
-      showToast(`Da them: ${product.name}`)
+      showToast(`Đã thêm: ${product.name}`)
     }
   }
 
@@ -49,9 +49,9 @@ export default function SalesPage() {
     const product = findProductByBarcode(code)
     if (product) {
       addToCart(product)
-      showToast(`Da them: ${product.name}`)
+      showToast(`Đã thêm: ${product.name}`)
     } else {
-      showToast(`Khong tim thay san pham voi ma ${code}`)
+      showToast(`Không tìm thấy sản phẩm với mã ${code}`)
     }
   }
 
@@ -59,12 +59,12 @@ export default function SalesPage() {
     <div className="max-w-md mx-auto px-4 pt-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Ban hang</h1>
+          <h1 className="text-xl font-bold text-slate-800">Bán hàng</h1>
           <p className="text-xs text-slate-400">{settings.shopName}</p>
         </div>
         <button
           onClick={() => setSettingsOpen(true)}
-          aria-label="Cai dat cua hang"
+          aria-label="Cài đặt cửa hàng"
           className="shrink-0 rounded-full bg-white border border-slate-200 h-9 w-9 flex items-center justify-center shadow-sm active:scale-[0.95] transition"
         >
           ⚙️
@@ -77,12 +77,12 @@ export default function SalesPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleSearchKeyDown}
-          placeholder="Tim ten hoac quet ma vach..."
+          placeholder="Tìm tên hoặc quét mã vạch..."
           className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
         />
         <button
           onClick={() => setScannerOpen(true)}
-          aria-label="Quet ma vach"
+          aria-label="Quét mã vạch"
           className="shrink-0 rounded-xl bg-brand-700 text-white px-3.5 shadow-sm active:scale-[0.97] transition"
         >
           📷
@@ -95,7 +95,7 @@ export default function SalesPage() {
 
       <div className="grid grid-cols-2 gap-3 mt-4">
         {filtered.length === 0 && (
-          <p className="col-span-2 text-center text-sm text-slate-400 py-10">Khong tim thay san pham</p>
+          <p className="col-span-2 text-center text-sm text-slate-400 py-10">Không tìm thấy sản phẩm</p>
         )}
         {filtered.map((p) => {
           const inCart = cartQtyOf(p.id)
@@ -115,7 +115,7 @@ export default function SalesPage() {
               <p className="font-medium text-sm text-slate-800 line-clamp-2 min-h-[2.5rem]">{p.name}</p>
               <p className="text-brand-700 font-bold mt-1">{formatVND(p.price)}</p>
               <p className={`text-xs mt-0.5 ${outOfStock ? 'text-red-500' : 'text-slate-400'}`}>
-                {outOfStock ? 'Het hang' : `Con ${p.stock}`}
+                {outOfStock ? 'Hết hàng' : `Còn ${p.stock}`}
               </p>
             </button>
           )
@@ -127,7 +127,7 @@ export default function SalesPage() {
           onClick={() => setCartOpen(true)}
           className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-brand-700 text-white rounded-xl px-4 py-3 shadow-lg flex items-center justify-between active:scale-[0.98] transition"
         >
-          <span className="font-medium text-sm">🛒 {cartCount} san pham</span>
+          <span className="font-medium text-sm">🛒 {cartCount} sản phẩm</span>
           <span className="font-bold">{formatVND(cartTotal)}</span>
         </button>
       )}

@@ -2,10 +2,10 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const items = [
-  { to: '/', label: 'Ban hang', icon: '🛒' },
-  { to: '/products', label: 'San pham', icon: '📦' },
-  { to: '/report', label: 'Bao cao', icon: '📊' },
-  { to: '/orders', label: 'Hoa don', icon: '🧾' }
+  { to: '/', label: 'Bán hàng', icon: '🛒' },
+  { to: '/products', label: 'Sản phẩm', icon: '📦' },
+  { to: '/report', label: 'Báo cáo', icon: '📊' },
+  { to: '/orders', label: 'Hóa đơn', icon: '🧾' }
 ]
 
 export default function BottomNav() {

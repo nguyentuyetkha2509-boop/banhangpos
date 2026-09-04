@@ -30,26 +30,26 @@ export default function SettingsSheet({ open, onClose }) {
         className="w-full max-w-md bg-white rounded-t-2xl p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-bold text-slate-800 mb-3">Cai dat cua hang</h2>
+        <h2 className="font-bold text-slate-800 mb-3">Cài đặt cửa hàng</h2>
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Ten cua hang</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Tên cửa hàng</label>
         <input
           autoFocus
           value={shopName}
           onChange={(e) => setShopName(e.target.value)}
           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="VD: Tap hoa Minh Anh"
+          placeholder="VD: Tạp hóa Minh Anh"
         />
-        <p className="text-xs text-slate-400 mb-4">Ten nay se hien tren hoa don khi in</p>
+        <p className="text-xs text-slate-400 mb-4">Tên này sẽ hiện trên hóa đơn khi in</p>
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Dia chi (tuy chon)</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Địa chỉ (tùy chọn)</label>
         <input
           value={shopAddress}
           onChange={(e) => setShopAddress(e.target.value)}
           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="VD: 123 Le Loi, Q.1, TP.HCM"
+          placeholder="VD: 123 Lê Lợi, Q.1, TP.HCM"
         />
-        <p className="text-xs text-slate-400 mb-4">Dia chi se hien duoi ten cua hang tren hoa don</p>
+        <p className="text-xs text-slate-400 mb-4">Địa chỉ sẽ hiện dưới tên cửa hàng trên hóa đơn</p>
 
         <div className="flex gap-2">
           <button
@@ -57,10 +57,10 @@ export default function SettingsSheet({ open, onClose }) {
             onClick={onClose}
             className="flex-1 rounded-xl py-3 font-medium text-slate-600 bg-slate-100"
           >
-            Huy
+            Hủy
           </button>
           <button type="submit" className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700">
-            Luu
+            Lưu
           </button>
         </div>
       </form>

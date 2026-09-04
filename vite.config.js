@@ -11,9 +11,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'BanHang POS',
-        short_name: 'BanHang',
-        description: 'App ban hang tai quay don gian',
+        name: 'Bán Hàng POS',
+        short_name: 'Bán Hàng',
+        description: 'App bán hàng tại quầy đơn giản',
         theme_color: '#0f766e',
         background_color: '#f8fafc',
         display: 'standalone',

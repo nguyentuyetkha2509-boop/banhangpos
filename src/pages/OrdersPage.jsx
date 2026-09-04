@@ -18,14 +18,14 @@ export default function OrdersPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 pt-4">
-      <h1 className="text-xl font-bold text-slate-800 mb-1">Lich su hoa don</h1>
+      <h1 className="text-xl font-bold text-slate-800 mb-1">Lịch sử hóa đơn</h1>
       <p className="text-sm text-slate-500 mb-3">
-        Hom nay: <span className="font-semibold text-brand-700">{formatVND(todayTotal)}</span> · {orders.length} hoa don
+        Hôm nay: <span className="font-semibold text-brand-700">{formatVND(todayTotal)}</span> · {orders.length} hóa đơn
       </p>
 
       <div className="space-y-2">
         {orders.length === 0 && (
-          <p className="text-center text-sm text-slate-400 py-10">Chua co hoa don nao</p>
+          <p className="text-center text-sm text-slate-400 py-10">Chưa có hóa đơn nào</p>
         )}
         {orders.map((o) => {
           const isOpen = openId === o.id
@@ -38,7 +38,7 @@ export default function OrdersPage() {
               >
                 <div className="text-left">
                   <p className="text-sm font-medium text-slate-800">#{o.id.slice(-6).toUpperCase()}</p>
-                  <p className="text-xs text-slate-400">{formatTime(o.createdAt)} · {itemCount} san pham</p>
+                  <p className="text-xs text-slate-400">{formatTime(o.createdAt)} · {itemCount} sản phẩm</p>
                 </div>
                 <span className="font-bold text-brand-700">{formatVND(o.total)}</span>
               </button>
@@ -55,7 +55,7 @@ export default function OrdersPage() {
                       onClick={() => printReceipt(o, settings)}
                       className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
                     >
-                      🖨️ In lai hoa don
+                      🖨️ In lại hóa đơn
                     </button>
                   </div>
                 </div>

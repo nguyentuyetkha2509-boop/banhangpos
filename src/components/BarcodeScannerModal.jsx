@@ -34,7 +34,7 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
         if (cancelled) safeStop()
       })
       .catch(() => {
-        if (!cancelled) setError('Khong the mo camera. Vui long cap quyen camera cho trinh duyet.')
+        if (!cancelled) setError('Không thể mở camera. Vui lòng cấp quyền camera cho trình duyệt.')
       })
 
     return () => {
@@ -48,14 +48,14 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-black">
       <div className="flex items-center justify-between px-4 py-3">
-        <h2 className="font-bold text-white">Quet ma vach</h2>
+        <h2 className="font-bold text-white">Quét mã vạch</h2>
         <button onClick={onClose} className="text-sm text-white/80">
-          Dong
+          Đóng
         </button>
       </div>
       <div id={REGION_ID} className="flex-1" />
       {error && <p className="p-4 text-center text-sm text-red-300">{error}</p>}
-      <p className="pb-6 pt-2 text-center text-xs text-white/60">Dua ma vach vao giua khung hinh</p>
+      <p className="pb-6 pt-2 text-center text-xs text-white/60">Đưa mã vạch vào giữa khung hình</p>
     </div>
   )
 }

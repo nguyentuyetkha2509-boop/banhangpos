@@ -42,7 +42,7 @@ export default function ReportPage() {
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-6">
       <h1 className="text-xl font-bold text-slate-800 mb-3">
-        Bao cao {selectedDate === TODAY ? 'hom nay' : ''}
+        Báo cáo {selectedDate === TODAY ? 'hôm nay' : ''}
       </h1>
 
       <input
@@ -59,19 +59,19 @@ export default function ReportPage() {
           <p className="text-lg font-bold text-brand-700 mt-0.5">{formatVND(totalRevenue)}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-          <p className="text-xs text-slate-400">So hoa don</p>
+          <p className="text-xs text-slate-400">Số hóa đơn</p>
           <p className="text-lg font-bold text-slate-800 mt-0.5">{dayOrders.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm col-span-2">
-          <p className="text-xs text-slate-400">So san pham da ban</p>
+          <p className="text-xs text-slate-400">Số sản phẩm đã bán</p>
           <p className="text-lg font-bold text-slate-800 mt-0.5">{totalItemsSold}</p>
         </div>
       </div>
 
-      <h2 className="font-bold text-slate-800 mb-2">San pham da ban trong ngay</h2>
+      <h2 className="font-bold text-slate-800 mb-2">Sản phẩm đã bán trong ngày</h2>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
         {soldByProduct.length === 0 && (
-          <p className="text-center text-sm text-slate-400 py-6">Chua co don hang nao trong ngay nay</p>
+          <p className="text-center text-sm text-slate-400 py-6">Chưa có đơn hàng nào trong ngày này</p>
         )}
         {soldByProduct.map((item, idx) => (
           <div
@@ -80,17 +80,17 @@ export default function ReportPage() {
           >
             <div className="min-w-0">
               <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
-              <p className="text-xs text-slate-400">Da ban: {item.qty}</p>
+              <p className="text-xs text-slate-400">Đã bán: {item.qty}</p>
             </div>
             <span className="font-semibold text-sm text-slate-800 shrink-0">{formatVND(item.revenue)}</span>
           </div>
         ))}
       </div>
 
-      <h2 className="font-bold text-slate-800 mb-2">Ton kho hien tai</h2>
+      <h2 className="font-bold text-slate-800 mb-2">Tồn kho hiện tại</h2>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {products.length === 0 && (
-          <p className="text-center text-sm text-slate-400 py-6">Chua co san pham nao</p>
+          <p className="text-center text-sm text-slate-400 py-6">Chưa có sản phẩm nào</p>
         )}
         {products.map((p, idx) => {
           const low = p.stock <= LOW_STOCK_THRESHOLD
@@ -101,8 +101,8 @@ export default function ReportPage() {
             >
               <p className="text-sm text-slate-700 truncate">{p.name}</p>
               <span className={`text-sm font-semibold shrink-0 ${low ? 'text-red-500' : 'text-slate-800'}`}>
-                Con {p.stock}
-                {low ? ' · Sap het' : ''}
+                Còn {p.stock}
+                {low ? ' · Sắp hết' : ''}
               </span>
             </div>
           )

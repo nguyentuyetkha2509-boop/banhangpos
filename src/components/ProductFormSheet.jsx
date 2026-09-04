@@ -57,9 +57,9 @@ export default function ProductFormSheet({ open, onClose, product }) {
         className="w-full max-w-md bg-white rounded-t-2xl p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-bold text-slate-800 mb-3">{product ? 'Sua san pham' : 'Them san pham'}</h2>
+        <h2 className="font-bold text-slate-800 mb-3">{product ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}</h2>
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Ten san pham</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Tên sản phẩm</label>
         <input
           autoFocus
           value={form.name}
@@ -70,7 +70,7 @@ export default function ProductFormSheet({ open, onClose, product }) {
 
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Gia ban (VND)</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Giá bán (VND)</label>
             <input
               type="number"
               min="0"
@@ -81,7 +81,7 @@ export default function ProductFormSheet({ open, onClose, product }) {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Ton kho</label>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Tồn kho</label>
             <input
               type="number"
               min="0"
@@ -93,15 +93,15 @@ export default function ProductFormSheet({ open, onClose, product }) {
           </div>
         </div>
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Danh muc (tuy chon)</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Danh mục (tùy chọn)</label>
         <input
           value={form.category}
           onChange={(e) => handleChange('category', e.target.value)}
           className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="VD: Nuoc giai khat"
+          placeholder="VD: Nước giải khát"
         />
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Ma vach (tuy chon)</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Mã vạch (tùy chọn)</label>
         <div className="flex gap-2 mb-4">
           <input
             value={form.barcode}
@@ -112,10 +112,10 @@ export default function ProductFormSheet({ open, onClose, product }) {
           <button
             type="button"
             onClick={() => setScannerOpen(true)}
-            aria-label="Quet ma vach"
+            aria-label="Quét mã vạch"
             className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
           >
-            📷 Quet
+            📷 Quét
           </button>
         </div>
 
@@ -125,10 +125,10 @@ export default function ProductFormSheet({ open, onClose, product }) {
             onClick={onClose}
             className="flex-1 rounded-xl py-3 font-medium text-slate-600 bg-slate-100"
           >
-            Huy
+            Hủy
           </button>
           <button type="submit" className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700">
-            Luu
+            Lưu
           </button>
         </div>
       </form>
