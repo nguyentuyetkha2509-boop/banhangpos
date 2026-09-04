@@ -1,23 +1,39 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 
+const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
+
 export default function RestockSheet({ open, onClose, product }) {
-  const { products, restockProduct } = useData()
+  const { products, restockProduct, findProductByBarcode } = useData()
   const [productId, setProductId] = useState('')
   const [qty, setQty] = useState('')
   const [note, setNote] = useState('')
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scanMsg, setScanMsg] = useState('')
 
   useEffect(() => {
     if (open) {
       setProductId(product?.id || products[0]?.id || '')
       setQty('')
       setNote('')
+      setScanMsg('')
     }
   }, [open, product, products])
 
   if (!open) return null
 
   const selected = products.find((p) => p.id === productId)
+
+  function handleDetected(code) {
+    setScannerOpen(false)
+    const found = findProductByBarcode(code)
+    if (found) {
+      setProductId(found.id)
+      setScanMsg(`Đã chọn: ${found.name}`)
+    } else {
+      setScanMsg(`Không tìm thấy sản phẩm với mã ${code}`)
+    }
+  }
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -37,21 +53,31 @@ export default function RestockSheet({ open, onClose, product }) {
         <h2 className="font-bold text-slate-800 mb-3">Nhập kho</h2>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Sản phẩm</label>
-        <select
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
-        >
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} (đang có {p.stock})
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-2 mb-1">
+          <select
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+            className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+          >
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} (đang có {p.stock})
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            aria-label="Quét mã vạch"
+            className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
+          >
+            📷 Quét
+          </button>
+        </div>
+        {scanMsg && <p className="text-xs text-slate-500 mb-2">{scanMsg}</p>}
 
-        <label className="block text-xs font-medium text-slate-500 mb-1">Số lượng nhập thêm</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1 mt-2">Số lượng nhập thêm</label>
         <input
-          autoFocus
           type="number"
           min="1"
           value={qty}
@@ -87,6 +113,12 @@ export default function RestockSheet({ open, onClose, product }) {
           </button>
         </div>
       </form>
+
+      {scannerOpen && (
+        <Suspense fallback={null}>
+          <BarcodeScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDetected={handleDetected} />
+        </Suspense>
+      )}
     </div>
   )
 }

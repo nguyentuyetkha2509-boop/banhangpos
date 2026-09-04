@@ -46,7 +46,7 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-black">
+    <div className="fixed inset-0 z-40 flex flex-col bg-black" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center justify-between px-4 py-3">
         <h2 className="font-bold text-white">Quét mã vạch</h2>
         <button onClick={onClose} className="text-sm text-white/80">

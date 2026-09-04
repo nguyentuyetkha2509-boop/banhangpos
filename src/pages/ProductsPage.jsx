@@ -8,7 +8,6 @@ export default function ProductsPage() {
   const { products, deleteProduct } = useData()
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
-  const [restockProduct, setRestockProduct] = useState(null)
   const [showRestock, setShowRestock] = useState(false)
 
   function openNew() {
@@ -19,11 +18,6 @@ export default function ProductsPage() {
   function openEdit(product) {
     setEditing(product)
     setShowForm(true)
-  }
-
-  function openRestock(product) {
-    setRestockProduct(product)
-    setShowRestock(true)
   }
 
   function handleDelete(product) {
@@ -40,7 +34,7 @@ export default function ProductsPage() {
 
       <div className="flex gap-2 mb-3">
         <button
-          onClick={() => openRestock(null)}
+          onClick={() => setShowRestock(true)}
           className="flex-1 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
         >
           📥 Nhập kho
@@ -65,34 +59,26 @@ export default function ProductsPage() {
               <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
               {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
             </div>
-            <div className="flex flex-col gap-1.5 shrink-0 ml-2">
+            <div className="flex gap-1.5 shrink-0 ml-2">
               <button
-                onClick={() => openRestock(p)}
-                className="text-xs font-medium text-brand-700 bg-brand-50 rounded-lg px-3 py-1.5"
+                onClick={() => openEdit(p)}
+                className="text-xs font-medium text-slate-600 bg-slate-100 rounded-lg px-3 py-1.5"
               >
-                Nhập kho
+                Sửa
               </button>
-              <div className="flex gap-1.5">
-                <button
-                  onClick={() => openEdit(p)}
-                  className="text-xs font-medium text-slate-600 bg-slate-100 rounded-lg px-3 py-1.5"
-                >
-                  Sửa
-                </button>
-                <button
-                  onClick={() => handleDelete(p)}
-                  className="text-xs font-medium text-red-500 bg-red-50 rounded-lg px-3 py-1.5"
-                >
-                  Xóa
-                </button>
-              </div>
+              <button
+                onClick={() => handleDelete(p)}
+                className="text-xs font-medium text-red-500 bg-red-50 rounded-lg px-3 py-1.5"
+              >
+                Xóa
+              </button>
             </div>
           </div>
         ))}
       </div>
 
       <ProductFormSheet open={showForm} onClose={() => setShowForm(false)} product={editing} />
-      <RestockSheet open={showRestock} onClose={() => setShowRestock(false)} product={restockProduct} />
+      <RestockSheet open={showRestock} onClose={() => setShowRestock(false)} />
     </div>
   )
 }
