@@ -124,13 +124,15 @@ function buildReceiptHtml(order, settings) {
 }
 
 export function printReceipt(order, settings) {
-  const receiptWindow = window.open('', '_blank', 'width=380,height=640')
+  const html = buildReceiptHtml(order, settings)
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+
+  const receiptWindow = window.open(url, '_blank', 'width=380,height=640')
   if (!receiptWindow) {
+    URL.revokeObjectURL(url)
     alert('Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.')
     return
   }
-  receiptWindow.document.open()
-  receiptWindow.document.write(buildReceiptHtml(order, settings))
-  receiptWindow.document.close()
-  receiptWindow.focus()
+  receiptWindow.addEventListener('unload', () => URL.revokeObjectURL(url))
 }
