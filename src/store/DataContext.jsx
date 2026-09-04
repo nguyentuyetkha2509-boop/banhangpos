@@ -2,11 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { loadData, saveData, makeId } from '../lib/storage'
 
 const DEFAULT_PRODUCTS = [
-  { id: makeId(), name: 'Coca Cola lon', price: 12000, stock: 48, category: 'Nuoc giai khat' },
-  { id: makeId(), name: 'Mi tom Hao Hao', price: 4500, stock: 100, category: 'Thuc pham' },
-  { id: makeId(), name: 'Banh mi sandwich', price: 20000, stock: 15, category: 'Do an' },
-  { id: makeId(), name: 'Nuoc suoi Lavie 500ml', price: 6000, stock: 60, category: 'Nuoc giai khat' },
-  { id: makeId(), name: 'Ca phe sua da', price: 18000, stock: 30, category: 'Do uong' }
+  { id: makeId(), name: 'Coca Cola lon', price: 12000, stock: 48, category: 'Nuoc giai khat', barcode: '8934588123451' },
+  { id: makeId(), name: 'Mi tom Hao Hao', price: 4500, stock: 100, category: 'Thuc pham', barcode: '8934588123468' },
+  { id: makeId(), name: 'Banh mi sandwich', price: 20000, stock: 15, category: 'Do an', barcode: '' },
+  { id: makeId(), name: 'Nuoc suoi Lavie 500ml', price: 6000, stock: 60, category: 'Nuoc giai khat', barcode: '8934588123475' },
+  { id: makeId(), name: 'Ca phe sua da', price: 18000, stock: 30, category: 'Do uong', barcode: '' }
 ]
 
 const DataContext = createContext(null)
@@ -58,6 +58,12 @@ export function DataProvider({ children }) {
     setCart((prev) => prev.filter((c) => c.productId !== productId))
   }
 
+  function findProductByBarcode(code) {
+    const trimmed = code.trim()
+    if (!trimmed) return null
+    return products.find((p) => p.barcode && p.barcode === trimmed) || null
+  }
+
   function clearCart() {
     setCart([])
   }
@@ -88,7 +94,8 @@ export function DataProvider({ children }) {
     setCartQty,
     removeFromCart,
     clearCart,
-    checkout
+    checkout,
+    findProductByBarcode
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

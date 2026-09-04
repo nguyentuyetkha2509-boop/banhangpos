@@ -1,17 +1,23 @@
-import React, { useMemo, useState } from 'react'
+import React, { Suspense, lazy, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import CartSheet from '../components/CartSheet'
 
+const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
+
 export default function SalesPage() {
-  const { products, cart, addToCart } = useData()
+  const { products, cart, addToCart, findProductByBarcode } = useData()
   const [query, setQuery] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [toast, setToast] = useState('')
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     if (!q) return products
-    return products.filter((p) => p.name.toLowerCase().includes(q))
+    return products.filter(
+      (p) => p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.toLowerCase().includes(q))
+    )
   }, [products, query])
 
   const cartCount = cart.reduce((sum, c) => sum + c.qty, 0)
@@ -21,17 +27,57 @@ export default function SalesPage() {
     return cart.find((c) => c.productId === productId)?.qty ?? 0
   }
 
+  function showToast(message) {
+    setToast(message)
+    setTimeout(() => setToast(''), 2200)
+  }
+
+  function handleSearchKeyDown(e) {
+    if (e.key !== 'Enter') return
+    const product = findProductByBarcode(query)
+    if (product) {
+      addToCart(product)
+      setQuery('')
+      showToast(`Da them: ${product.name}`)
+    }
+  }
+
+  function handleDetected(code) {
+    setScannerOpen(false)
+    const product = findProductByBarcode(code)
+    if (product) {
+      addToCart(product)
+      showToast(`Da them: ${product.name}`)
+    } else {
+      showToast(`Khong tim thay san pham voi ma ${code}`)
+    }
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 pt-4">
       <h1 className="text-xl font-bold text-slate-800 mb-3">Ban hang</h1>
 
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Tim san pham..."
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleSearchKeyDown}
+          placeholder="Tim ten hoac quet ma vach..."
+          className="flex-1 min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+        />
+        <button
+          onClick={() => setScannerOpen(true)}
+          aria-label="Quet ma vach"
+          className="shrink-0 rounded-xl bg-brand-700 text-white px-3.5 shadow-sm active:scale-[0.97] transition"
+        >
+          📷
+        </button>
+      </div>
+
+      {toast && (
+        <p className="mt-2 rounded-lg bg-slate-800 text-white text-xs px-3 py-2 text-center">{toast}</p>
+      )}
 
       <div className="grid grid-cols-2 gap-3 mt-4">
         {filtered.length === 0 && (
@@ -73,6 +119,11 @@ export default function SalesPage() {
       )}
 
       <CartSheet open={cartOpen} onClose={() => setCartOpen(false)} />
+      {scannerOpen && (
+        <Suspense fallback={null}>
+          <BarcodeScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDetected={handleDetected} />
+        </Suspense>
+      )}
     </div>
   )
 }

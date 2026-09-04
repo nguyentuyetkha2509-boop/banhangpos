@@ -1,0 +1,61 @@
+import React, { useEffect, useState } from 'react'
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode'
+
+const REGION_ID = 'barcode-scanner-region'
+
+export default function BarcodeScannerModal({ open, onClose, onDetected }) {
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setError('')
+    const scanner = new Html5Qrcode(REGION_ID)
+
+    function safeStop() {
+      if (scanner.getState() === Html5QrcodeScannerState.SCANNING || scanner.getState() === Html5QrcodeScannerState.PAUSED) {
+        scanner.stop().then(() => scanner.clear()).catch(() => {})
+      }
+    }
+
+    scanner
+      .start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 260, height: 160 } },
+        (decodedText) => {
+          if (cancelled) return
+          cancelled = true
+          onDetected(decodedText)
+        },
+        () => {}
+      )
+      .then(() => {
+        // Component co the da bi unmount truoc khi camera khoi dong xong
+        if (cancelled) safeStop()
+      })
+      .catch(() => {
+        if (!cancelled) setError('Khong the mo camera. Vui long cap quyen camera cho trinh duyet.')
+      })
+
+    return () => {
+      cancelled = true
+      safeStop()
+    }
+  }, [open])
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-40 flex flex-col bg-black">
+      <div className="flex items-center justify-between px-4 py-3">
+        <h2 className="font-bold text-white">Quet ma vach</h2>
+        <button onClick={onClose} className="text-sm text-white/80">
+          Dong
+        </button>
+      </div>
+      <div id={REGION_ID} className="flex-1" />
+      {error && <p className="p-4 text-center text-sm text-red-300">{error}</p>}
+      <p className="pb-6 pt-2 text-center text-xs text-white/60">Dua ma vach vao giua khung hinh</p>
+    </div>
+  )
+}

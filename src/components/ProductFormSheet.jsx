@@ -1,17 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 
-const EMPTY = { name: '', price: '', stock: '', category: '' }
+const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
+
+const EMPTY = { name: '', price: '', stock: '', category: '', barcode: '' }
 
 export default function ProductFormSheet({ open, onClose, product }) {
   const { addProduct, updateProduct } = useData()
   const [form, setForm] = useState(EMPTY)
+  const [scannerOpen, setScannerOpen] = useState(false)
 
   useEffect(() => {
     if (open) {
       setForm(
         product
-          ? { name: product.name, price: product.price, stock: product.stock, category: product.category || '' }
+          ? {
+              name: product.name,
+              price: product.price,
+              stock: product.stock,
+              category: product.category || '',
+              barcode: product.barcode || ''
+            }
           : EMPTY
       )
     }
@@ -30,7 +39,8 @@ export default function ProductFormSheet({ open, onClose, product }) {
       name: form.name.trim(),
       price: Math.max(0, Number(form.price) || 0),
       stock: Math.max(0, Number(form.stock) || 0),
-      category: form.category.trim()
+      category: form.category.trim(),
+      barcode: form.barcode.trim()
     }
     if (product) {
       updateProduct(product.id, payload)
@@ -87,9 +97,27 @@ export default function ProductFormSheet({ open, onClose, product }) {
         <input
           value={form.category}
           onChange={(e) => handleChange('category', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
           placeholder="VD: Nuoc giai khat"
         />
+
+        <label className="block text-xs font-medium text-slate-500 mb-1">Ma vach (tuy chon)</label>
+        <div className="flex gap-2 mb-4">
+          <input
+            value={form.barcode}
+            onChange={(e) => handleChange('barcode', e.target.value)}
+            className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+            placeholder="VD: 8934588123451"
+          />
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            aria-label="Quet ma vach"
+            className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
+          >
+            📷 Quet
+          </button>
+        </div>
 
         <div className="flex gap-2">
           <button
@@ -104,6 +132,19 @@ export default function ProductFormSheet({ open, onClose, product }) {
           </button>
         </div>
       </form>
+
+      {scannerOpen && (
+        <Suspense fallback={null}>
+          <BarcodeScannerModal
+            open={scannerOpen}
+            onClose={() => setScannerOpen(false)}
+            onDetected={(code) => {
+              setScannerOpen(false)
+              handleChange('barcode', code)
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   )
 }

@@ -46,6 +46,7 @@ export default function ProductsPage() {
               <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
               <p className="text-xs text-slate-400">{p.category || 'Khong phan loai'} · Ton: {p.stock}</p>
               <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
+              {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
             </div>
             <div className="flex gap-2 shrink-0 ml-2">
               <button
