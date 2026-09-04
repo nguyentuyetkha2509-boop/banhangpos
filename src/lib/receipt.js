@@ -78,6 +78,9 @@ function buildReceiptHtml(order, settings) {
   .total-row td { padding-top: 10px; font-size: 15px; font-weight: 700; }
   .total-row .item-total { text-align: right; }
   .footer { margin-top: 16px; font-size: 12px; }
+  @page {
+    margin: 0;
+  }
   @media print {
     body { width: 100%; }
     .back-bar { display: none; }
