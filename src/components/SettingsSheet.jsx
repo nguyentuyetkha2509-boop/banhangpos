@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 
 export default function SettingsSheet({ open, onClose }) {
-  const { settings, updateSettings } = useData()
+  const { settings, updateSettings, products, orders, stockMovements } = useData()
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -21,6 +22,16 @@ export default function SettingsSheet({ open, onClose }) {
     if (!trimmedName) return
     updateSettings({ shopName: trimmedName, shopAddress: shopAddress.trim() })
     onClose()
+  }
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const { exportDataToExcel } = await import('../lib/exportExcel')
+      exportDataToExcel({ products, orders, stockMovements, settings })
+    } finally {
+      setExporting(false)
+    }
   }
 
   return (
@@ -50,6 +61,21 @@ export default function SettingsSheet({ open, onClose }) {
           placeholder="VD: 123 Lê Lợi, Q.1, TP.HCM"
         />
         <p className="text-xs text-slate-400 mb-4">Địa chỉ sẽ hiện dưới tên cửa hàng trên hóa đơn</p>
+
+        <div className="border-t border-slate-100 pt-3 mb-4">
+          <p className="text-xs font-medium text-slate-500 mb-1">Sao lưu dữ liệu</p>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting}
+            className="w-full rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 disabled:opacity-50"
+          >
+            {exporting ? 'Đang tạo file...' : '📊 Xuất dữ liệu ra Excel'}
+          </button>
+          <p className="text-xs text-slate-400 mt-1">
+            Tải về file chứa toàn bộ sản phẩm, hóa đơn và lịch sử nhập kho để lưu trữ riêng
+          </p>
+        </div>
 
         <div className="flex gap-2">
           <button
