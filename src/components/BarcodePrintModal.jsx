@@ -4,7 +4,8 @@ import { generateBarcodeDataUrl } from '../lib/barcode'
 import { formatVND } from '../lib/storage'
 
 export default function BarcodePrintModal({ product, onClose }) {
-  const [copies, setCopies] = useState(6)
+  const [copiesInput, setCopiesInput] = useState('6')
+  const copies = Math.max(1, Math.min(60, Number(copiesInput) || 1))
 
   const dataUrl = useMemo(() => {
     if (!product?.barcode) return null
@@ -44,8 +45,9 @@ export default function BarcodePrintModal({ product, onClose }) {
             type="number"
             min="1"
             max="60"
-            value={copies}
-            onChange={(e) => setCopies(Math.max(1, Math.min(60, Number(e.target.value) || 1)))}
+            value={copiesInput}
+            onChange={(e) => setCopiesInput(e.target.value)}
+            onBlur={() => setCopiesInput(String(copies))}
             className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
           />
           <button
