@@ -9,6 +9,7 @@ export default function AuthGate({ children }) {
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   if (loading) {
     return (
@@ -68,14 +69,23 @@ export default function AuthGate({ children }) {
         />
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Mật khẩu</label>
-        <input
-          type="password"
-          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="Ít nhất 6 ký tự"
-        />
+        <div className="relative mb-1">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-16 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+            placeholder="Ít nhất 6 ký tự"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-500 px-2 py-1"
+          >
+            {showPassword ? 'Ẩn' : 'Hiện'}
+          </button>
+        </div>
 
         {mode === 'signin' && (
           <button
