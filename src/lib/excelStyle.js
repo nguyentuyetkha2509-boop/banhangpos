@@ -31,16 +31,19 @@ function widthFor(header, rows, col) {
     const len = v == null ? 0 : String(v).length
     if (len > max) max = len
   })
-  return Math.min(Math.max(max + 2, 10), 42)
+  return Math.min(Math.max(max + 4, 14), 46)
 }
 
 /**
- * Builds a styled worksheet: optional title + metadata block, a bold colored
- * header row, bordered body rows (with VND columns right-aligned and
- * comma-formatted), and an optional highlighted total row.
+ * Builds a styled worksheet: a title + metadata block (merged to span the
+ * full table width so labels/values aren't clipped by narrow columns), a
+ * bold colored header row, bordered body rows (with VND columns
+ * right-aligned and comma-formatted), and an optional highlighted total row.
  */
 export function buildStyledSheet({ title, meta, headers, rows, totalRow, moneyCols = [], boldLabelRows = [] }) {
+  const colCount = headers.length
   const data = []
+  const merges = []
   if (title) data.push([title])
   if (meta) meta.forEach(([label, value]) => data.push([label, value]))
   if (title || meta) data.push([])
@@ -58,11 +61,14 @@ export function buildStyledSheet({ title, meta, headers, rows, totalRow, moneyCo
 
   if (title) {
     ensureCell(ws, 0, 0).s = { font: { bold: true, sz: 14, color: { rgb: BRAND } } }
+    if (colCount > 1) merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: colCount - 1 } })
   }
   if (meta) {
     meta.forEach((_, i) => {
       const r = title ? 1 + i : i
       ensureCell(ws, r, 0).s = { font: { bold: true, color: { rgb: LABEL_COLOR } } }
+      ensureCell(ws, r, 1).s = { font: { color: { rgb: '1E293B' } } }
+      if (colCount > 2) merges.push({ s: { r, c: 1 }, e: { r, c: colCount - 1 } })
     })
   }
 
@@ -105,6 +111,7 @@ export function buildStyledSheet({ title, meta, headers, rows, totalRow, moneyCo
   }
 
   ws['!cols'] = headers.map((h, c) => ({ wch: widthFor(h, rows, c) }))
+  if (merges.length > 0) ws['!merges'] = merges
 
   return ws
 }
