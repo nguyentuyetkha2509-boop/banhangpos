@@ -3,7 +3,7 @@ import { useData } from '../store/DataContext'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
-const EMPTY = { name: '', category: '', barcode: '', image: '' }
+const EMPTY = { name: '', category: '', barcode: '', image: '', price: '' }
 
 function resizeImageToDataUrl(file, maxSize = 480, quality = 0.72) {
   return new Promise((resolve, reject) => {
@@ -43,7 +43,8 @@ export default function ProductFormSheet({ open, onClose, product }) {
               name: product.name,
               category: product.category || '',
               barcode: product.barcode || '',
-              image: product.image || ''
+              image: product.image || '',
+              price: product.price ?? ''
             }
           : EMPTY
       )
@@ -81,7 +82,7 @@ export default function ProductFormSheet({ open, onClose, product }) {
       image: form.image || ''
     }
     if (product) {
-      updateProduct(product.id, payload)
+      updateProduct(product.id, { ...payload, price: Math.max(0, Number(form.price) || 0) })
     } else {
       addProduct({ ...payload, price: 0, stock: 0, costPrice: 0 })
     }
@@ -129,6 +130,20 @@ export default function ProductFormSheet({ open, onClose, product }) {
             </button>
           )}
         </div>
+
+        {product && (
+          <>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Giá bán (VND)</label>
+            <input
+              type="number"
+              min="0"
+              value={form.price}
+              onChange={(e) => handleChange('price', e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              placeholder="0"
+            />
+          </>
+        )}
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Danh mục (tùy chọn)</label>
         <input
