@@ -38,11 +38,20 @@ export default function SettingsSheet({ open, onClose }) {
 
   function handleReset() {
     const typed = window.prompt(
-      'Thao tác này sẽ XÓA VĨNH VIỄN toàn bộ sản phẩm, hóa đơn, lịch sử nhập kho và trả hàng (không xóa tên/địa chỉ cửa hàng đã cài đặt). Không thể hoàn tác.\n\nNhập chữ "XÓA" để xác nhận:'
+      'Thao tác này sẽ XÓA VĨNH VIỄN toàn bộ sản phẩm, hóa đơn, lịch sử nhập kho và trả hàng (không xóa tên/địa chỉ cửa hàng đã cài đặt). Không thể hoàn tác.\n\nNhập chữ "XOA" để xác nhận:'
     )
-    if (typed !== 'XÓA') return
+    const normalized = (typed || '')
+      .trim()
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+    if (normalized !== 'XOA') {
+      if (typed != null) alert('Chữ xác nhận không khớp, chưa xóa gì cả. Vui lòng thử lại.')
+      return
+    }
     resetAllData()
     onClose()
+    alert('Đã xóa toàn bộ dữ liệu.')
   }
 
   return (
