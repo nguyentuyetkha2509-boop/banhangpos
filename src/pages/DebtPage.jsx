@@ -90,7 +90,7 @@ export default function DebtPage() {
                   <p className="text-sm font-medium text-slate-800 truncate">
                     {c.name}
                     {paidOff && (
-                      <span className="ml-1.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 rounded-full px-1.5 py-0.5">
+                      <span className="ml-1.5 text-[13px] font-semibold text-emerald-600 bg-emerald-50 rounded-full px-1.5 py-0.5">
                         Đã trả hết
                       </span>
                     )}

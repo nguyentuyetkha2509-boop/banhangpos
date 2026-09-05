@@ -98,7 +98,7 @@ export default function AdminApprovalSheet({ open, onClose }) {
                   <span className="text-sm text-slate-700 truncate mr-2 text-left">
                     {acc.accountEmail || acc.id}
                     {isPending && (
-                      <span className="ml-1.5 text-[11px] font-semibold text-amber-600 bg-amber-50 rounded-full px-1.5 py-0.5">
+                      <span className="ml-1.5 text-[13px] font-semibold text-amber-600 bg-amber-50 rounded-full px-1.5 py-0.5">
                         Chờ duyệt
                       </span>
                     )}

@@ -16,18 +16,18 @@ export default {
         }
       },
       fontSize: {
-        xs: ['0.8125rem', { lineHeight: '1.15rem' }],
-        sm: ['0.9375rem', { lineHeight: '1.35rem' }],
-        base: ['1.0625rem', { lineHeight: '1.55rem' }],
-        lg: ['1.1875rem', { lineHeight: '1.65rem' }],
-        xl: ['1.3125rem', { lineHeight: '1.8rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }]
+        xs: ['0.875rem', { lineHeight: '1.25rem' }],
+        sm: ['1rem', { lineHeight: '1.5rem' }],
+        base: ['1.125rem', { lineHeight: '1.65rem' }],
+        lg: ['1.25rem', { lineHeight: '1.8rem' }],
+        xl: ['1.375rem', { lineHeight: '1.9rem' }],
+        '2xl': ['1.625rem', { lineHeight: '2.1rem' }]
       },
       fontWeight: {
-        normal: '500',
-        medium: '600',
-        semibold: '700',
-        bold: '800'
+        normal: '600',
+        medium: '700',
+        semibold: '800',
+        bold: '900'
       }
     }
   },

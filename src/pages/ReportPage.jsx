@@ -339,7 +339,7 @@ export default function ReportPage() {
           </div>
         )}
       </div>
-      <p className="text-[12px] text-slate-400 mt-1.5 mb-4">
+      <p className="text-[14px] text-slate-400 mt-1.5 mb-4">
         Doanh thu thuần đã trừ giá trị trả hàng. Lãi ước tính tính theo giá nhập gần nhất của mỗi sản phẩm tại thời
         điểm bán. Hóa đơn đã hủy không được tính vào báo cáo.
       </p>
@@ -377,7 +377,7 @@ export default function ReportPage() {
             <span className="text-slate-600">Chuyển khoản</span>
             <span className="font-medium text-emerald-600">+{formatVND(debtCollectedTotals.transfer)}</span>
           </div>
-          <p className="px-3 pb-2 text-[12px] text-slate-400">
+          <p className="px-3 pb-2 text-[14px] text-slate-400">
             Tiền thu nợ không tính vào doanh thu (đã tính khi bán ghi nợ), nhưng vẫn là tiền mặt/chuyển khoản thực nhận trong kỳ.
           </p>
         </div>
@@ -420,12 +420,12 @@ export default function ReportPage() {
                   <p className="text-sm font-medium text-slate-800 truncate">
                     {c.name}
                     {isTop && (
-                      <span className="ml-1.5 text-[11px] font-semibold text-emerald-600 bg-emerald-50 rounded-full px-1.5 py-0.5">
+                      <span className="ml-1.5 text-[13px] font-semibold text-emerald-600 bg-emerald-50 rounded-full px-1.5 py-0.5">
                         Mua nhiều nhất
                       </span>
                     )}
                     {isBottom && (
-                      <span className="ml-1.5 text-[11px] font-semibold text-amber-600 bg-amber-50 rounded-full px-1.5 py-0.5">
+                      <span className="ml-1.5 text-[13px] font-semibold text-amber-600 bg-amber-50 rounded-full px-1.5 py-0.5">
                         Mua ít nhất
                       </span>
                     )}
@@ -449,7 +449,7 @@ export default function ReportPage() {
                         {item.returnValue > 0 ? (
                           <span className="text-right shrink-0">
                             <span className="text-slate-800 font-medium">{formatVND(item.netRevenue)}</span>
-                            <span className="block text-[12px] text-red-500">
+                            <span className="block text-[14px] text-red-500">
                               {formatVND(item.revenue)} − {formatVND(item.returnValue)}
                             </span>
                           </span>

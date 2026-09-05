@@ -31,7 +31,7 @@ export default function BottomNav() {
                   <Icon className="h-7 w-7" />
                 </span>
                 <span
-                  className={`text-[12px] leading-none whitespace-nowrap ${
+                  className={`text-[14px] leading-none whitespace-nowrap ${
                     isActive ? 'font-bold text-brand-700' : 'font-medium text-slate-400'
                   }`}
                 >
