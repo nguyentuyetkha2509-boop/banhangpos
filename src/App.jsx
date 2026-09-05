@@ -86,7 +86,7 @@ function AppShell() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
+    <div className="app-shell-root min-h-screen flex flex-col bg-canvas">
       <div className="app-main-content flex flex-col flex-1">
         <main className="flex-1 overflow-y-auto pb-20">
           <Routes>

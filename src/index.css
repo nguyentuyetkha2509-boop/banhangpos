@@ -16,6 +16,9 @@ body {
   html, body, #root {
     height: auto !important;
   }
+  .app-shell-root {
+    min-height: auto !important;
+  }
   .app-main-content {
     display: none !important;
   }
