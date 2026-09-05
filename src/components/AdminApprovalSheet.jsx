@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { formatVND } from '../lib/storage'
+import { ExportIcon } from './Icons'
 
 function formatDateTime(iso) {
   return new Date(iso).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -135,9 +136,10 @@ export default function AdminApprovalSheet({ open, onClose }) {
                     <button
                       onClick={() => handleExport(acc)}
                       disabled={exportingId === acc.id}
-                      className="w-full bg-brand-50 text-brand-700 text-xs font-medium rounded-lg py-2.5 disabled:opacity-50"
+                      className="w-full flex items-center justify-center gap-1.5 bg-brand-50 text-brand-700 text-xs font-medium rounded-lg py-2.5 disabled:opacity-50"
                     >
-                      {exportingId === acc.id ? 'Đang xuất...' : '📊 Xuất Excel dữ liệu tài khoản này'}
+                      {exportingId === acc.id ? null : <ExportIcon className="h-4 w-4" />}
+                      {exportingId === acc.id ? 'Đang xuất...' : 'Xuất Excel dữ liệu tài khoản này'}
                     </button>
                   </div>
                 )}

@@ -4,6 +4,7 @@ import { formatVND } from '../lib/storage'
 import CartSheet from '../components/CartSheet'
 import SettingsSheet from '../components/SettingsSheet'
 import { usePendingApprovalsCount } from '../store/usePendingApprovals'
+import { SettingsIcon, ScanIcon, CartIcon, BoxIcon } from '../components/Icons'
 
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
@@ -75,9 +76,9 @@ export default function SalesPage() {
         <button
           onClick={() => setSettingsOpen(true)}
           aria-label="Cài đặt cửa hàng"
-          className="relative shrink-0 rounded-full bg-white border border-slate-200 h-9 w-9 flex items-center justify-center shadow-sm active:scale-[0.95] transition"
+          className="relative shrink-0 rounded-2xl bg-white border border-slate-200 h-12 w-12 flex items-center justify-center shadow-sm active:scale-[0.95] transition"
         >
-          ⚙️
+          <SettingsIcon className="h-6 w-6 text-slate-500" />
           {pendingApprovals > 0 && (
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
               {pendingApprovals}
@@ -98,9 +99,9 @@ export default function SalesPage() {
         <button
           onClick={() => setScannerOpen(true)}
           aria-label="Quét mã vạch"
-          className="shrink-0 rounded-xl bg-brand-700 text-white px-3.5 shadow-sm active:scale-[0.97] transition"
+          className="shrink-0 rounded-xl bg-brand-700 text-white h-11 w-12 flex items-center justify-center shadow-sm active:scale-[0.97] transition"
         >
-          📷
+          <ScanIcon className="h-6 w-6" />
         </button>
       </div>
 
@@ -155,7 +156,7 @@ export default function SalesPage() {
                 {p.image ? (
                   <img src={p.image} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-slate-300 text-2xl">📦</span>
+                  <BoxIcon className="h-7 w-7 text-slate-300" />
                 )}
               </div>
               <p className="font-medium text-sm text-slate-800 line-clamp-2 min-h-[2.5rem]">{p.name}</p>
@@ -173,7 +174,10 @@ export default function SalesPage() {
           onClick={() => setCartOpen(true)}
           className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-brand-700 text-white rounded-xl px-4 py-3 shadow-lg flex items-center justify-between active:scale-[0.98] transition"
         >
-          <span className="font-medium text-sm">🛒 {cartCount} sản phẩm</span>
+          <span className="font-medium text-sm flex items-center gap-1.5">
+            <CartIcon className="h-5 w-5" />
+            {cartCount} sản phẩm
+          </span>
           <span className="font-bold">{formatVND(cartTotal)}</span>
         </button>
       )}

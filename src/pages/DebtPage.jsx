@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import DebtPaymentSheet from '../components/DebtPaymentSheet'
+import { ExportIcon, MoneyIcon } from '../components/Icons'
 
 const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản' }
 
@@ -66,9 +67,10 @@ export default function DebtPage() {
       <button
         onClick={handleExport}
         disabled={exporting || debtCustomers.length === 0}
-        className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2.5 mb-3 disabled:opacity-40 active:scale-[0.98] transition"
+        className="w-full flex items-center justify-center gap-1.5 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2.5 mb-3 disabled:opacity-40 active:scale-[0.98] transition"
       >
-        {exporting ? 'Đang xuất...' : '📊 Xuất Excel công nợ'}
+        {exporting ? null : <ExportIcon className="h-5 w-5" />}
+        {exporting ? 'Đang xuất...' : 'Xuất Excel công nợ'}
       </button>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -129,9 +131,10 @@ export default function DebtPage() {
                   {!paidOff && (
                     <button
                       onClick={() => setPayingCustomer(c)}
-                      className="w-full bg-brand-700 text-white text-sm font-medium rounded-lg py-2.5 active:scale-[0.98] transition"
+                      className="w-full flex items-center justify-center gap-1.5 bg-brand-700 text-white text-sm font-medium rounded-lg py-2.5 active:scale-[0.98] transition"
                     >
-                      💰 Thu nợ
+                      <MoneyIcon className="h-5 w-5" />
+                      Thu nợ
                     </button>
                   )}
                 </div>

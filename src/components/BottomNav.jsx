@@ -1,6 +1,6 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { CartIcon, BoxIcon, ChartIcon, ReceiptIcon, WalletIcon } from './NavIcons'
+import { CartIcon, BoxIcon, ChartIcon, ReceiptIcon, WalletIcon } from './Icons'
 
 const items = [
   { to: '/', label: 'Bán hàng', Icon: CartIcon },
@@ -19,16 +19,16 @@ export default function BottomNav() {
             key={to}
             to={to}
             end={to === '/'}
-            className="flex flex-col items-center justify-center gap-1 py-1.5 active:scale-95 transition-transform"
+            className="flex flex-col items-center justify-center gap-1 py-1 active:scale-95 transition-transform"
           >
             {({ isActive }) => (
               <>
                 <span
-                  className={`flex items-center justify-center h-11 w-11 rounded-2xl transition-colors ${
-                    isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-400'
+                  className={`flex items-center justify-center h-12 w-12 rounded-2xl transition-colors ${
+                    isActive ? 'bg-brand-50 text-brand-700' : 'bg-slate-50 text-slate-400'
                   }`}
                 >
-                  <Icon className="h-6 w-6" />
+                  <Icon className="h-7 w-7" />
                 </span>
                 <span
                   className={`text-[11px] leading-none whitespace-nowrap ${

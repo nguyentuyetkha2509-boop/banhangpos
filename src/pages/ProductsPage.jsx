@@ -4,6 +4,7 @@ import { formatVND } from '../lib/storage'
 import ProductFormSheet from '../components/ProductFormSheet'
 import RestockSheet from '../components/RestockSheet'
 import ReturnSheet from '../components/ReturnSheet'
+import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon } from '../components/Icons'
 
 export default function ProductsPage() {
   const { products, deleteProduct, stockMovements } = useData()
@@ -38,23 +39,26 @@ export default function ProductsPage() {
       <div className="flex gap-2 mb-2">
         <button
           onClick={() => setShowRestock(true)}
-          className="flex-1 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg px-3 py-2.5 active:scale-[0.97] transition"
         >
-          📥 Nhập kho
+          <RestockIcon className="h-5 w-5" />
+          Nhập kho
         </button>
         <button
           onClick={() => setShowReturn(true)}
-          className="flex-1 bg-red-50 text-red-600 text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
+          className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-600 text-sm font-medium rounded-lg px-3 py-2.5 active:scale-[0.97] transition"
         >
-          ↩️ Trả hàng
+          <ReturnIcon className="h-5 w-5" />
+          Trả hàng
         </button>
       </div>
       <div className="mb-3">
         <button
           onClick={openNew}
-          className="w-full bg-brand-700 text-white text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
+          className="w-full flex items-center justify-center gap-1.5 bg-brand-700 text-white text-sm font-medium rounded-lg px-3 py-2.5 active:scale-[0.97] transition"
         >
-          + Thêm sản phẩm
+          <PlusIcon className="h-5 w-5" />
+          Thêm sản phẩm
         </button>
       </div>
 
@@ -73,7 +77,7 @@ export default function ProductsPage() {
                     {p.image ? (
                       <img src={p.image} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-slate-300 text-[10px]">Ảnh</span>
+                      <BoxIcon className="h-5 w-5 text-slate-300" />
                     )}
                   </div>
                   <div className="min-w-0">

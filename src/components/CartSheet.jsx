@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
+import { PrintIcon } from './Icons'
 
 const PAYMENT_METHODS = [
   { key: 'cash', label: 'Tiền mặt' },
@@ -65,9 +66,10 @@ export default function CartSheet({ open, onClose }) {
             <p className="text-slate-500 text-sm">Tổng tiền: <span className="font-semibold text-slate-800">{formatVND(successOrder.total)}</span></p>
             <button
               onClick={() => requestPrint(successOrder)}
-              className="mt-2 w-full bg-brand-50 text-brand-700 rounded-xl py-3 font-medium active:scale-[0.98] transition"
+              className="mt-2 w-full flex items-center justify-center gap-1.5 bg-brand-50 text-brand-700 rounded-xl py-3 font-medium active:scale-[0.98] transition"
             >
-              🖨️ In hóa đơn
+              <PrintIcon className="h-5 w-5" />
+              In hóa đơn
             </button>
             <button
               onClick={handleDone}

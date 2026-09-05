@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
+import { ImageIcon, ScanIcon } from './Icons'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -113,11 +114,12 @@ export default function ProductFormSheet({ open, onClose, product }) {
             {form.image ? (
               <img src={form.image} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span className="text-slate-300 text-xs">Ảnh</span>
+              <ImageIcon className="h-7 w-7 text-slate-300" />
             )}
           </div>
-          <label className="flex-1 rounded-lg bg-brand-50 text-brand-700 text-sm font-medium py-2.5 text-center cursor-pointer">
-            {imageBusy ? 'Đang xử lý...' : form.image ? 'Đổi ảnh khác' : '🖼️ Chọn ảnh'}
+          <label className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-brand-50 text-brand-700 text-sm font-medium py-2.5 text-center cursor-pointer">
+            {imageBusy ? null : <ImageIcon className="h-5 w-5" />}
+            {imageBusy ? 'Đang xử lý...' : form.image ? 'Đổi ảnh khác' : 'Chọn ảnh'}
             <input type="file" accept="image/*" onChange={handleImagePick} className="hidden" disabled={imageBusy} />
           </label>
           {form.image && (
@@ -165,9 +167,10 @@ export default function ProductFormSheet({ open, onClose, product }) {
             type="button"
             onClick={() => setScannerOpen(true)}
             aria-label="Quét mã vạch"
-            className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
+            className="shrink-0 flex items-center gap-1.5 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
           >
-            📷 Quét
+            <ScanIcon className="h-5 w-5" />
+            Quét
           </button>
         </div>
 

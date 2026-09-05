@@ -3,6 +3,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        canvas: '#f3f7f3',
         brand: {
           50: '#e8f5e9',
           100: '#c8e6c9',

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ReturnSheet from '../components/ReturnSheet'
+import { PrintIcon, ReturnIcon } from '../components/Icons'
 
 const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
 
@@ -117,15 +118,17 @@ export default function OrdersPage() {
                     <div className="pt-2 flex gap-2">
                       <button
                         onClick={() => requestPrint(o)}
-                        className="flex-1 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2.5 active:scale-[0.98] transition"
                       >
-                        🖨️ In lại hóa đơn
+                        <PrintIcon className="h-5 w-5" />
+                        In lại hóa đơn
                       </button>
                       <button
                         onClick={() => setReturnOrder(o)}
-                        className="flex-1 bg-red-50 text-red-600 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-600 text-sm font-medium rounded-lg py-2.5 active:scale-[0.98] transition"
                       >
-                        ↩️ Trả hàng
+                        <ReturnIcon className="h-5 w-5" />
+                        Trả hàng
                       </button>
                     </div>
                   )}

@@ -13,7 +13,7 @@ export default function AuthGate({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-canvas">
         <p className="text-sm text-slate-400">Đang tải...</p>
       </div>
     )
@@ -49,7 +49,7 @@ export default function AuthGate({ children }) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <img src="logo-full.png" alt="TK Pos" className="w-48 mx-auto mb-4" />
         <p className="text-sm text-slate-500 text-center mb-5">

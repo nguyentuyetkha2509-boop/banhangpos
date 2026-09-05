@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
+import { ScanIcon } from './Icons'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -138,9 +139,10 @@ export default function ReturnSheet({ open, onClose, product, order }) {
               type="button"
               onClick={() => setScannerOpen(true)}
               aria-label="Quét mã vạch"
-              className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
+              className="shrink-0 flex items-center gap-1.5 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
             >
-              📷 Quét
+              <ScanIcon className="h-5 w-5" />
+              Quét
             </button>
           )}
         </div>

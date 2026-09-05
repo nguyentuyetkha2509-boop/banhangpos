@@ -4,6 +4,7 @@ import { useAuth } from '../store/AuthContext'
 import { OWNER_EMAIL } from '../lib/firebase'
 import AdminApprovalSheet from './AdminApprovalSheet'
 import { usePendingApprovalsCount } from '../store/usePendingApprovals'
+import { ExportIcon, PersonIcon, TrashIcon } from './Icons'
 
 export default function SettingsSheet({ open, onClose }) {
   const { settings, updateSettings, products, orders, stockMovements, returns, debtPayments, resetAllData } = useData()
@@ -94,9 +95,10 @@ export default function SettingsSheet({ open, onClose }) {
             type="button"
             onClick={handleExport}
             disabled={exporting}
-            className="w-full rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 disabled:opacity-50"
           >
-            {exporting ? 'Đang tạo file...' : '📊 Xuất dữ liệu ra Excel'}
+            {exporting ? null : <ExportIcon className="h-5 w-5" />}
+            {exporting ? 'Đang tạo file...' : 'Xuất dữ liệu ra Excel'}
           </button>
           <p className="text-xs text-slate-400 mt-1">
             Tải về file chứa toàn bộ sản phẩm, hóa đơn, lịch sử nhập kho và trả hàng để lưu trữ riêng
@@ -110,9 +112,10 @@ export default function SettingsSheet({ open, onClose }) {
             <button
               type="button"
               onClick={() => setApprovalOpen(true)}
-              className="w-full rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5 mb-2"
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5 mb-2"
             >
-              👤 Quản lý tài khoản{pendingApprovals > 0 ? ` (${pendingApprovals} chờ duyệt)` : ''}
+              <PersonIcon className="h-5 w-5" />
+              Quản lý tài khoản{pendingApprovals > 0 ? ` (${pendingApprovals} chờ duyệt)` : ''}
             </button>
           )}
           <button
@@ -142,9 +145,10 @@ export default function SettingsSheet({ open, onClose }) {
           <button
             type="button"
             onClick={handleReset}
-            className="w-full rounded-lg border border-red-200 text-red-600 text-sm font-semibold py-2.5"
+            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-red-200 text-red-600 text-sm font-semibold py-2.5"
           >
-            🗑️ Xóa toàn bộ dữ liệu
+            <TrashIcon className="h-5 w-5" />
+            Xóa toàn bộ dữ liệu
           </button>
           <p className="text-xs text-slate-400 mt-1">
             Xóa vĩnh viễn sản phẩm, hóa đơn, nhập kho, trả hàng để bắt đầu lại từ đầu. Nên xuất Excel sao lưu trước khi xóa.

@@ -10,6 +10,7 @@ import ProductsPage from './pages/ProductsPage'
 import OrdersPage from './pages/OrdersPage'
 import ReportPage from './pages/ReportPage'
 import DebtPage from './pages/DebtPage'
+import { ClockIcon } from './components/Icons'
 
 function AppShell() {
   const { ready, approved, syncError, printOrder, settings, closePrint } = useData()
@@ -27,7 +28,7 @@ function AppShell() {
 
   if (syncError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
+      <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
         <div className="text-center max-w-xs">
           <p className="text-sm text-red-500 mb-1">Không tải được dữ liệu</p>
           <p className="text-xs text-slate-400 mb-4">{syncError}</p>
@@ -47,7 +48,7 @@ function AppShell() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
+      <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
         <div className="text-center">
           <p className="text-sm text-slate-400 mb-3">Đang tải dữ liệu...</p>
           {slow && (
@@ -67,9 +68,11 @@ function AppShell() {
 
   if (!approved) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
+      <div className="min-h-screen flex items-center justify-center bg-canvas px-6">
         <div className="text-center max-w-xs">
-          <p className="text-4xl mb-3">⏳</p>
+          <span className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-amber-50 text-amber-600 mb-3">
+            <ClockIcon className="h-7 w-7" />
+          </span>
           <p className="text-sm font-medium text-slate-700 mb-1">Đang chờ phê duyệt</p>
           <p className="text-xs text-slate-400 mb-4">
             Tài khoản của bạn cần được chủ cửa hàng duyệt trước khi có thể sử dụng. Vui lòng liên hệ chủ cửa hàng.
@@ -83,7 +86,7 @@ function AppShell() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-canvas">
       <div className="app-main-content flex flex-col flex-1">
         <main className="flex-1 overflow-y-auto pb-20">
           <Routes>

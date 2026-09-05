@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
+import { ScanIcon } from './Icons'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -82,9 +83,10 @@ export default function RestockSheet({ open, onClose, product }) {
             type="button"
             onClick={() => setScannerOpen(true)}
             aria-label="Quét mã vạch"
-            className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
+            className="shrink-0 flex items-center gap-1.5 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
           >
-            📷 Quét
+            <ScanIcon className="h-5 w-5" />
+            Quét
           </button>
         </div>
         {scanMsg && <p className="text-xs text-slate-500 mb-2">{scanMsg}</p>}

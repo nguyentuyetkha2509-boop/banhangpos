@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { formatVND } from '../lib/storage'
 import { renderReceiptToBlob } from '../lib/receiptImage'
+import { PrintIcon, ShareIcon } from './Icons'
 
 const DEFAULT_SHOP_NAME = 'Bán Hàng POS'
 const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
@@ -62,17 +63,19 @@ export default function ReceiptModal({ order, settings, onClose }) {
           </button>
           <button
             onClick={() => window.print()}
-            className="flex-1 rounded-lg bg-brand-700 text-white text-sm font-semibold py-2.5"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-brand-700 text-white text-sm font-semibold py-2.5"
           >
-            🖨️ In
+            <PrintIcon className="h-5 w-5" />
+            In
           </button>
         </div>
         <button
           onClick={handleShareImage}
           disabled={sharing}
-          className="rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 disabled:opacity-50"
+          className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 disabled:opacity-50"
         >
-          {sharing ? 'Đang tạo ảnh...' : '📤 Chia sẻ ảnh hóa đơn (in máy in nhiệt)'}
+          {sharing ? null : <ShareIcon className="h-5 w-5" />}
+          {sharing ? 'Đang tạo ảnh...' : 'Chia sẻ ảnh hóa đơn (in máy in nhiệt)'}
         </button>
       </div>
 

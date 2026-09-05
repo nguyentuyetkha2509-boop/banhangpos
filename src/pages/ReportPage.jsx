@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import { PERIODS, getRange, shiftRef, formatRangeLabel, toDateInputValue } from '../lib/reportRange'
+import { ExportIcon } from '../components/Icons'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -385,9 +386,10 @@ export default function ReportPage() {
       <button
         onClick={handleExportReport}
         disabled={exporting || periodOrders.length === 0}
-        className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2.5 mb-6 disabled:opacity-40 active:scale-[0.98] transition"
+        className="w-full flex items-center justify-center gap-1.5 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2.5 mb-6 disabled:opacity-40 active:scale-[0.98] transition"
       >
-        {exporting ? 'Đang xuất...' : `📊 Xuất báo cáo ${periodMeta.label.toLowerCase()} này ra Excel`}
+        {exporting ? null : <ExportIcon className="h-5 w-5" />}
+        {exporting ? 'Đang xuất...' : `Xuất báo cáo ${periodMeta.label.toLowerCase()} này ra Excel`}
       </button>
 
       <h2 className="font-bold text-slate-800 mb-2">Khách mua hàng</h2>
@@ -460,9 +462,10 @@ export default function ReportPage() {
                   <button
                     onClick={() => handleExportCustomer(c)}
                     disabled={exportingCustomer === c.name}
-                    className="w-full mt-2 bg-white border border-slate-200 text-slate-600 text-xs font-medium rounded-lg py-2 disabled:opacity-40 active:scale-[0.98] transition"
+                    className="w-full mt-2 flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-medium rounded-lg py-2 disabled:opacity-40 active:scale-[0.98] transition"
                   >
-                    {exportingCustomer === c.name ? 'Đang xuất...' : `📄 Xuất file riêng cho ${c.name}`}
+                    {exportingCustomer === c.name ? null : <ExportIcon className="h-4 w-4" />}
+                    {exportingCustomer === c.name ? 'Đang xuất...' : `Xuất file riêng cho ${c.name}`}
                   </button>
                 </div>
               )}
