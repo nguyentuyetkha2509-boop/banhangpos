@@ -117,10 +117,16 @@ export function DataProvider({ children }) {
     setCart([])
   }
 
-  function checkout() {
+  function checkout(customerName) {
     if (cart.length === 0) return null
     const total = cart.reduce((sum, c) => sum + c.price * c.qty, 0)
-    const order = { id: makeId(), items: cart, total, createdAt: new Date().toISOString() }
+    const order = {
+      id: makeId(),
+      items: cart,
+      total,
+      customerName: (customerName || '').trim(),
+      createdAt: new Date().toISOString()
+    }
     setOrders((prev) => [order, ...prev])
     setProducts((prev) =>
       prev.map((p) => {

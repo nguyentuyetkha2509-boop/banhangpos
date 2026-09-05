@@ -37,7 +37,10 @@ export default function OrdersPage() {
               >
                 <div className="text-left">
                   <p className="text-sm font-medium text-slate-800">#{o.id.slice(-6).toUpperCase()}</p>
-                  <p className="text-xs text-slate-400">{formatTime(o.createdAt)} · {itemCount} sản phẩm</p>
+                  <p className="text-xs text-slate-400">
+                    {formatTime(o.createdAt)} · {itemCount} sản phẩm
+                    {o.customerName ? ` · ${o.customerName}` : ''}
+                  </p>
                 </div>
                 <span className="font-bold text-brand-700">{formatVND(o.total)}</span>
               </button>

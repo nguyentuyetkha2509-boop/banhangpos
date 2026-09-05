@@ -5,14 +5,18 @@ import { formatVND } from '../lib/storage'
 export default function CartSheet({ open, onClose }) {
   const { cart, setCartQty, removeFromCart, checkout, requestPrint } = useData()
   const [successOrder, setSuccessOrder] = useState(null)
+  const [customerName, setCustomerName] = useState('')
 
   if (!open) return null
 
   const total = cart.reduce((sum, c) => sum + c.qty * c.price, 0)
 
   function handleCheckout() {
-    const order = checkout()
-    if (order) setSuccessOrder(order)
+    const order = checkout(customerName)
+    if (order) {
+      setSuccessOrder(order)
+      setCustomerName('')
+    }
   }
 
   function handleDone() {
@@ -85,6 +89,13 @@ export default function CartSheet({ open, onClose }) {
             </div>
 
             <div className="p-4 border-t border-slate-100">
+              <label className="block text-xs font-medium text-slate-500 mb-1">Tên khách hàng (tùy chọn)</label>
+              <input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                placeholder="VD: Chị Lan"
+              />
               <div className="flex items-center justify-between mb-3">
                 <span className="text-slate-500 text-sm">Tổng cộng</span>
                 <span className="font-bold text-lg text-slate-800">{formatVND(total)}</span>
