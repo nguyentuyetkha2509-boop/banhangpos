@@ -185,12 +185,13 @@ export function DataProvider({ children }) {
     ])
   }
 
-  function addReturn(productId, qty, customerName, unitPrice, note) {
+  function addReturn(productId, qty, customerName, unitPrice, note, costPrice, orderId) {
     const returnQty = Math.max(0, Number(qty) || 0)
     if (returnQty <= 0) return
     const product = products.find((p) => p.id === productId)
     if (!product) return
     const price = unitPrice === '' || unitPrice == null ? product.price : Math.max(0, Number(unitPrice) || 0)
+    const cost = costPrice === '' || costPrice == null ? product.costPrice || 0 : Math.max(0, Number(costPrice) || 0)
     setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, stock: p.stock + returnQty } : p)))
     setReturns((prev) => [
       {
@@ -200,8 +201,10 @@ export function DataProvider({ children }) {
         customerName: (customerName || '').trim() || 'Khách lẻ',
         qty: returnQty,
         unitPrice: price,
+        costPrice: cost,
         refundAmount: price * returnQty,
         note: (note || '').trim(),
+        orderId: orderId || null,
         createdAt: new Date().toISOString()
       },
       ...prev

@@ -4,7 +4,7 @@ import { formatVND } from '../lib/storage'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
-export default function ReturnSheet({ open, onClose, product }) {
+export default function ReturnSheet({ open, onClose, product, order }) {
   const { products, addReturn, findProductByBarcode, returns } = useData()
   const [productId, setProductId] = useState('')
   const [qty, setQty] = useState('')
@@ -14,27 +14,51 @@ export default function ReturnSheet({ open, onClose, product }) {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
 
+  const fromOrder = Boolean(order)
+  const orderItems = order?.items || []
+
+  function alreadyReturnedQty(pid) {
+    if (!order) return 0
+    return returns
+      .filter((r) => r.orderId === order.id && r.productId === pid)
+      .reduce((sum, r) => sum + r.qty, 0)
+  }
+
   useEffect(() => {
-    if (open) {
+    if (!open) return
+    if (fromOrder) {
+      const initialItem = orderItems[0]
+      setProductId(initialItem?.productId || '')
+      setUnitPrice(initialItem?.price ? String(initialItem.price) : '')
+      setCustomerName((order.customerName || '').trim() || 'Khách lẻ')
+    } else {
       const initialId = product?.id || products[0]?.id || ''
       const initialProduct = products.find((p) => p.id === initialId)
       setProductId(initialId)
-      setQty('')
-      setCustomerName('')
       setUnitPrice(initialProduct?.price ? String(initialProduct.price) : '')
-      setNote('')
-      setScanMsg('')
+      setCustomerName('')
     }
-  }, [open, product, products])
+    setQty('')
+    setNote('')
+    setScanMsg('')
+  }, [open, product, products, order])
 
   if (!open) return null
 
-  const selected = products.find((p) => p.id === productId)
+  const selected = fromOrder
+    ? orderItems.find((i) => i.productId === productId)
+    : products.find((p) => p.id === productId)
+  const maxReturnable = fromOrder && selected ? selected.qty - alreadyReturnedQty(selected.productId) : null
 
   function handleProductChange(id) {
     setProductId(id)
-    const p = products.find((item) => item.id === id)
-    setUnitPrice(p?.price ? String(p.price) : '')
+    if (fromOrder) {
+      const item = orderItems.find((i) => i.productId === id)
+      setUnitPrice(item?.price ? String(item.price) : '')
+    } else {
+      const p = products.find((item) => item.id === id)
+      setUnitPrice(p?.price ? String(p.price) : '')
+    }
   }
 
   function handleDetected(code) {
@@ -50,9 +74,15 @@ export default function ReturnSheet({ open, onClose, product }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-    const returnQty = Number(qty)
+    let returnQty = Number(qty)
     if (!productId || !returnQty || returnQty <= 0) return
-    addReturn(productId, returnQty, customerName, unitPrice, note)
+    if (fromOrder && maxReturnable != null) {
+      if (maxReturnable <= 0) return
+      returnQty = Math.min(returnQty, maxReturnable)
+    }
+    const costPrice = fromOrder ? selected?.costPrice : undefined
+    const orderId = fromOrder ? order.id : undefined
+    addReturn(productId, returnQty, customerName, unitPrice, note, costPrice, orderId)
     onClose()
   }
 
@@ -63,7 +93,9 @@ export default function ReturnSheet({ open, onClose, product }) {
         className="w-full max-w-md max-h-[88vh] overflow-y-auto bg-white rounded-t-2xl p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="font-bold text-slate-800 mb-3">Trả hàng</h2>
+        <h2 className="font-bold text-slate-800 mb-3">
+          Trả hàng {fromOrder && <span className="text-slate-400 font-normal text-sm">· HĐ #{order.id.slice(-6).toUpperCase()}</span>}
+        </h2>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Sản phẩm</label>
         <div className="flex gap-2 mb-1">
@@ -72,28 +104,40 @@ export default function ReturnSheet({ open, onClose, product }) {
             onChange={(e) => handleProductChange(e.target.value)}
             className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
           >
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} (đang có {p.stock})
-              </option>
-            ))}
+            {fromOrder
+              ? orderItems.map((i) => (
+                  <option key={i.productId} value={i.productId}>
+                    {i.name} (đã mua {i.qty})
+                  </option>
+                ))
+              : products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} (đang có {p.stock})
+                  </option>
+                ))}
           </select>
-          <button
-            type="button"
-            onClick={() => setScannerOpen(true)}
-            aria-label="Quét mã vạch"
-            className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
-          >
-            📷 Quét
-          </button>
+          {!fromOrder && (
+            <button
+              type="button"
+              onClick={() => setScannerOpen(true)}
+              aria-label="Quét mã vạch"
+              className="shrink-0 rounded-lg bg-brand-50 text-brand-700 px-3 text-sm font-medium"
+            >
+              📷 Quét
+            </button>
+          )}
         </div>
         {scanMsg && <p className="text-xs text-slate-500 mb-2">{scanMsg}</p>}
+        {fromOrder && maxReturnable != null && (
+          <p className="text-xs text-slate-400 mb-2">Đã trả trước đó: {selected.qty - maxReturnable}/{selected.qty}</p>
+        )}
 
         <label className="block text-xs font-medium text-slate-500 mb-1 mt-2">Tên khách hàng (tùy chọn)</label>
         <input
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          disabled={fromOrder}
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-slate-50 disabled:text-slate-500"
           placeholder="VD: Chị Lan"
         />
 
@@ -103,6 +147,7 @@ export default function ReturnSheet({ open, onClose, product }) {
             <input
               type="number"
               min="1"
+              max={maxReturnable ?? undefined}
               value={qty}
               onChange={(e) => setQty(e.target.value)}
               className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
@@ -122,10 +167,15 @@ export default function ReturnSheet({ open, onClose, product }) {
           </div>
         </div>
 
-        {selected && qty && Number(qty) > 0 && (
+        {!fromOrder && selected && qty && Number(qty) > 0 && (
           <p className="text-xs text-slate-500 mb-3">
             Tồn sau khi trả: <span className="font-semibold text-brand-700">{selected.stock + Number(qty)}</span> · Hoàn
             tiền: <span className="font-semibold text-brand-700">{formatVND(Number(qty) * Number(unitPrice || 0))}</span>
+          </p>
+        )}
+        {fromOrder && qty && Number(qty) > 0 && (
+          <p className="text-xs text-slate-500 mb-3">
+            Hoàn tiền: <span className="font-semibold text-brand-700">{formatVND(Number(qty) * Number(unitPrice || 0))}</span>
           </p>
         )}
 
@@ -145,33 +195,39 @@ export default function ReturnSheet({ open, onClose, product }) {
           >
             Hủy
           </button>
-          <button type="submit" className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700">
+          <button
+            type="submit"
+            disabled={fromOrder && maxReturnable != null && maxReturnable <= 0}
+            className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700 disabled:opacity-40"
+          >
             Trả hàng
           </button>
         </div>
 
-        <div className="mt-5 pt-4 border-t border-slate-100">
-          <h3 className="text-xs font-semibold text-slate-500 mb-2">Lịch sử trả hàng gần đây</h3>
-          {returns.length === 0 ? (
-            <p className="text-xs text-slate-400 py-2">Chưa có lượt trả hàng nào</p>
-          ) : (
-            <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {returns.slice(0, 20).map((r) => (
-                <li key={r.id} className="rounded-lg bg-slate-50 px-3 py-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-medium text-slate-700">{r.productName}</span>
-                    <span className="shrink-0 text-sm font-semibold text-red-500">−{r.qty}</span>
-                  </div>
-                  <div className="mt-0.5 text-[11px] text-slate-400">
-                    {new Date(r.createdAt).toLocaleString('vi-VN')} · {r.customerName}
-                  </div>
-                  <div className="mt-0.5 text-xs text-slate-500">Hoàn tiền: {formatVND(r.refundAmount)}</div>
-                  {r.note && <div className="mt-0.5 text-xs text-slate-500">Ghi chú: {r.note}</div>}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {!fromOrder && (
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <h3 className="text-xs font-semibold text-slate-500 mb-2">Lịch sử trả hàng gần đây</h3>
+            {returns.length === 0 ? (
+              <p className="text-xs text-slate-400 py-2">Chưa có lượt trả hàng nào</p>
+            ) : (
+              <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {returns.slice(0, 20).map((r) => (
+                  <li key={r.id} className="rounded-lg bg-slate-50 px-3 py-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-sm font-medium text-slate-700">{r.productName}</span>
+                      <span className="shrink-0 text-sm font-semibold text-red-500">−{r.qty}</span>
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-slate-400">
+                      {new Date(r.createdAt).toLocaleString('vi-VN')} · {r.customerName}
+                    </div>
+                    <div className="mt-0.5 text-xs text-slate-500">Hoàn tiền: {formatVND(r.refundAmount)}</div>
+                    {r.note && <div className="mt-0.5 text-xs text-slate-500">Ghi chú: {r.note}</div>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </form>
 
       {scannerOpen && (

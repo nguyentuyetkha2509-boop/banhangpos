@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
+import ReturnSheet from '../components/ReturnSheet'
 
 function formatTime(iso) {
   const d = new Date(iso)
@@ -10,6 +11,7 @@ function formatTime(iso) {
 export default function OrdersPage() {
   const { orders, requestPrint } = useData()
   const [openId, setOpenId] = useState(null)
+  const [returnOrder, setReturnOrder] = useState(null)
 
   const todayTotal = orders
     .filter((o) => new Date(o.createdAt).toDateString() === new Date().toDateString())
@@ -52,12 +54,18 @@ export default function OrdersPage() {
                       <span className="text-slate-800 font-medium shrink-0">{formatVND(item.price * item.qty)}</span>
                     </div>
                   ))}
-                  <div className="pt-2">
+                  <div className="pt-2 flex gap-2">
                     <button
                       onClick={() => requestPrint(o)}
-                      className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
+                      className="flex-1 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
                     >
                       🖨️ In lại hóa đơn
+                    </button>
+                    <button
+                      onClick={() => setReturnOrder(o)}
+                      className="flex-1 bg-red-50 text-red-600 text-sm font-medium rounded-lg py-2 active:scale-[0.98] transition"
+                    >
+                      ↩️ Trả hàng
                     </button>
                   </div>
                 </div>
@@ -66,6 +74,8 @@ export default function OrdersPage() {
           )
         })}
       </div>
+
+      <ReturnSheet open={Boolean(returnOrder)} onClose={() => setReturnOrder(null)} order={returnOrder} />
     </div>
   )
 }

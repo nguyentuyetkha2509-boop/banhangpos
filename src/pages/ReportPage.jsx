@@ -34,13 +34,15 @@ export default function ReportPage() {
     (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
     0
   )
-  const totalCost = periodOrders.reduce(
+  const grossCost = periodOrders.reduce(
     (sum, o) => sum + o.items.reduce((s, i) => s + i.qty * (i.costPrice || 0), 0),
     0
   )
   const totalReturnQty = periodReturns.reduce((sum, r) => sum + r.qty, 0)
   const totalReturnValue = periodReturns.reduce((sum, r) => sum + r.refundAmount, 0)
+  const totalReturnCost = periodReturns.reduce((sum, r) => sum + r.qty * (r.costPrice || 0), 0)
   const netRevenue = grossRevenue - totalReturnValue
+  const totalCost = grossCost - totalReturnCost
   const totalProfit = netRevenue - totalCost
 
   const soldByProduct = useMemo(() => {
