@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { generateBarcodeDataUrl } from '../lib/barcode'
 import { formatVND } from '../lib/storage'
 
@@ -17,7 +18,7 @@ export default function BarcodePrintModal({ product, onClose }) {
   if (!product) return null
 
   if (!dataUrl) {
-    return (
+    return createPortal(
       <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40" onClick={onClose}>
         <div className="w-full max-w-md bg-white rounded-t-2xl p-4" onClick={(e) => e.stopPropagation()}>
           <p className="text-sm text-red-500 mb-3">Không tạo được mã vạch từ "{product.barcode}".</p>
@@ -25,11 +26,12 @@ export default function BarcodePrintModal({ product, onClose }) {
             Đóng
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     )
   }
 
-  return (
+  return createPortal(
     <div className="barcode-print-wrapper fixed inset-0 z-40 flex flex-col bg-white">
       <div className="no-print flex flex-col gap-2 p-3 border-b border-slate-100">
         <div className="flex items-center justify-between">
@@ -66,6 +68,7 @@ export default function BarcodePrintModal({ product, onClose }) {
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
