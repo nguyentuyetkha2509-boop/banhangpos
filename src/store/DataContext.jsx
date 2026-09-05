@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { doc, onSnapshot, setDoc } from 'firebase/firestore'
-import { db } from '../lib/firebase'
+import { db, OWNER_EMAIL } from '../lib/firebase'
 import { useAuth } from './AuthContext'
 import { loadData, saveData, makeId } from '../lib/storage'
 
@@ -23,6 +23,7 @@ export function DataProvider({ children }) {
   const lastRemoteRef = useRef({})
 
   const [ready, setReady] = useState(false)
+  const [approved, setApproved] = useState(true)
   const [syncError, setSyncError] = useState(null)
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
   const [orders, setOrders] = useState([])
@@ -48,6 +49,7 @@ export function DataProvider({ children }) {
           setReturns(data.returns ?? [])
           setDebtPayments(data.debtPayments ?? [])
           setSettings(data.settings ?? DEFAULT_SETTINGS)
+          setApproved(data.approved !== false)
           setReady(true)
         } else {
           // Tai khoan moi: dua vao du lieu san co trong may (neu co, tu ban truoc khi
@@ -58,7 +60,9 @@ export function DataProvider({ children }) {
             stockMovements: loadData('stockMovements', []),
             returns: loadData('returns', []),
             debtPayments: loadData('debtPayments', []),
-            settings: loadData('settings', DEFAULT_SETTINGS)
+            settings: loadData('settings', DEFAULT_SETTINGS),
+            approved: user.email === OWNER_EMAIL,
+            accountEmail: user.email
           }
           lastRemoteRef.current = initial
           setProducts(initial.products)
@@ -67,6 +71,7 @@ export function DataProvider({ children }) {
           setReturns(initial.returns)
           setDebtPayments(initial.debtPayments)
           setSettings(initial.settings)
+          setApproved(initial.approved)
           setReady(true)
           try {
             await setDoc(docRef, initial)
@@ -302,6 +307,7 @@ export function DataProvider({ children }) {
 
   const value = {
     ready,
+    approved,
     syncError,
     products,
     cart,

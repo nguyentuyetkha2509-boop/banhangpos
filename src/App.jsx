@@ -12,7 +12,7 @@ import ReportPage from './pages/ReportPage'
 import DebtPage from './pages/DebtPage'
 
 function AppShell() {
-  const { ready, syncError, printOrder, settings, closePrint } = useData()
+  const { ready, approved, syncError, printOrder, settings, closePrint } = useData()
   const { signOut } = useAuth()
   const [slow, setSlow] = useState(false)
 
@@ -60,6 +60,23 @@ function AppShell() {
               </button>
             </>
           )}
+        </div>
+      </div>
+    )
+  }
+
+  if (!approved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6">
+        <div className="text-center max-w-xs">
+          <p className="text-4xl mb-3">⏳</p>
+          <p className="text-sm font-medium text-slate-700 mb-1">Đang chờ phê duyệt</p>
+          <p className="text-xs text-slate-400 mb-4">
+            Tài khoản của bạn cần được chủ cửa hàng duyệt trước khi có thể sử dụng. Vui lòng liên hệ chủ cửa hàng.
+          </p>
+          <button onClick={signOut} className="w-full bg-slate-100 text-slate-600 rounded-xl py-2.5 font-medium">
+            Đăng xuất
+          </button>
         </div>
       </div>
     )

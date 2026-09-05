@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { useAuth } from '../store/AuthContext'
+import { OWNER_EMAIL } from '../lib/firebase'
+import AdminApprovalSheet from './AdminApprovalSheet'
 
 export default function SettingsSheet({ open, onClose }) {
   const { settings, updateSettings, products, orders, stockMovements, returns, debtPayments, resetAllData } = useData()
@@ -8,6 +10,8 @@ export default function SettingsSheet({ open, onClose }) {
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
   const [exporting, setExporting] = useState(false)
+  const [approvalOpen, setApprovalOpen] = useState(false)
+  const isOwner = user.email === OWNER_EMAIL
 
   useEffect(() => {
     if (open) {
@@ -100,6 +104,15 @@ export default function SettingsSheet({ open, onClose }) {
         <div className="border-t border-slate-100 pt-3 mb-4">
           <p className="text-xs font-medium text-slate-500 mb-1">Tài khoản</p>
           <p className="text-xs text-slate-400 mb-2 truncate">Đang đăng nhập: {user.email}</p>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setApprovalOpen(true)}
+              className="w-full rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5 mb-2"
+            >
+              👤 Duyệt tài khoản mới
+            </button>
+          )}
           <button
             type="button"
             onClick={signOut}
@@ -136,6 +149,8 @@ export default function SettingsSheet({ open, onClose }) {
           </p>
         </div>
       </form>
+
+      {isOwner && <AdminApprovalSheet open={approvalOpen} onClose={() => setApprovalOpen(false)} />}
     </div>
   )
 }

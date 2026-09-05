@@ -11,6 +11,8 @@ const firebaseConfig = {
   appId: '1:817626115667:web:d8fb1cba0b997398eb20a6'
 }
 
+export const OWNER_EMAIL = 'nguyentuyetkha2509@gmail.com'
+
 export const firebaseApp = initializeApp(firebaseConfig)
 export const auth = getAuth(firebaseApp)
 export const db = initializeFirestore(firebaseApp, {
