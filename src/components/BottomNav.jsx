@@ -1,30 +1,43 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { CartIcon, BoxIcon, ChartIcon, ReceiptIcon } from './NavIcons'
 
 const items = [
-  { to: '/', label: 'Bán hàng', icon: '🛒' },
-  { to: '/products', label: 'Sản phẩm', icon: '📦' },
-  { to: '/report', label: 'Báo cáo', icon: '📊' },
-  { to: '/orders', label: 'Hóa đơn', icon: '🧾' }
+  { to: '/', label: 'Bán hàng', Icon: CartIcon },
+  { to: '/products', label: 'Sản phẩm', Icon: BoxIcon },
+  { to: '/report', label: 'Báo cáo', Icon: ChartIcon },
+  { to: '/orders', label: 'Hóa đơn', Icon: ReceiptIcon }
 ]
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-20 bg-white border-t border-slate-200 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-      <div className="max-w-md mx-auto grid grid-cols-4">
-        {items.map((item) => (
+    <nav className="no-print fixed bottom-0 inset-x-0 z-20 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]">
+      <div className="max-w-md mx-auto grid grid-cols-4 px-2 py-2">
+        {items.map(({ to, label, Icon }) => (
           <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-0.5 py-2.5 text-xs font-medium ${
-                isActive ? 'text-brand-700' : 'text-slate-400'
-              }`
-            }
+            key={to}
+            to={to}
+            end={to === '/'}
+            className="flex flex-col items-center justify-center gap-1 py-1.5 active:scale-95 transition-transform"
           >
-            <span className="text-xl leading-none">{item.icon}</span>
-            {item.label}
+            {({ isActive }) => (
+              <>
+                <span
+                  className={`flex items-center justify-center h-11 w-11 rounded-2xl transition-colors ${
+                    isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-400'
+                  }`}
+                >
+                  <Icon className="h-6 w-6" />
+                </span>
+                <span
+                  className={`text-[12px] leading-none ${
+                    isActive ? 'font-bold text-brand-700' : 'font-medium text-slate-400'
+                  }`}
+                >
+                  {label}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
