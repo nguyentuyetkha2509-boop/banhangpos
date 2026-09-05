@@ -3,6 +3,7 @@ import { useData } from '../store/DataContext'
 import { useAuth } from '../store/AuthContext'
 import { OWNER_EMAIL } from '../lib/firebase'
 import AdminApprovalSheet from './AdminApprovalSheet'
+import { usePendingApprovalsCount } from '../store/usePendingApprovals'
 
 export default function SettingsSheet({ open, onClose }) {
   const { settings, updateSettings, products, orders, stockMovements, returns, debtPayments, resetAllData } = useData()
@@ -12,6 +13,7 @@ export default function SettingsSheet({ open, onClose }) {
   const [exporting, setExporting] = useState(false)
   const [approvalOpen, setApprovalOpen] = useState(false)
   const isOwner = user.email === OWNER_EMAIL
+  const pendingApprovals = usePendingApprovalsCount()
 
   useEffect(() => {
     if (open) {
@@ -110,7 +112,7 @@ export default function SettingsSheet({ open, onClose }) {
               onClick={() => setApprovalOpen(true)}
               className="w-full rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5 mb-2"
             >
-              👤 Duyệt tài khoản mới
+              👤 Duyệt tài khoản mới{pendingApprovals > 0 ? ` (${pendingApprovals})` : ''}
             </button>
           )}
           <button

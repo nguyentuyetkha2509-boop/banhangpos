@@ -3,6 +3,7 @@ import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import CartSheet from '../components/CartSheet'
 import SettingsSheet from '../components/SettingsSheet'
+import { usePendingApprovalsCount } from '../store/usePendingApprovals'
 
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
@@ -14,6 +15,7 @@ export default function SalesPage() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState('')
+  const pendingApprovals = usePendingApprovalsCount()
 
   const categories = useMemo(() => {
     const set = new Set()
@@ -73,9 +75,14 @@ export default function SalesPage() {
         <button
           onClick={() => setSettingsOpen(true)}
           aria-label="Cài đặt cửa hàng"
-          className="shrink-0 rounded-full bg-white border border-slate-200 h-9 w-9 flex items-center justify-center shadow-sm active:scale-[0.95] transition"
+          className="relative shrink-0 rounded-full bg-white border border-slate-200 h-9 w-9 flex items-center justify-center shadow-sm active:scale-[0.95] transition"
         >
           ⚙️
+          {pendingApprovals > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+              {pendingApprovals}
+            </span>
+          )}
         </button>
       </div>
 
