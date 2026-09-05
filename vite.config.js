@@ -10,6 +10,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       manifest: {
         name: 'Bán Hàng POS',
         short_name: 'Bán Hàng',
