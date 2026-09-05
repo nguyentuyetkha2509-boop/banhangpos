@@ -112,7 +112,7 @@ export default function SettingsSheet({ open, onClose }) {
               onClick={() => setApprovalOpen(true)}
               className="w-full rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-2.5 mb-2"
             >
-              👤 Duyệt tài khoản mới{pendingApprovals > 0 ? ` (${pendingApprovals})` : ''}
+              👤 Quản lý tài khoản{pendingApprovals > 0 ? ` (${pendingApprovals} chờ duyệt)` : ''}
             </button>
           )}
           <button
