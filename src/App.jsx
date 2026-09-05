@@ -9,6 +9,7 @@ import SalesPage from './pages/SalesPage'
 import ProductsPage from './pages/ProductsPage'
 import OrdersPage from './pages/OrdersPage'
 import ReportPage from './pages/ReportPage'
+import DebtPage from './pages/DebtPage'
 
 function AppShell() {
   const { ready, syncError, printOrder, settings, closePrint } = useData()
@@ -73,6 +74,7 @@ function AppShell() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/report" element={<ReportPage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/debts" element={<DebtPage />} />
           </Routes>
         </main>
         <BottomNav />

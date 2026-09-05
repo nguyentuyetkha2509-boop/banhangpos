@@ -19,7 +19,13 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '')
 }
 
-export function exportDataToExcel({ products, orders, stockMovements, returns, settings }) {
+const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
+
+function customerKeyOf(name) {
+  return (name || '').trim() || 'Khách lẻ'
+}
+
+export function exportDataToExcel({ products, orders, stockMovements, returns, debtPayments, settings }) {
   const wb = XLSX.utils.book_new()
   const shopName = settings?.shopName || 'BanHang POS'
   const now = new Date().toLocaleString('vi-VN')
@@ -40,14 +46,18 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
   const wsOrders = buildStyledSheet({
     title: 'Danh sách hóa đơn',
     meta,
-    headers: ['Mã hóa đơn', 'Thời gian', 'Số sản phẩm', 'Tổng tiền (VND)'],
+    headers: ['Mã hóa đơn', 'Thời gian', 'Khách hàng', 'Số sản phẩm', 'Giảm giá (VND)', 'Tổng tiền (VND)', 'Thanh toán', 'Trạng thái'],
     rows: orders.map((o) => [
       `#${o.id.slice(-6).toUpperCase()}`,
       formatDateTimeForSheet(o.createdAt),
+      customerKeyOf(o.customerName),
       o.items.reduce((sum, i) => sum + i.qty, 0),
-      o.total
+      o.discount || 0,
+      o.total,
+      PAYMENT_LABELS[o.paymentMethod] || 'Tiền mặt',
+      o.cancelled ? 'Đã hủy' : 'Bình thường'
     ]),
-    moneyCols: [3]
+    moneyCols: [4, 5]
   })
   XLSX.utils.book_append_sheet(wb, wsOrders, 'Hoa don')
 
@@ -105,6 +115,29 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
   })
   XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
 
+  const debtMap = new Map()
+  orders.forEach((o) => {
+    if (o.cancelled || o.paymentMethod !== 'debt') return
+    const key = customerKeyOf(o.customerName)
+    const cur = debtMap.get(key) || { owed: 0, paid: 0 }
+    cur.owed += o.total
+    debtMap.set(key, cur)
+  })
+  ;(debtPayments || []).forEach((p) => {
+    const key = customerKeyOf(p.customerName)
+    const cur = debtMap.get(key) || { owed: 0, paid: 0 }
+    cur.paid += p.amount
+    debtMap.set(key, cur)
+  })
+  const wsDebts = buildStyledSheet({
+    title: 'Công nợ khách hàng',
+    meta,
+    headers: ['Khách hàng', 'Đã mua ghi nợ (VND)', 'Đã thu (VND)', 'Còn nợ (VND)'],
+    rows: Array.from(debtMap.entries()).map(([name, d]) => [name, d.owed, d.paid, d.owed - d.paid]),
+    moneyCols: [1, 2, 3]
+  })
+  XLSX.utils.book_append_sheet(wb, wsDebts, 'Cong no')
+
   const shopSlug = slugify(shopName)
   const dateStamp = new Date().toISOString().slice(0, 10)
   XLSX.writeFile(wb, `du-lieu-${shopSlug}-${dateStamp}.xlsx`)
@@ -134,13 +167,17 @@ export function exportReportToExcel({
     headers: ['Chỉ tiêu', 'Giá trị'],
     rows: [
       ['Doanh thu (VND)', totals.grossRevenue],
+      ['Tổng giảm giá (VND)', totals.totalDiscount || 0],
       ['Số lượng trả hàng', totals.totalReturnQty],
       ['Giá trị trả hàng (VND)', totals.totalReturnValue],
       ['Doanh thu thuần (VND)', totals.netRevenue],
       ['Giá vốn (VND)', totals.totalCost],
       ['Lãi ước tính (VND)', totals.totalProfit],
       ['Số hóa đơn', totals.orderCount],
-      ['Số sản phẩm đã bán', totals.totalItemsSold]
+      ['Số sản phẩm đã bán', totals.totalItemsSold],
+      ['Tiền mặt (VND)', totals.paymentTotals?.cash || 0],
+      ['Chuyển khoản (VND)', totals.paymentTotals?.transfer || 0],
+      ['Ghi nợ (VND)', totals.paymentTotals?.debt || 0]
     ],
     moneyCols: [1],
     boldLabelRows: ['Doanh thu thuần (VND)', 'Lãi ước tính (VND)']
@@ -194,15 +231,17 @@ export function exportReportToExcel({
   const wsOrders = buildStyledSheet({
     title: 'Chi tiết hóa đơn',
     meta,
-    headers: ['Mã hóa đơn', 'Thời gian', 'Khách hàng', 'Số sản phẩm', 'Tổng tiền (VND)'],
+    headers: ['Mã hóa đơn', 'Thời gian', 'Khách hàng', 'Số sản phẩm', 'Giảm giá (VND)', 'Tổng tiền (VND)', 'Thanh toán'],
     rows: periodOrders.map((o) => [
       `#${o.id.slice(-6).toUpperCase()}`,
       formatDateTimeForSheet(o.createdAt),
-      (o.customerName || '').trim() || 'Khách lẻ',
+      customerKeyOf(o.customerName),
       o.items.reduce((sum, i) => sum + i.qty, 0),
-      o.total
+      o.discount || 0,
+      o.total,
+      PAYMENT_LABELS[o.paymentMethod] || 'Tiền mặt'
     ]),
-    moneyCols: [4]
+    moneyCols: [4, 5]
   })
   XLSX.utils.book_append_sheet(wb, wsOrders, 'Chi tiet don hang')
 

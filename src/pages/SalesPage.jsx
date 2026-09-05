@@ -9,18 +9,26 @@ const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal
 export default function SalesPage() {
   const { products, cart, addToCart, findProductByBarcode, settings } = useData()
   const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState('')
 
+  const categories = useMemo(() => {
+    const set = new Set()
+    products.forEach((p) => { if (p.category) set.add(p.category) })
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
+  }, [products])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return products
-    return products.filter(
-      (p) => p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.toLowerCase().includes(q))
-    )
-  }, [products, query])
+    return products.filter((p) => {
+      const matchesQuery = !q || p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.toLowerCase().includes(q))
+      const matchesCategory = !category || p.category === category
+      return matchesQuery && matchesCategory
+    })
+  }, [products, query, category])
 
   const cartCount = cart.reduce((sum, c) => sum + c.qty, 0)
   const cartTotal = cart.reduce((sum, c) => sum + c.qty * c.price, 0)
@@ -91,6 +99,30 @@ export default function SalesPage() {
 
       {toast && (
         <p className="mt-2 rounded-lg bg-slate-800 text-white text-xs px-3 py-2 text-center">{toast}</p>
+      )}
+
+      {categories.length > 0 && (
+        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 -mx-4 px-4">
+          <button
+            onClick={() => setCategory('')}
+            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+              category === '' ? 'bg-brand-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+            }`}
+          >
+            Tất cả
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                category === c ? 'bg-brand-700 text-white' : 'bg-white border border-slate-200 text-slate-600'
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-3 mt-4">

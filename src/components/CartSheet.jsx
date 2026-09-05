@@ -2,11 +2,19 @@ import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 
+const PAYMENT_METHODS = [
+  { key: 'cash', label: 'Tiền mặt' },
+  { key: 'transfer', label: 'Chuyển khoản' },
+  { key: 'debt', label: 'Ghi nợ' }
+]
+
 export default function CartSheet({ open, onClose }) {
   const { cart, orders, returns, setCartQty, removeFromCart, checkout, requestPrint } = useData()
   const [successOrder, setSuccessOrder] = useState(null)
   const [customerName, setCustomerName] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [discount, setDiscount] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('cash')
 
   const knownCustomers = useMemo(() => {
     const set = new Set()
@@ -23,13 +31,19 @@ export default function CartSheet({ open, onClose }) {
 
   if (!open) return null
 
-  const total = cart.reduce((sum, c) => sum + c.qty * c.price, 0)
+  const subtotal = cart.reduce((sum, c) => sum + c.qty * c.price, 0)
+  const discountValue = Math.min(Math.max(0, Number(discount) || 0), subtotal)
+  const total = subtotal - discountValue
+  const needsCustomerForDebt = paymentMethod === 'debt' && !customerName.trim()
 
   function handleCheckout() {
-    const order = checkout(customerName)
+    if (needsCustomerForDebt) return
+    const order = checkout(customerName, { discount: discountValue, paymentMethod })
     if (order) {
       setSuccessOrder(order)
       setCustomerName('')
+      setDiscount('')
+      setPaymentMethod('cash')
     }
   }
 
@@ -142,12 +156,57 @@ export default function CartSheet({ open, onClose }) {
                   Xóa
                 </button>
               </div>
+
+              <label className="block text-xs font-medium text-slate-500 mb-1">Hình thức thanh toán</label>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {PAYMENT_METHODS.map((m) => (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => setPaymentMethod(m.key)}
+                    className={`rounded-lg py-2 text-xs font-medium transition ${
+                      paymentMethod === m.key
+                        ? 'bg-brand-700 text-white'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+              {needsCustomerForDebt && (
+                <p className="text-xs text-red-500 -mt-2 mb-3">Cần nhập tên khách hàng để ghi nợ</p>
+              )}
+
+              <label className="block text-xs font-medium text-slate-500 mb-1">Giảm giá (VND, tùy chọn)</label>
+              <input
+                type="number"
+                min="0"
+                max={subtotal}
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                placeholder="0"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
+              />
+
+              {discountValue > 0 && (
+                <div className="flex items-center justify-between mb-1 text-sm">
+                  <span className="text-slate-400">Tạm tính</span>
+                  <span className="text-slate-500">{formatVND(subtotal)}</span>
+                </div>
+              )}
+              {discountValue > 0 && (
+                <div className="flex items-center justify-between mb-1 text-sm">
+                  <span className="text-slate-400">Giảm giá</span>
+                  <span className="text-red-500">−{formatVND(discountValue)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-3">
                 <span className="text-slate-500 text-sm">Tổng cộng</span>
                 <span className="font-bold text-lg text-slate-800">{formatVND(total)}</span>
               </div>
               <button
-                disabled={cart.length === 0}
+                disabled={cart.length === 0 || needsCustomerForDebt}
                 onClick={handleCheckout}
                 className="w-full bg-brand-700 text-white rounded-xl py-3 font-medium disabled:opacity-40 active:scale-[0.98] transition"
               >

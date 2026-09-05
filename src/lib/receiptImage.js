@@ -1,6 +1,7 @@
 import { formatVND } from './storage'
 
 const DEFAULT_SHOP_NAME = 'Bán Hàng POS'
+const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
 const WIDTH = 380
 const PADDING = 20
 const LINE_HEIGHT = 24
@@ -20,14 +21,19 @@ export function renderReceiptToBlob(order, settings) {
   const shopName = settings?.shopName || DEFAULT_SHOP_NAME
   const shopAddress = settings?.shopAddress
 
+  const hasPaymentLine = order.paymentMethod && order.paymentMethod !== 'cash'
+  const hasDiscountLine = order.discount > 0
+
   let lineCount = 0
   lineCount += 1 // ten cua hang
   if (shopAddress) lineCount += 1
   lineCount += 1 // "Hoa don ban hang"
   lineCount += 1 // dashed
   lineCount += 2 // ma hoa don + thoi gian
+  if (hasPaymentLine) lineCount += 1
   lineCount += 1 // dashed
   lineCount += order.items.length * 2
+  if (hasDiscountLine) lineCount += 1
   lineCount += 1 // tong cong
   lineCount += 1 // dashed
   lineCount += 1 // cam on
@@ -92,11 +98,22 @@ export function renderReceiptToBlob(order, settings) {
   dashedLine()
   leftText(`Mã hóa đơn: #${order.id.slice(-6).toUpperCase()}`)
   leftText(`Thời gian: ${formatDateTime(order.createdAt)}`)
+  if (hasPaymentLine) leftText(`Hình thức: ${PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod}`)
   dashedLine()
 
   order.items.forEach((item) => {
     itemRow(item.name, `${item.qty} x ${formatVND(item.price)}`, formatVND(item.qty * item.price))
   })
+
+  if (hasDiscountLine) {
+    ctx.font = '14px "Courier New", monospace'
+    ctx.fillStyle = '#c0392b'
+    ctx.fillText('Giảm giá', PADDING, y)
+    const discountText = `−${formatVND(order.discount)}`
+    const discountW = ctx.measureText(discountText).width
+    ctx.fillText(discountText, WIDTH - PADDING - discountW, y)
+    y += LINE_HEIGHT
+  }
 
   ctx.font = 'bold 16px "Courier New", monospace'
   ctx.fillStyle = '#111111'

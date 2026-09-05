@@ -3,7 +3,7 @@ import { useData } from '../store/DataContext'
 import { useAuth } from '../store/AuthContext'
 
 export default function SettingsSheet({ open, onClose }) {
-  const { settings, updateSettings, products, orders, stockMovements, returns, resetAllData } = useData()
+  const { settings, updateSettings, products, orders, stockMovements, returns, debtPayments, resetAllData } = useData()
   const { user, signOut } = useAuth()
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
@@ -30,7 +30,7 @@ export default function SettingsSheet({ open, onClose }) {
     setExporting(true)
     try {
       const { exportDataToExcel } = await import('../lib/exportExcel')
-      exportDataToExcel({ products, orders, stockMovements, returns, settings })
+      exportDataToExcel({ products, orders, stockMovements, returns, debtPayments, settings })
     } finally {
       setExporting(false)
     }

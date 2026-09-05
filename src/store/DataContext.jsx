@@ -28,6 +28,7 @@ export function DataProvider({ children }) {
   const [orders, setOrders] = useState([])
   const [stockMovements, setStockMovements] = useState([])
   const [returns, setReturns] = useState([])
+  const [debtPayments, setDebtPayments] = useState([])
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [printOrder, setPrintOrder] = useState(null)
@@ -45,6 +46,7 @@ export function DataProvider({ children }) {
           setOrders(data.orders ?? [])
           setStockMovements(data.stockMovements ?? [])
           setReturns(data.returns ?? [])
+          setDebtPayments(data.debtPayments ?? [])
           setSettings(data.settings ?? DEFAULT_SETTINGS)
           setReady(true)
         } else {
@@ -55,6 +57,7 @@ export function DataProvider({ children }) {
             orders: loadData('orders', []),
             stockMovements: loadData('stockMovements', []),
             returns: loadData('returns', []),
+            debtPayments: loadData('debtPayments', []),
             settings: loadData('settings', DEFAULT_SETTINGS)
           }
           lastRemoteRef.current = initial
@@ -62,6 +65,7 @@ export function DataProvider({ children }) {
           setOrders(initial.orders)
           setStockMovements(initial.stockMovements)
           setReturns(initial.returns)
+          setDebtPayments(initial.debtPayments)
           setSettings(initial.settings)
           setReady(true)
           try {
@@ -99,6 +103,11 @@ export function DataProvider({ children }) {
     if (!ready || returns === lastRemoteRef.current.returns) return
     setDoc(docRef, { returns }, { merge: true })
   }, [ready, returns, docRef])
+
+  useEffect(() => {
+    if (!ready || debtPayments === lastRemoteRef.current.debtPayments) return
+    setDoc(docRef, { debtPayments }, { merge: true })
+  }, [ready, debtPayments, docRef])
 
   useEffect(() => {
     if (!ready || settings === lastRemoteRef.current.settings) return
@@ -216,7 +225,35 @@ export function DataProvider({ children }) {
     setOrders([])
     setStockMovements([])
     setReturns([])
+    setDebtPayments([])
     setCart([])
+  }
+
+  function addDebtPayment(customerName, amount, note) {
+    const value = Math.max(0, Number(amount) || 0)
+    const name = (customerName || '').trim()
+    if (!name || value <= 0) return
+    setDebtPayments((prev) => [
+      { id: makeId(), customerName: name, amount: value, note: (note || '').trim(), createdAt: new Date().toISOString() },
+      ...prev
+    ])
+  }
+
+  function cancelOrder(orderId) {
+    const order = orders.find((o) => o.id === orderId)
+    if (!order || order.cancelled) return
+    const hasReturns = returns.some((r) => r.orderId === orderId)
+    if (hasReturns) {
+      alert('Hóa đơn này đã có trả hàng, không thể hủy. Vui lòng liên hệ hỗ trợ nếu cần điều chỉnh.')
+      return
+    }
+    setProducts((prev) =>
+      prev.map((p) => {
+        const item = order.items.find((c) => c.productId === p.id)
+        return item ? { ...p, stock: p.stock + item.qty } : p
+      })
+    )
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, cancelled: true } : o)))
   }
 
   function findProductByBarcode(code) {
@@ -229,13 +266,19 @@ export function DataProvider({ children }) {
     setCart([])
   }
 
-  function checkout(customerName) {
+  function checkout(customerName, options = {}) {
     if (cart.length === 0) return null
-    const total = cart.reduce((sum, c) => sum + c.price * c.qty, 0)
+    const { discount = 0, paymentMethod = 'cash' } = options
+    const subtotal = cart.reduce((sum, c) => sum + c.price * c.qty, 0)
+    const clampedDiscount = Math.min(Math.max(0, Number(discount) || 0), subtotal)
+    const total = subtotal - clampedDiscount
     const order = {
       id: makeId(),
       items: cart,
+      subtotal,
+      discount: clampedDiscount,
       total,
+      paymentMethod,
       customerName: (customerName || '').trim(),
       createdAt: new Date().toISOString()
     }
@@ -258,6 +301,7 @@ export function DataProvider({ children }) {
     orders,
     stockMovements,
     returns,
+    debtPayments,
     settings,
     printOrder,
     requestPrint,
@@ -273,6 +317,8 @@ export function DataProvider({ children }) {
     findProductByBarcode,
     restockProduct,
     addReturn,
+    addDebtPayment,
+    cancelOrder,
     updateSettings,
     resetAllData
   }

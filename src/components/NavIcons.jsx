@@ -46,6 +46,21 @@ export function ChartIcon({ className }) {
   )
 }
 
+export function WalletIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M4 7.5a2 2 0 012-2h11a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2v-9z"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinejoin="round"
+      />
+      <path d="M4 8.5l9-3.8a2 2 0 012.2.4l1.6 1.6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16.2" cy="13" r="1.4" fill="currentColor" />
+    </svg>
+  )
+}
+
 export function ReceiptIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>

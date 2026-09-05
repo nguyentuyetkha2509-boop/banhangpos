@@ -26,7 +26,8 @@ export default function ReportPage() {
     return t >= rangeStart.getTime() && t <= rangeEnd.getTime()
   }
 
-  const periodOrders = useMemo(() => orders.filter((o) => inRange(o.createdAt)), [orders, rangeStart, rangeEnd])
+  const activeOrders = useMemo(() => orders.filter((o) => !o.cancelled), [orders])
+  const periodOrders = useMemo(() => activeOrders.filter((o) => inRange(o.createdAt)), [activeOrders, rangeStart, rangeEnd])
   const periodReturns = useMemo(() => returns.filter((r) => inRange(r.createdAt)), [returns, rangeStart, rangeEnd])
 
   function returnCostPriceOf(r) {
@@ -51,6 +52,16 @@ export default function ReportPage() {
   const netRevenue = grossRevenue - totalReturnValue
   const totalCost = grossCost - totalReturnCost
   const totalProfit = netRevenue - totalCost
+  const totalDiscount = periodOrders.reduce((sum, o) => sum + (o.discount || 0), 0)
+
+  const paymentTotals = useMemo(() => {
+    const map = { cash: 0, transfer: 0, debt: 0 }
+    periodOrders.forEach((o) => {
+      const key = o.paymentMethod || 'cash'
+      map[key] = (map[key] || 0) + o.total
+    })
+    return map
+  }, [periodOrders])
 
   const soldByProduct = useMemo(() => {
     const map = new Map()
@@ -195,13 +206,15 @@ export default function ReportPage() {
         customerProductRows,
         totals: {
           grossRevenue,
+          totalDiscount,
           totalReturnQty,
           totalReturnValue,
           netRevenue,
           totalCost,
           totalProfit,
           totalItemsSold,
-          orderCount: periodOrders.length
+          orderCount: periodOrders.length,
+          paymentTotals
         },
         settings
       })
@@ -304,11 +317,37 @@ export default function ReportPage() {
             </p>
           </div>
         )}
+        {totalDiscount > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm col-span-2">
+            <p className="text-xs text-slate-400">Tổng giảm giá</p>
+            <p className="text-lg font-bold text-red-500 mt-0.5">−{formatVND(totalDiscount)}</p>
+          </div>
+        )}
       </div>
       <p className="text-[11px] text-slate-400 mt-1.5 mb-4">
         Doanh thu thuần đã trừ giá trị trả hàng. Lãi ước tính tính theo giá nhập gần nhất của mỗi sản phẩm tại thời
-        điểm bán.
+        điểm bán. Hóa đơn đã hủy không được tính vào báo cáo.
       </p>
+
+      {periodOrders.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+          <div className="px-3 py-2 border-b border-slate-100">
+            <p className="text-xs font-semibold text-slate-500">Theo hình thức thanh toán</p>
+          </div>
+          <div className="flex items-center justify-between px-3 py-2 text-sm">
+            <span className="text-slate-600">Tiền mặt</span>
+            <span className="font-medium text-slate-800">{formatVND(paymentTotals.cash)}</span>
+          </div>
+          <div className="flex items-center justify-between px-3 py-2 text-sm border-t border-slate-50">
+            <span className="text-slate-600">Chuyển khoản</span>
+            <span className="font-medium text-slate-800">{formatVND(paymentTotals.transfer)}</span>
+          </div>
+          <div className="flex items-center justify-between px-3 py-2 text-sm border-t border-slate-50">
+            <span className="text-slate-600">Ghi nợ</span>
+            <span className="font-medium text-amber-600">{formatVND(paymentTotals.debt)}</span>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={handleExportReport}

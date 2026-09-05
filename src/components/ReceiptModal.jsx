@@ -3,6 +3,7 @@ import { formatVND } from '../lib/storage'
 import { renderReceiptToBlob } from '../lib/receiptImage'
 
 const DEFAULT_SHOP_NAME = 'Bán Hàng POS'
+const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
 
 function formatDateTime(iso) {
   return new Date(iso).toLocaleString('vi-VN', {
@@ -94,6 +95,11 @@ export default function ReceiptModal({ order, settings, onClose }) {
           <p style={{ fontSize: 12, color: '#333', margin: '2px 0' }}>
             Thời gian: {formatDateTime(order.createdAt)}
           </p>
+          {order.paymentMethod && order.paymentMethod !== 'cash' && (
+            <p style={{ fontSize: 12, color: '#333', margin: '2px 0' }}>
+              Hình thức: {PAYMENT_LABELS[order.paymentMethod] || order.paymentMethod}
+            </p>
+          )}
 
           <hr style={{ border: 'none', borderTop: '1px dashed #999', margin: '10px 0' }} />
 
@@ -110,6 +116,12 @@ export default function ReceiptModal({ order, settings, onClose }) {
                   </tr>
                 </React.Fragment>
               ))}
+              {order.discount > 0 && (
+                <tr>
+                  <td style={{ paddingTop: 8, color: '#444' }}>Giảm giá</td>
+                  <td style={{ paddingTop: 8, textAlign: 'right', color: '#c0392b' }}>−{formatVND(order.discount)}</td>
+                </tr>
+              )}
               <tr>
                 <td style={{ paddingTop: 10, fontSize: 15, fontWeight: 700 }}>Tổng cộng</td>
                 <td style={{ paddingTop: 10, fontSize: 15, fontWeight: 700, textAlign: 'right' }}>

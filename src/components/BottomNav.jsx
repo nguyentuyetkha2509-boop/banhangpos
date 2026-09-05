@@ -1,18 +1,19 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { CartIcon, BoxIcon, ChartIcon, ReceiptIcon } from './NavIcons'
+import { CartIcon, BoxIcon, ChartIcon, ReceiptIcon, WalletIcon } from './NavIcons'
 
 const items = [
   { to: '/', label: 'Bán hàng', Icon: CartIcon },
   { to: '/products', label: 'Sản phẩm', Icon: BoxIcon },
   { to: '/report', label: 'Báo cáo', Icon: ChartIcon },
-  { to: '/orders', label: 'Hóa đơn', Icon: ReceiptIcon }
+  { to: '/orders', label: 'Hóa đơn', Icon: ReceiptIcon },
+  { to: '/debts', label: 'Công nợ', Icon: WalletIcon }
 ]
 
 export default function BottomNav() {
   return (
     <nav className="no-print fixed bottom-0 inset-x-0 z-20 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]">
-      <div className="max-w-md mx-auto grid grid-cols-4 px-2 py-2">
+      <div className="max-w-md mx-auto grid grid-cols-5 px-1 py-2">
         {items.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
