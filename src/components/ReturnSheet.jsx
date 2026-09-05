@@ -187,7 +187,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
               onClick={() => setCustomerName('')}
               className="shrink-0 rounded-lg bg-slate-100 text-slate-500 px-3 text-sm font-medium"
             >
-              Khách lẻ
+              Xóa
             </button>
           )}
         </div>
