@@ -10,6 +10,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
   const [qty, setQty] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [unitPrice, setUnitPrice] = useState('')
+  const [costPriceInput, setCostPriceInput] = useState('')
   const [note, setNote] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
@@ -36,6 +37,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
       const initialProduct = products.find((p) => p.id === initialId)
       setProductId(initialId)
       setUnitPrice(initialProduct?.price ? String(initialProduct.price) : '')
+      setCostPriceInput(initialProduct?.costPrice ? String(initialProduct.costPrice) : '')
       setCustomerName('')
     }
     setQty('')
@@ -58,6 +60,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
     } else {
       const p = products.find((item) => item.id === id)
       setUnitPrice(p?.price ? String(p.price) : '')
+      setCostPriceInput(p?.costPrice ? String(p.costPrice) : '')
     }
   }
 
@@ -80,7 +83,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
       if (maxReturnable <= 0) return
       returnQty = Math.min(returnQty, maxReturnable)
     }
-    const costPrice = fromOrder ? selected?.costPrice : undefined
+    const costPrice = fromOrder ? selected?.costPrice : costPriceInput
     const orderId = fromOrder ? order.id : undefined
     addReturn(productId, returnQty, customerName, unitPrice, note, costPrice, orderId)
     onClose()
@@ -165,7 +168,25 @@ export default function ReturnSheet({ open, onClose, product, order }) {
               placeholder="VD: 12000"
             />
           </div>
+          {!fromOrder && (
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Giá vốn (VND)</label>
+              <input
+                type="number"
+                min="0"
+                value={costPriceInput}
+                onChange={(e) => setCostPriceInput(e.target.value)}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                placeholder="VD: 10000"
+              />
+            </div>
+          )}
         </div>
+        {!fromOrder && (
+          <p className="text-[11px] text-slate-400 -mt-2 mb-3">
+            Tự lấy giá nhập hiện tại của sản phẩm, có thể sửa lại nếu khác lúc bán. Dùng để tính đúng lãi.
+          </p>
+        )}
 
         {!fromOrder && selected && qty && Number(qty) > 0 && (
           <p className="text-xs text-slate-500 mb-3">
@@ -220,7 +241,9 @@ export default function ReturnSheet({ open, onClose, product, order }) {
                     <div className="mt-0.5 text-[11px] text-slate-400">
                       {new Date(r.createdAt).toLocaleString('vi-VN')} · {r.customerName}
                     </div>
-                    <div className="mt-0.5 text-xs text-slate-500">Hoàn tiền: {formatVND(r.refundAmount)}</div>
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      Hoàn tiền: {formatVND(r.refundAmount)} · Giá vốn: {formatVND(r.costPrice || 0)}/sp
+                    </div>
                     {r.note && <div className="mt-0.5 text-xs text-slate-500">Ghi chú: {r.note}</div>}
                   </li>
                 ))}
