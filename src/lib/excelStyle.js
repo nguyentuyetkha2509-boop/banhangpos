@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx-js-style'
 
-const BRAND = '0F766E'
+const BRAND = '2E7D32'
 const TOTAL_FILL = 'FEF3C7'
 const BORDER_COLOR = 'D1D5DB'
 const LABEL_COLOR = '475569'

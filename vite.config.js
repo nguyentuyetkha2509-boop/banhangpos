@@ -15,7 +15,7 @@ export default defineConfig({
         name: 'T.K Pos',
         short_name: 'T.K Pos',
         description: 'App bán hàng tại quầy đơn giản',
-        theme_color: '#0f766e',
+        theme_color: '#2e7d32',
         background_color: '#f8fafc',
         display: 'standalone',
         start_url: BASE_PATH,
