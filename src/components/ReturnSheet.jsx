@@ -14,6 +14,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
   const [note, setNote] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   const fromOrder = Boolean(order)
   const orderItems = order?.items || []
@@ -24,6 +25,12 @@ export default function ReturnSheet({ open, onClose, product, order }) {
     returns.forEach((r) => { if (r.customerName && r.customerName !== 'Khách lẻ') set.add(r.customerName) })
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
   }, [orders, returns])
+
+  const filteredCustomers = useMemo(() => {
+    const q = customerName.trim().toLowerCase()
+    if (!q) return knownCustomers
+    return knownCustomers.filter((name) => name.toLowerCase().includes(q))
+  }, [knownCustomers, customerName])
 
   function alreadyReturnedQty(pid) {
     if (!order) return 0
@@ -144,28 +151,45 @@ export default function ReturnSheet({ open, onClose, product, order }) {
 
         <label className="block text-xs font-medium text-slate-500 mb-1 mt-2">Tên khách hàng (tùy chọn)</label>
         <div className="flex gap-2 mb-3">
-          <input
-            list="return-customer-suggestions"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            disabled={fromOrder}
-            className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-slate-50 disabled:text-slate-500"
-            placeholder="VD: Chị Lan"
-          />
+          <div className="relative flex-1 min-w-0">
+            <input
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setShowSuggestions(false)}
+              disabled={fromOrder}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-slate-50 disabled:text-slate-500"
+              placeholder="VD: Chị Lan"
+            />
+            {!fromOrder && showSuggestions && filteredCustomers.length > 0 && (
+              <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                {filteredCustomers.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setCustomerName(name)
+                      setShowSuggestions(false)
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-slate-700 active:bg-slate-50"
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {!fromOrder && (
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setCustomerName('')}
               className="shrink-0 rounded-lg bg-slate-100 text-slate-500 px-3 text-sm font-medium"
             >
               Khách lẻ
             </button>
           )}
-          <datalist id="return-customer-suggestions">
-            {knownCustomers.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-3">

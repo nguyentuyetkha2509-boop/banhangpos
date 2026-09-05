@@ -6,6 +6,7 @@ export default function CartSheet({ open, onClose }) {
   const { cart, orders, returns, setCartQty, removeFromCart, checkout, requestPrint } = useData()
   const [successOrder, setSuccessOrder] = useState(null)
   const [customerName, setCustomerName] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   const knownCustomers = useMemo(() => {
     const set = new Set()
@@ -13,6 +14,12 @@ export default function CartSheet({ open, onClose }) {
     returns.forEach((r) => { if (r.customerName && r.customerName !== 'Khách lẻ') set.add(r.customerName) })
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
   }, [orders, returns])
+
+  const filteredCustomers = useMemo(() => {
+    const q = customerName.trim().toLowerCase()
+    if (!q) return knownCustomers
+    return knownCustomers.filter((name) => name.toLowerCase().includes(q))
+  }, [knownCustomers, customerName])
 
   if (!open) return null
 
@@ -98,25 +105,42 @@ export default function CartSheet({ open, onClose }) {
             <div className="p-4 border-t border-slate-100">
               <label className="block text-xs font-medium text-slate-500 mb-1">Tên khách hàng (tùy chọn)</label>
               <div className="flex gap-2 mb-3">
-                <input
-                  list="cart-customer-suggestions"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-                  placeholder="VD: Chị Lan"
-                />
+                <div className="relative flex-1 min-w-0">
+                  <input
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setShowSuggestions(false)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                    placeholder="VD: Chị Lan"
+                  />
+                  {showSuggestions && filteredCustomers.length > 0 && (
+                    <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      {filteredCustomers.map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setCustomerName(name)
+                            setShowSuggestions(false)
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-slate-700 active:bg-slate-50"
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setCustomerName('')}
                   className="shrink-0 rounded-lg bg-slate-100 text-slate-500 px-3 text-sm font-medium"
                 >
                   Khách lẻ
                 </button>
-                <datalist id="cart-customer-suggestions">
-                  {knownCustomers.map((name) => (
-                    <option key={name} value={name} />
-                  ))}
-                </datalist>
               </div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-slate-500 text-sm">Tổng cộng</span>
