@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: false,
       manifest: {
-        name: 'Bán Hàng POS',
-        short_name: 'Bán Hàng',
+        name: 'T.K Pos',
+        short_name: 'T.K Pos',
         description: 'App bán hàng tại quầy đơn giản',
         theme_color: '#0f766e',
         background_color: '#f8fafc',
