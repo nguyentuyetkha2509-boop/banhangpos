@@ -68,11 +68,20 @@ export default function ProductsPage() {
           return (
             <div key={p.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-3 flex items-center justify-between">
-                <button onClick={() => setExpandedId(isExpanded ? null : p.id)} className="min-w-0 flex-1 text-left">
-                  <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
-                  <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
-                  <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
-                  {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
+                <button onClick={() => setExpandedId(isExpanded ? null : p.id)} className="min-w-0 flex-1 text-left flex items-center gap-2.5">
+                  <div className="w-11 h-11 shrink-0 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
+                    {p.image ? (
+                      <img src={p.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-slate-300 text-[10px]">Ảnh</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
+                    <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
+                    <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
+                    {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
+                  </div>
                 </button>
                 <div className="flex gap-1.5 shrink-0 ml-2">
                   <button
