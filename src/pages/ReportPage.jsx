@@ -5,26 +5,30 @@ import { PERIODS, getRange, shiftRef, formatRangeLabel, toDateInputValue } from 
 
 const LOW_STOCK_THRESHOLD = 5
 
+function customerKeyOf(name) {
+  return (name || '').trim() || 'Khách lẻ'
+}
+
 export default function ReportPage() {
-  const { orders, products, settings } = useData()
+  const { orders, returns, products, settings } = useData()
   const [period, setPeriod] = useState('day')
   const [refDate, setRefDate] = useState(() => new Date())
   const [exporting, setExporting] = useState(false)
+  const [expandedCustomer, setExpandedCustomer] = useState(null)
 
   const [rangeStart, rangeEnd] = useMemo(() => getRange(period, refDate), [period, refDate])
   const rangeLabel = useMemo(() => formatRangeLabel(period, refDate), [period, refDate])
   const periodMeta = PERIODS.find((p) => p.key === period)
 
-  const periodOrders = useMemo(
-    () =>
-      orders.filter((o) => {
-        const t = new Date(o.createdAt).getTime()
-        return t >= rangeStart.getTime() && t <= rangeEnd.getTime()
-      }),
-    [orders, rangeStart, rangeEnd]
-  )
+  const inRange = (iso) => {
+    const t = new Date(iso).getTime()
+    return t >= rangeStart.getTime() && t <= rangeEnd.getTime()
+  }
 
-  const totalRevenue = periodOrders.reduce((sum, o) => sum + o.total, 0)
+  const periodOrders = useMemo(() => orders.filter((o) => inRange(o.createdAt)), [orders, rangeStart, rangeEnd])
+  const periodReturns = useMemo(() => returns.filter((r) => inRange(r.createdAt)), [returns, rangeStart, rangeEnd])
+
+  const grossRevenue = periodOrders.reduce((sum, o) => sum + o.total, 0)
   const totalItemsSold = periodOrders.reduce(
     (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
     0
@@ -33,7 +37,10 @@ export default function ReportPage() {
     (sum, o) => sum + o.items.reduce((s, i) => s + i.qty * (i.costPrice || 0), 0),
     0
   )
-  const totalProfit = totalRevenue - totalCost
+  const totalReturnQty = periodReturns.reduce((sum, r) => sum + r.qty, 0)
+  const totalReturnValue = periodReturns.reduce((sum, r) => sum + r.refundAmount, 0)
+  const netRevenue = grossRevenue - totalReturnValue
+  const totalProfit = netRevenue - totalCost
 
   const soldByProduct = useMemo(() => {
     const map = new Map()
@@ -48,10 +55,36 @@ export default function ReportPage() {
     return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue)
   }, [periodOrders])
 
+  const returnByCustomer = useMemo(() => {
+    const map = new Map()
+    periodReturns.forEach((r) => {
+      const key = customerKeyOf(r.customerName)
+      const cur = map.get(key) || { qty: 0, value: 0 }
+      cur.qty += r.qty
+      cur.value += r.refundAmount
+      map.set(key, cur)
+    })
+    return map
+  }, [periodReturns])
+
+  const returnProductByCustomer = useMemo(() => {
+    const map = new Map()
+    periodReturns.forEach((r) => {
+      const key = customerKeyOf(r.customerName)
+      const prodMap = map.get(key) || new Map()
+      const cur = prodMap.get(r.productId) || { name: r.productName, qty: 0, value: 0 }
+      cur.qty += r.qty
+      cur.value += r.refundAmount
+      prodMap.set(r.productId, cur)
+      map.set(key, prodMap)
+    })
+    return map
+  }, [periodReturns])
+
   const customerStats = useMemo(() => {
     const map = new Map()
     periodOrders.forEach((o) => {
-      const key = (o.customerName || '').trim() || 'Khách lẻ'
+      const key = customerKeyOf(o.customerName)
       const qty = o.items.reduce((s, i) => s + i.qty, 0)
       const cur = map.get(key) || { name: key, qty: 0, revenue: 0, orderCount: 0 }
       cur.qty += qty
@@ -59,13 +92,27 @@ export default function ReportPage() {
       cur.orderCount += 1
       map.set(key, cur)
     })
-    return Array.from(map.values()).sort((a, b) => b.qty - a.qty)
-  }, [periodOrders])
+    returnByCustomer.forEach((_, key) => {
+      if (!map.has(key)) map.set(key, { name: key, qty: 0, revenue: 0, orderCount: 0 })
+    })
+    return Array.from(map.values())
+      .map((c) => {
+        const ret = returnByCustomer.get(c.name) || { qty: 0, value: 0 }
+        return {
+          ...c,
+          returnQty: ret.qty,
+          returnValue: ret.value,
+          netQty: c.qty - ret.qty,
+          netRevenue: c.revenue - ret.value
+        }
+      })
+      .sort((a, b) => b.netQty - a.netQty)
+  }, [periodOrders, returnByCustomer])
 
   const customerProductMap = useMemo(() => {
     const map = new Map()
     periodOrders.forEach((o) => {
-      const key = (o.customerName || '').trim() || 'Khách lẻ'
+      const key = customerKeyOf(o.customerName)
       const prodMap = map.get(key) || new Map()
       o.items.forEach((item) => {
         const cur = prodMap.get(item.productId) || { name: item.name, qty: 0, revenue: 0 }
@@ -75,20 +122,40 @@ export default function ReportPage() {
       })
       map.set(key, prodMap)
     })
+    returnProductByCustomer.forEach((retProdMap, key) => {
+      const prodMap = map.get(key) || new Map()
+      retProdMap.forEach((ret, productId) => {
+        const cur = prodMap.get(productId) || { name: ret.name, qty: 0, revenue: 0 }
+        prodMap.set(productId, cur)
+      })
+      map.set(key, prodMap)
+    })
     return map
-  }, [periodOrders])
+  }, [periodOrders, returnProductByCustomer])
 
   const customerProductRows = useMemo(() => {
     const rows = []
     customerStats.forEach((c) => {
       const prodMap = customerProductMap.get(c.name)
-      const items = prodMap ? Array.from(prodMap.values()).sort((a, b) => b.revenue - a.revenue) : []
+      if (!prodMap) return
+      const retProdMap = returnProductByCustomer.get(c.name)
+      const items = Array.from(prodMap.entries())
+        .map(([productId, item]) => {
+          const ret = retProdMap?.get(productId) || { qty: 0, value: 0 }
+          return {
+            name: item.name,
+            qty: item.qty,
+            revenue: item.revenue,
+            returnQty: ret.qty,
+            returnValue: ret.value,
+            netRevenue: item.revenue - ret.value
+          }
+        })
+        .sort((a, b) => b.revenue - a.revenue)
       items.forEach((item) => rows.push({ customerName: c.name, ...item }))
     })
     return rows
-  }, [customerStats, customerProductMap])
-
-  const [expandedCustomer, setExpandedCustomer] = useState(null)
+  }, [customerStats, customerProductMap, returnProductByCustomer])
 
   const canGoNext = useMemo(() => {
     const nextRefDate = shiftRef(period, refDate, 1)
@@ -112,10 +179,20 @@ export default function ReportPage() {
         periodLabel: periodMeta.label,
         rangeLabel,
         periodOrders,
+        periodReturns,
         soldByProduct,
         customerStats,
         customerProductRows,
-        totals: { totalRevenue, totalCost, totalProfit, totalItemsSold, orderCount: periodOrders.length },
+        totals: {
+          grossRevenue,
+          totalReturnQty,
+          totalReturnValue,
+          netRevenue,
+          totalCost,
+          totalProfit,
+          totalItemsSold,
+          orderCount: periodOrders.length
+        },
         settings
       })
     } finally {
@@ -174,8 +251,8 @@ export default function ReportPage() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-          <p className="text-xs text-slate-400">Doanh thu</p>
-          <p className="text-lg font-bold text-brand-700 mt-0.5">{formatVND(totalRevenue)}</p>
+          <p className="text-xs text-slate-400">Doanh thu thuần</p>
+          <p className="text-lg font-bold text-brand-700 mt-0.5">{formatVND(netRevenue)}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
           <p className="text-xs text-slate-400">Số hóa đơn</p>
@@ -189,9 +266,18 @@ export default function ReportPage() {
           <p className="text-xs text-slate-400">Lãi ước tính</p>
           <p className="text-lg font-bold text-emerald-600 mt-0.5">{formatVND(totalProfit)}</p>
         </div>
+        {totalReturnQty > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm col-span-2">
+            <p className="text-xs text-slate-400">Trả hàng</p>
+            <p className="text-lg font-bold text-red-500 mt-0.5">
+              −{totalReturnQty} sp · −{formatVND(totalReturnValue)}
+            </p>
+          </div>
+        )}
       </div>
       <p className="text-[11px] text-slate-400 mt-1.5 mb-4">
-        Lãi ước tính tính theo giá nhập gần nhất của mỗi sản phẩm tại thời điểm bán.
+        Doanh thu thuần đã trừ giá trị trả hàng. Lãi ước tính tính theo giá nhập gần nhất của mỗi sản phẩm tại thời
+        điểm bán.
       </p>
 
       <button
@@ -211,8 +297,15 @@ export default function ReportPage() {
           const isTop = idx === 0 && customerStats.length > 1
           const isBottom = idx === customerStats.length - 1 && customerStats.length > 1
           const isExpanded = expandedCustomer === c.name
-          const products = customerProductMap.get(c.name)
-          const productList = products ? Array.from(products.values()).sort((a, b) => b.revenue - a.revenue) : []
+          const prodMap = customerProductMap.get(c.name)
+          const productList = prodMap
+            ? Array.from(prodMap.entries())
+                .map(([productId, item]) => {
+                  const ret = returnProductByCustomer.get(c.name)?.get(productId) || { qty: 0, value: 0 }
+                  return { ...item, returnQty: ret.qty }
+                })
+                .sort((a, b) => b.revenue - a.revenue)
+            : []
           return (
             <div key={c.name} className={idx > 0 ? 'border-t border-slate-100' : ''}>
               <button
@@ -234,16 +327,20 @@ export default function ReportPage() {
                     )}
                   </p>
                   <p className="text-xs text-slate-400">
-                    {c.orderCount} hóa đơn · {formatVND(c.revenue)}
+                    {c.orderCount} hóa đơn · {formatVND(c.netRevenue)}
+                    {c.returnQty > 0 ? ` · trả ${c.returnQty}` : ''}
                   </p>
                 </div>
-                <span className="font-semibold text-sm text-slate-800 shrink-0">{c.qty} sp</span>
+                <span className="font-semibold text-sm text-slate-800 shrink-0">{c.netQty} sp</span>
               </button>
               {isExpanded && (
                 <div className="bg-slate-50 px-3 py-2 divide-y divide-slate-100">
                   {productList.map((item, i) => (
                     <div key={i} className="flex items-center justify-between py-1.5 text-sm">
-                      <span className="text-slate-600 truncate mr-2">{item.name} x{item.qty}</span>
+                      <span className="text-slate-600 truncate mr-2">
+                        {item.name} x{item.qty}
+                        {item.returnQty > 0 ? ` (trả ${item.returnQty})` : ''}
+                      </span>
                       <span className="text-slate-800 font-medium shrink-0">{formatVND(item.revenue)}</span>
                     </div>
                   ))}
@@ -253,6 +350,31 @@ export default function ReportPage() {
           )
         })}
       </div>
+
+      {periodReturns.length > 0 && (
+        <>
+          <h2 className="font-bold text-slate-800 mb-2">Trả hàng trong kỳ</h2>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            {periodReturns.map((r, idx) => (
+              <div
+                key={r.id}
+                className={`flex items-center justify-between px-3 py-2.5 ${idx > 0 ? 'border-t border-slate-100' : ''}`}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">{r.productName}</p>
+                  <p className="text-xs text-slate-400">
+                    {new Date(r.createdAt).toLocaleString('vi-VN')} · {r.customerName}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-sm text-red-500">−{r.qty}</p>
+                  <p className="text-xs text-slate-400">{formatVND(r.refundAmount)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <h2 className="font-bold text-slate-800 mb-2">Sản phẩm đã bán trong kỳ</h2>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">

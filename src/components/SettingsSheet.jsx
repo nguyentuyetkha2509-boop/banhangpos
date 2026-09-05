@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 
 export default function SettingsSheet({ open, onClose }) {
-  const { settings, updateSettings, products, orders, stockMovements } = useData()
+  const { settings, updateSettings, products, orders, stockMovements, returns } = useData()
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
   const [exporting, setExporting] = useState(false)
@@ -28,7 +28,7 @@ export default function SettingsSheet({ open, onClose }) {
     setExporting(true)
     try {
       const { exportDataToExcel } = await import('../lib/exportExcel')
-      exportDataToExcel({ products, orders, stockMovements, settings })
+      exportDataToExcel({ products, orders, stockMovements, returns, settings })
     } finally {
       setExporting(false)
     }
@@ -73,7 +73,7 @@ export default function SettingsSheet({ open, onClose }) {
             {exporting ? 'Đang tạo file...' : '📊 Xuất dữ liệu ra Excel'}
           </button>
           <p className="text-xs text-slate-400 mt-1">
-            Tải về file chứa toàn bộ sản phẩm, hóa đơn và lịch sử nhập kho để lưu trữ riêng
+            Tải về file chứa toàn bộ sản phẩm, hóa đơn, lịch sử nhập kho và trả hàng để lưu trữ riêng
           </p>
         </div>
 

@@ -19,7 +19,7 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '')
 }
 
-export function exportDataToExcel({ products, orders, stockMovements, settings }) {
+export function exportDataToExcel({ products, orders, stockMovements, returns, settings }) {
   const wb = XLSX.utils.book_new()
 
   const productRows = products.map((p) => ({
@@ -69,6 +69,17 @@ export function exportDataToExcel({ products, orders, stockMovements, settings }
   const wsRestock = XLSX.utils.json_to_sheet(restockRows)
   XLSX.utils.book_append_sheet(wb, wsRestock, 'Nhap kho')
 
+  const returnRows = (returns || []).map((r) => ({
+    'Thời gian': formatDateTimeForSheet(r.createdAt),
+    'Tên sản phẩm': r.productName,
+    'Khách hàng': r.customerName,
+    'Số lượng trả': r.qty,
+    'Giá trị hoàn (VND)': r.refundAmount,
+    'Ghi chú': r.note || ''
+  }))
+  const wsReturns = XLSX.utils.json_to_sheet(returnRows)
+  XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
+
   const shopName = settings?.shopName || 'BanHang POS'
   const shopSlug = slugify(shopName)
   const dateStamp = new Date().toISOString().slice(0, 10)
@@ -79,6 +90,7 @@ export function exportReportToExcel({
   periodLabel,
   rangeLabel,
   periodOrders,
+  periodReturns,
   soldByProduct,
   customerStats,
   customerProductRows,
@@ -89,7 +101,10 @@ export function exportReportToExcel({
 
   const overviewRows = [
     { 'Chỉ tiêu': 'Kỳ báo cáo', 'Giá trị': `${periodLabel} - ${rangeLabel}` },
-    { 'Chỉ tiêu': 'Doanh thu (VND)', 'Giá trị': totals.totalRevenue },
+    { 'Chỉ tiêu': 'Doanh thu (VND)', 'Giá trị': totals.grossRevenue },
+    { 'Chỉ tiêu': 'Số lượng trả hàng', 'Giá trị': totals.totalReturnQty },
+    { 'Chỉ tiêu': 'Giá trị trả hàng (VND)', 'Giá trị': totals.totalReturnValue },
+    { 'Chỉ tiêu': 'Doanh thu thuần (VND)', 'Giá trị': totals.netRevenue },
     { 'Chỉ tiêu': 'Giá vốn (VND)', 'Giá trị': totals.totalCost },
     { 'Chỉ tiêu': 'Lãi ước tính (VND)', 'Giá trị': totals.totalProfit },
     { 'Chỉ tiêu': 'Số hóa đơn', 'Giá trị': totals.orderCount },
@@ -101,8 +116,11 @@ export function exportReportToExcel({
   const customerRows = customerStats.map((c, idx) => ({
     'Xếp hạng': idx + 1,
     'Khách hàng': c.name,
-    'Số lượng mua': c.qty,
+    'SL mua': c.qty,
     'Doanh thu (VND)': c.revenue,
+    'SL Trả': c.returnQty,
+    'Giá trị trả (VND)': c.returnValue,
+    'Doanh thu thuần (VND)': c.netRevenue,
     'Số hóa đơn': c.orderCount
   }))
   const wsCustomers = XLSX.utils.json_to_sheet(customerRows)
@@ -110,9 +128,12 @@ export function exportReportToExcel({
 
   const customerProductSheetRows = (customerProductRows || []).map((r) => ({
     'Khách hàng': r.customerName,
-    'Tên sản phẩm': r.name,
-    'Số lượng mua': r.qty,
-    'Doanh thu (VND)': r.revenue
+    'Tên hàng': r.name,
+    'SL mua': r.qty,
+    'Doanh thu (VND)': r.revenue,
+    'SL Trả': r.returnQty,
+    'Giá trị trả (VND)': r.returnValue,
+    'Doanh thu thuần (VND)': r.netRevenue
   }))
   const wsCustomerProducts = XLSX.utils.json_to_sheet(customerProductSheetRows)
   XLSX.utils.book_append_sheet(wb, wsCustomerProducts, 'Hang ban theo khach')
@@ -134,6 +155,17 @@ export function exportReportToExcel({
   }))
   const wsOrders = XLSX.utils.json_to_sheet(orderRows)
   XLSX.utils.book_append_sheet(wb, wsOrders, 'Chi tiet don hang')
+
+  const returnRows = (periodReturns || []).map((r) => ({
+    'Thời gian': formatDateTimeForSheet(r.createdAt),
+    'Tên sản phẩm': r.productName,
+    'Khách hàng': r.customerName,
+    'Số lượng trả': r.qty,
+    'Giá trị hoàn (VND)': r.refundAmount,
+    'Ghi chú': r.note || ''
+  }))
+  const wsReturns = XLSX.utils.json_to_sheet(returnRows)
+  XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
 
   const shopName = settings?.shopName || 'BanHang POS'
   const shopSlug = slugify(shopName)

@@ -18,6 +18,7 @@ export function DataProvider({ children }) {
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [orders, setOrders] = useState(() => loadData('orders', []))
   const [stockMovements, setStockMovements] = useState(() => loadData('stockMovements', []))
+  const [returns, setReturns] = useState(() => loadData('returns', []))
   const [settings, setSettings] = useState(() => loadData('settings', DEFAULT_SETTINGS))
   const [printOrder, setPrintOrder] = useState(null)
 
@@ -25,6 +26,7 @@ export function DataProvider({ children }) {
   useEffect(() => saveData('cart', cart), [cart])
   useEffect(() => saveData('orders', orders), [orders])
   useEffect(() => saveData('stockMovements', stockMovements), [stockMovements])
+  useEffect(() => saveData('returns', returns), [returns])
   useEffect(() => saveData('settings', settings), [settings])
 
   function updateSettings(patch) {
@@ -107,6 +109,29 @@ export function DataProvider({ children }) {
     ])
   }
 
+  function addReturn(productId, qty, customerName, unitPrice, note) {
+    const returnQty = Math.max(0, Number(qty) || 0)
+    if (returnQty <= 0) return
+    const product = products.find((p) => p.id === productId)
+    if (!product) return
+    const price = unitPrice === '' || unitPrice == null ? product.price : Math.max(0, Number(unitPrice) || 0)
+    setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, stock: p.stock + returnQty } : p)))
+    setReturns((prev) => [
+      {
+        id: makeId(),
+        productId,
+        productName: product.name,
+        customerName: (customerName || '').trim() || 'Khách lẻ',
+        qty: returnQty,
+        unitPrice: price,
+        refundAmount: price * returnQty,
+        note: (note || '').trim(),
+        createdAt: new Date().toISOString()
+      },
+      ...prev
+    ])
+  }
+
   function findProductByBarcode(code) {
     const trimmed = code.trim()
     if (!trimmed) return null
@@ -143,6 +168,7 @@ export function DataProvider({ children }) {
     cart,
     orders,
     stockMovements,
+    returns,
     settings,
     printOrder,
     requestPrint,
@@ -157,6 +183,7 @@ export function DataProvider({ children }) {
     checkout,
     findProductByBarcode,
     restockProduct,
+    addReturn,
     updateSettings
   }
 

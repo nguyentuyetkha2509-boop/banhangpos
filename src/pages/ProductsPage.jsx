@@ -3,12 +3,14 @@ import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ProductFormSheet from '../components/ProductFormSheet'
 import RestockSheet from '../components/RestockSheet'
+import ReturnSheet from '../components/ReturnSheet'
 
 export default function ProductsPage() {
   const { products, deleteProduct } = useData()
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [showRestock, setShowRestock] = useState(false)
+  const [showReturn, setShowReturn] = useState(false)
 
   function openNew() {
     setEditing(null)
@@ -32,7 +34,7 @@ export default function ProductsPage() {
         <h1 className="text-xl font-bold text-slate-800">Sản phẩm ({products.length})</h1>
       </div>
 
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-2">
         <button
           onClick={() => setShowRestock(true)}
           className="flex-1 bg-brand-50 text-brand-700 text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
@@ -40,8 +42,16 @@ export default function ProductsPage() {
           📥 Nhập kho
         </button>
         <button
+          onClick={() => setShowReturn(true)}
+          className="flex-1 bg-red-50 text-red-600 text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
+        >
+          ↩️ Trả hàng
+        </button>
+      </div>
+      <div className="mb-3">
+        <button
           onClick={openNew}
-          className="flex-1 bg-brand-700 text-white text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
+          className="w-full bg-brand-700 text-white text-sm font-medium rounded-lg px-3 py-2 active:scale-[0.97] transition"
         >
           + Thêm sản phẩm
         </button>
@@ -86,6 +96,7 @@ export default function ProductsPage() {
 
       <ProductFormSheet open={showForm} onClose={() => setShowForm(false)} product={editing} />
       <RestockSheet open={showRestock} onClose={() => setShowRestock(false)} />
+      <ReturnSheet open={showReturn} onClose={() => setShowReturn(false)} />
     </div>
   )
 }
