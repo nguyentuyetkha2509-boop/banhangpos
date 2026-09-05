@@ -112,6 +112,13 @@ export default function SalesPage() {
                   {inCart}
                 </span>
               )}
+              <div className="w-full aspect-square rounded-lg border border-slate-100 bg-slate-50 overflow-hidden mb-2 flex items-center justify-center">
+                {p.image ? (
+                  <img src={p.image} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-slate-300 text-2xl">📦</span>
+                )}
+              </div>
               <p className="font-medium text-sm text-slate-800 line-clamp-2 min-h-[2.5rem]">{p.name}</p>
               <p className="text-brand-700 font-bold mt-1">{formatVND(p.price)}</p>
               <p className={`text-xs mt-0.5 ${outOfStock ? 'text-red-500' : 'text-slate-400'}`}>
