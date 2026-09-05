@@ -28,6 +28,8 @@ export default function AdminApprovalSheet({ open, onClose }) {
     setApprovingId(uid)
     try {
       await setDoc(doc(db, 'shops', uid), { approved: true }, { merge: true })
+    } catch {
+      alert('Duyệt thất bại, kiểm tra lại kết nối mạng và thử lại.')
     } finally {
       setApprovingId(null)
     }

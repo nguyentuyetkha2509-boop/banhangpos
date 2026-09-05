@@ -5,7 +5,7 @@ const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
 const EMPTY = { name: '', category: '', barcode: '', image: '', price: '' }
 
-function resizeImageToDataUrl(file, maxSize = 480, quality = 0.72) {
+function resizeImageToDataUrl(file, maxSize = 240, quality = 0.7) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => {
