@@ -261,7 +261,7 @@ export default function ReportPage() {
     <div className="max-w-md mx-auto px-4 pt-4 pb-6">
       <h1 className="text-xl font-bold text-slate-800 mb-3">Báo cáo</h1>
 
-      <div className="grid grid-cols-4 gap-1.5 mb-3">
+      <div className="grid grid-cols-5 gap-1.5 mb-3">
         {PERIODS.map((p) => (
           <button
             key={p.key}

@@ -2,7 +2,8 @@ export const PERIODS = [
   { key: 'day', label: 'Ngày' },
   { key: 'week', label: 'Tuần' },
   { key: 'month', label: 'Tháng' },
-  { key: 'quarter', label: 'Quý' }
+  { key: 'quarter', label: 'Quý' },
+  { key: 'year', label: 'Năm' }
 ]
 
 function startOfDay(date) {
@@ -54,6 +55,16 @@ function endOfQuarter(date) {
   return endOfDay(new Date(d.getFullYear(), qMonth + 3, 0))
 }
 
+function startOfYear(date) {
+  const d = new Date(date)
+  return new Date(d.getFullYear(), 0, 1, 0, 0, 0, 0)
+}
+
+function endOfYear(date) {
+  const d = new Date(date)
+  return endOfDay(new Date(d.getFullYear(), 11, 31))
+}
+
 function isoWeekNumber(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNum = d.getUTCDay() || 7
@@ -67,6 +78,7 @@ export function getRange(period, refDate) {
   if (period === 'week') return [startOfWeek(d), endOfWeek(d)]
   if (period === 'month') return [startOfMonth(d), endOfMonth(d)]
   if (period === 'quarter') return [startOfQuarter(d), endOfQuarter(d)]
+  if (period === 'year') return [startOfYear(d), endOfYear(d)]
   return [startOfDay(d), endOfDay(d)]
 }
 
@@ -75,6 +87,7 @@ export function shiftRef(period, refDate, dir) {
   if (period === 'week') d.setDate(d.getDate() + 7 * dir)
   else if (period === 'month') d.setMonth(d.getMonth() + dir)
   else if (period === 'quarter') d.setMonth(d.getMonth() + 3 * dir)
+  else if (period === 'year') d.setFullYear(d.getFullYear() + dir)
   else d.setDate(d.getDate() + dir)
   return d
 }
@@ -85,6 +98,7 @@ export function formatRangeLabel(period, refDate) {
   if (period === 'week') return `Tuần ${isoWeekNumber(start)} (${fmt(start)} - ${fmt(end)})`
   if (period === 'month') return `Tháng ${start.getMonth() + 1}/${start.getFullYear()}`
   if (period === 'quarter') return `Quý ${Math.floor(start.getMonth() / 3) + 1}/${start.getFullYear()}`
+  if (period === 'year') return `Năm ${start.getFullYear()}`
   return fmt(start)
 }
 
