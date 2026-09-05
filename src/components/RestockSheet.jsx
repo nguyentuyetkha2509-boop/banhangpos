@@ -4,7 +4,7 @@ import { useData } from '../store/DataContext'
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
 export default function RestockSheet({ open, onClose, product }) {
-  const { products, restockProduct, findProductByBarcode } = useData()
+  const { products, restockProduct, findProductByBarcode, stockMovements } = useData()
   const [productId, setProductId] = useState('')
   const [qty, setQty] = useState('')
   const [note, setNote] = useState('')
@@ -47,7 +47,7 @@ export default function RestockSheet({ open, onClose, product }) {
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40" onClick={onClose}>
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white rounded-t-2xl p-4"
+        className="w-full max-w-md max-h-[88vh] overflow-y-auto bg-white rounded-t-2xl p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-bold text-slate-800 mb-3">Nhập kho</h2>
@@ -111,6 +111,28 @@ export default function RestockSheet({ open, onClose, product }) {
           <button type="submit" className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700">
             Nhập kho
           </button>
+        </div>
+
+        <div className="mt-5 pt-4 border-t border-slate-100">
+          <h3 className="text-xs font-semibold text-slate-500 mb-2">Lịch sử nhập kho gần đây</h3>
+          {stockMovements.length === 0 ? (
+            <p className="text-xs text-slate-400 py-2">Chưa có lượt nhập kho nào</p>
+          ) : (
+            <ul className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {stockMovements.slice(0, 20).map((m) => (
+                <li key={m.id} className="rounded-lg bg-slate-50 px-3 py-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-medium text-slate-700">{m.productName}</span>
+                    <span className="shrink-0 text-sm font-semibold text-emerald-600">+{m.qty}</span>
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-slate-400">
+                    {new Date(m.createdAt).toLocaleString('vi-VN')}
+                  </div>
+                  {m.note && <div className="mt-0.5 text-xs text-slate-500">Ghi chú: {m.note}</div>}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </form>
 
