@@ -339,3 +339,67 @@ export function exportCustomerToExcel({
   const dateStamp = new Date().toISOString().slice(0, 10)
   XLSX.writeFile(wb, `khach-hang-${customerSlug}-${periodSlug}-${shopSlug}-${dateStamp}.xlsx`)
 }
+
+export function exportDebtsToExcel({ debtCustomers, settings }) {
+  const wb = XLSX.utils.book_new()
+  const shopName = settings?.shopName || 'BanHang POS'
+  const now = new Date().toLocaleString('vi-VN')
+  const meta = [
+    ['Cửa hàng:', shopName],
+    ['Ngày xuất:', now]
+  ]
+
+  const totalOwed = debtCustomers.reduce((sum, c) => sum + c.owed, 0)
+  const totalPaid = debtCustomers.reduce((sum, c) => sum + c.paid, 0)
+  const totalBalance = debtCustomers.reduce((sum, c) => sum + Math.max(0, c.balance), 0)
+
+  const wsSummary = buildStyledSheet({
+    title: 'Công nợ khách hàng',
+    meta,
+    headers: ['Khách hàng', 'Đã mua ghi nợ (VND)', 'Đã thu (VND)', 'Còn nợ (VND)'],
+    rows: debtCustomers.map((c) => [c.name, c.owed, c.paid, Math.max(0, c.balance)]),
+    totalRow: ['Tổng cộng', totalOwed, totalPaid, totalBalance],
+    moneyCols: [1, 2, 3]
+  })
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Cong no')
+
+  const orderRows = []
+  debtCustomers.forEach((c) => {
+    c.debtOrders.forEach((o) => {
+      orderRows.push([c.name, `#${o.id.slice(-6).toUpperCase()}`, formatDateTimeForSheet(o.createdAt), o.total])
+    })
+  })
+  const wsOrders = buildStyledSheet({
+    title: 'Hóa đơn ghi nợ',
+    meta,
+    headers: ['Khách hàng', 'Mã hóa đơn', 'Thời gian', 'Số tiền (VND)'],
+    rows: orderRows,
+    moneyCols: [3]
+  })
+  XLSX.utils.book_append_sheet(wb, wsOrders, 'Hoa don ghi no')
+
+  const paymentRows = []
+  debtCustomers.forEach((c) => {
+    c.payments.forEach((p) => {
+      paymentRows.push([
+        c.name,
+        formatDateTimeForSheet(p.createdAt),
+        p.amount,
+        PAYMENT_LABELS[p.paymentMethod] || 'Tiền mặt',
+        p.note || ''
+      ])
+    })
+  })
+  const wsPayments = buildStyledSheet({
+    title: 'Lịch sử thu nợ',
+    meta,
+    headers: ['Khách hàng', 'Thời gian', 'Số tiền thu (VND)', 'Hình thức', 'Ghi chú'],
+    rows: paymentRows,
+    moneyCols: [2]
+  })
+  XLSX.utils.book_append_sheet(wb, wsPayments, 'Thu no')
+
+  const shopSlug = slugify(shopName)
+  const dateStamp = new Date().toISOString().slice(0, 10)
+  XLSX.writeFile(wb, `cong-no-${shopSlug}-${dateStamp}.xlsx`)
+}

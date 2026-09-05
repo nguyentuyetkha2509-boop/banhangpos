@@ -14,9 +14,10 @@ function formatDateTime(iso) {
 }
 
 export default function DebtPage() {
-  const { orders, debtPayments } = useData()
+  const { orders, debtPayments, settings } = useData()
   const [expanded, setExpanded] = useState(null)
   const [payingCustomer, setPayingCustomer] = useState(null)
+  const [exporting, setExporting] = useState(false)
 
   const debtCustomers = useMemo(() => {
     const map = new Map()
@@ -45,12 +46,30 @@ export default function DebtPage() {
 
   const totalOutstanding = debtCustomers.reduce((sum, c) => sum + Math.max(0, c.balance), 0)
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const { exportDebtsToExcel } = await import('../lib/exportExcel')
+      exportDebtsToExcel({ debtCustomers, settings })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-6">
       <h1 className="text-xl font-bold text-slate-800 mb-1">Công nợ</h1>
       <p className="text-sm text-slate-500 mb-3">
         Tổng đang nợ: <span className="font-semibold text-amber-600">{formatVND(totalOutstanding)}</span>
       </p>
+
+      <button
+        onClick={handleExport}
+        disabled={exporting || debtCustomers.length === 0}
+        className="w-full bg-brand-50 text-brand-700 text-sm font-medium rounded-lg py-2.5 mb-3 disabled:opacity-40 active:scale-[0.98] transition"
+      >
+        {exporting ? 'Đang xuất...' : '📊 Xuất Excel công nợ'}
+      </button>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {debtCustomers.length === 0 && (
