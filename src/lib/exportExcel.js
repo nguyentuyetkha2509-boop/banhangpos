@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'
+import { XLSX, buildStyledSheet } from './excelStyle'
 
 function formatDateTimeForSheet(iso) {
   return new Date(iso).toLocaleString('vi-VN', {
@@ -22,62 +22,71 @@ function slugify(text) {
 export function exportDataToExcel({ products, orders, stockMovements, returns, settings }) {
   const wb = XLSX.utils.book_new()
 
-  const productRows = products.map((p) => ({
-    'Tên sản phẩm': p.name,
-    'Danh mục': p.category || '',
-    'Giá nhập gần nhất (VND)': p.costPrice || 0,
-    'Giá bán (VND)': p.price,
-    'Tồn kho': p.stock,
-    'Mã vạch': p.barcode || ''
-  }))
-  const wsProducts = XLSX.utils.json_to_sheet(productRows)
+  const wsProducts = buildStyledSheet({
+    headers: ['Tên sản phẩm', 'Danh mục', 'Giá nhập gần nhất (VND)', 'Giá bán (VND)', 'Tồn kho', 'Mã vạch'],
+    rows: products.map((p) => [p.name, p.category || '', p.costPrice || 0, p.price, p.stock, p.barcode || '']),
+    moneyCols: [2, 3]
+  })
   XLSX.utils.book_append_sheet(wb, wsProducts, 'San pham')
 
-  const orderRows = orders.map((o) => ({
-    'Mã hóa đơn': `#${o.id.slice(-6).toUpperCase()}`,
-    'Thời gian': formatDateTimeForSheet(o.createdAt),
-    'Số sản phẩm': o.items.reduce((sum, i) => sum + i.qty, 0),
-    'Tổng tiền (VND)': o.total
-  }))
-  const wsOrders = XLSX.utils.json_to_sheet(orderRows)
+  const wsOrders = buildStyledSheet({
+    headers: ['Mã hóa đơn', 'Thời gian', 'Số sản phẩm', 'Tổng tiền (VND)'],
+    rows: orders.map((o) => [
+      `#${o.id.slice(-6).toUpperCase()}`,
+      formatDateTimeForSheet(o.createdAt),
+      o.items.reduce((sum, i) => sum + i.qty, 0),
+      o.total
+    ]),
+    moneyCols: [3]
+  })
   XLSX.utils.book_append_sheet(wb, wsOrders, 'Hoa don')
 
   const orderItemRows = []
   orders.forEach((o) => {
     o.items.forEach((item) => {
-      orderItemRows.push({
-        'Mã hóa đơn': `#${o.id.slice(-6).toUpperCase()}`,
-        'Thời gian': formatDateTimeForSheet(o.createdAt),
-        'Tên sản phẩm': item.name,
-        'Số lượng': item.qty,
-        'Đơn giá (VND)': item.price,
-        'Thành tiền (VND)': item.qty * item.price
-      })
+      orderItemRows.push([
+        `#${o.id.slice(-6).toUpperCase()}`,
+        formatDateTimeForSheet(o.createdAt),
+        item.name,
+        item.qty,
+        item.price,
+        item.qty * item.price
+      ])
     })
   })
-  const wsOrderItems = XLSX.utils.json_to_sheet(orderItemRows)
+  const wsOrderItems = buildStyledSheet({
+    headers: ['Mã hóa đơn', 'Thời gian', 'Tên sản phẩm', 'Số lượng', 'Đơn giá (VND)', 'Thành tiền (VND)'],
+    rows: orderItemRows,
+    moneyCols: [4, 5]
+  })
   XLSX.utils.book_append_sheet(wb, wsOrderItems, 'Chi tiet hoa don')
 
-  const restockRows = stockMovements.map((m) => ({
-    'Thời gian': formatDateTimeForSheet(m.createdAt),
-    'Tên sản phẩm': m.productName,
-    'Số lượng nhập': m.qty,
-    'Giá nhập (VND)': m.costPrice || 0,
-    'Giá bán từ lô này (VND)': m.sellPrice || 0,
-    'Ghi chú': m.note || ''
-  }))
-  const wsRestock = XLSX.utils.json_to_sheet(restockRows)
+  const wsRestock = buildStyledSheet({
+    headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng nhập', 'Giá nhập (VND)', 'Giá bán từ lô này (VND)', 'Ghi chú'],
+    rows: stockMovements.map((m) => [
+      formatDateTimeForSheet(m.createdAt),
+      m.productName,
+      m.qty,
+      m.costPrice || 0,
+      m.sellPrice || 0,
+      m.note || ''
+    ]),
+    moneyCols: [3, 4]
+  })
   XLSX.utils.book_append_sheet(wb, wsRestock, 'Nhap kho')
 
-  const returnRows = (returns || []).map((r) => ({
-    'Thời gian': formatDateTimeForSheet(r.createdAt),
-    'Tên sản phẩm': r.productName,
-    'Khách hàng': r.customerName,
-    'Số lượng trả': r.qty,
-    'Giá trị hoàn (VND)': r.refundAmount,
-    'Ghi chú': r.note || ''
-  }))
-  const wsReturns = XLSX.utils.json_to_sheet(returnRows)
+  const wsReturns = buildStyledSheet({
+    headers: ['Thời gian', 'Tên sản phẩm', 'Khách hàng', 'Số lượng trả', 'Giá trị hoàn (VND)', 'Ghi chú'],
+    rows: (returns || []).map((r) => [
+      formatDateTimeForSheet(r.createdAt),
+      r.productName,
+      r.customerName,
+      r.qty,
+      r.refundAmount,
+      r.note || ''
+    ]),
+    moneyCols: [4]
+  })
   XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
 
   const shopName = settings?.shopName || 'BanHang POS'
@@ -99,72 +108,91 @@ export function exportReportToExcel({
 }) {
   const wb = XLSX.utils.book_new()
 
-  const overviewRows = [
-    { 'Chỉ tiêu': 'Kỳ báo cáo', 'Giá trị': `${periodLabel} - ${rangeLabel}` },
-    { 'Chỉ tiêu': 'Doanh thu (VND)', 'Giá trị': totals.grossRevenue },
-    { 'Chỉ tiêu': 'Số lượng trả hàng', 'Giá trị': totals.totalReturnQty },
-    { 'Chỉ tiêu': 'Giá trị trả hàng (VND)', 'Giá trị': totals.totalReturnValue },
-    { 'Chỉ tiêu': 'Doanh thu thuần (VND)', 'Giá trị': totals.netRevenue },
-    { 'Chỉ tiêu': 'Giá vốn (VND)', 'Giá trị': totals.totalCost },
-    { 'Chỉ tiêu': 'Lãi ước tính (VND)', 'Giá trị': totals.totalProfit },
-    { 'Chỉ tiêu': 'Số hóa đơn', 'Giá trị': totals.orderCount },
-    { 'Chỉ tiêu': 'Số sản phẩm đã bán', 'Giá trị': totals.totalItemsSold }
-  ]
-  const wsOverview = XLSX.utils.json_to_sheet(overviewRows)
+  const wsOverview = buildStyledSheet({
+    title: 'Tổng quan báo cáo',
+    meta: [
+      ['Cửa hàng:', settings?.shopName || 'BanHang POS'],
+      ['Kỳ báo cáo:', `${periodLabel} - ${rangeLabel}`]
+    ],
+    headers: ['Chỉ tiêu', 'Giá trị'],
+    rows: [
+      ['Doanh thu (VND)', totals.grossRevenue],
+      ['Số lượng trả hàng', totals.totalReturnQty],
+      ['Giá trị trả hàng (VND)', totals.totalReturnValue],
+      ['Doanh thu thuần (VND)', totals.netRevenue],
+      ['Giá vốn (VND)', totals.totalCost],
+      ['Lãi ước tính (VND)', totals.totalProfit],
+      ['Số hóa đơn', totals.orderCount],
+      ['Số sản phẩm đã bán', totals.totalItemsSold]
+    ],
+    moneyCols: [1],
+    boldLabelRows: ['Doanh thu thuần (VND)', 'Lãi ước tính (VND)']
+  })
   XLSX.utils.book_append_sheet(wb, wsOverview, 'Tong quan')
 
-  const customerRows = customerStats.map((c, idx) => ({
-    'Xếp hạng': idx + 1,
-    'Khách hàng': c.name,
-    'SL mua': c.qty,
-    'Doanh thu (VND)': c.revenue,
-    'SL Trả': c.returnQty,
-    'Giá trị trả (VND)': c.returnValue,
-    'Doanh thu thuần (VND)': c.netRevenue,
-    'Số hóa đơn': c.orderCount
-  }))
-  const wsCustomers = XLSX.utils.json_to_sheet(customerRows)
+  const wsCustomers = buildStyledSheet({
+    headers: ['Xếp hạng', 'Khách hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)', 'Số hóa đơn'],
+    rows: customerStats.map((c, idx) => [
+      idx + 1,
+      c.name,
+      c.qty,
+      c.revenue,
+      c.returnQty,
+      c.returnValue,
+      c.netRevenue,
+      c.orderCount
+    ]),
+    moneyCols: [3, 5, 6]
+  })
   XLSX.utils.book_append_sheet(wb, wsCustomers, 'Khach hang')
 
-  const customerProductSheetRows = (customerProductRows || []).map((r) => ({
-    'Khách hàng': r.customerName,
-    'Tên hàng': r.name,
-    'SL mua': r.qty,
-    'Doanh thu (VND)': r.revenue,
-    'SL Trả': r.returnQty,
-    'Giá trị trả (VND)': r.returnValue,
-    'Doanh thu thuần (VND)': r.netRevenue
-  }))
-  const wsCustomerProducts = XLSX.utils.json_to_sheet(customerProductSheetRows)
+  const wsCustomerProducts = buildStyledSheet({
+    headers: ['Khách hàng', 'Tên hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)'],
+    rows: (customerProductRows || []).map((r) => [
+      r.customerName,
+      r.name,
+      r.qty,
+      r.revenue,
+      r.returnQty,
+      r.returnValue,
+      r.netRevenue
+    ]),
+    moneyCols: [3, 5, 6]
+  })
   XLSX.utils.book_append_sheet(wb, wsCustomerProducts, 'Hang ban theo khach')
 
-  const productRows = soldByProduct.map((p) => ({
-    'Tên sản phẩm': p.name,
-    'Số lượng đã bán': p.qty,
-    'Doanh thu (VND)': p.revenue
-  }))
-  const wsProducts = XLSX.utils.json_to_sheet(productRows)
+  const wsProducts = buildStyledSheet({
+    headers: ['Tên sản phẩm', 'Số lượng đã bán', 'Doanh thu (VND)'],
+    rows: soldByProduct.map((p) => [p.name, p.qty, p.revenue]),
+    moneyCols: [2]
+  })
   XLSX.utils.book_append_sheet(wb, wsProducts, 'San pham ban')
 
-  const orderRows = periodOrders.map((o) => ({
-    'Mã hóa đơn': `#${o.id.slice(-6).toUpperCase()}`,
-    'Thời gian': formatDateTimeForSheet(o.createdAt),
-    'Khách hàng': (o.customerName || '').trim() || 'Khách lẻ',
-    'Số sản phẩm': o.items.reduce((sum, i) => sum + i.qty, 0),
-    'Tổng tiền (VND)': o.total
-  }))
-  const wsOrders = XLSX.utils.json_to_sheet(orderRows)
+  const wsOrders = buildStyledSheet({
+    headers: ['Mã hóa đơn', 'Thời gian', 'Khách hàng', 'Số sản phẩm', 'Tổng tiền (VND)'],
+    rows: periodOrders.map((o) => [
+      `#${o.id.slice(-6).toUpperCase()}`,
+      formatDateTimeForSheet(o.createdAt),
+      (o.customerName || '').trim() || 'Khách lẻ',
+      o.items.reduce((sum, i) => sum + i.qty, 0),
+      o.total
+    ]),
+    moneyCols: [4]
+  })
   XLSX.utils.book_append_sheet(wb, wsOrders, 'Chi tiet don hang')
 
-  const returnRows = (periodReturns || []).map((r) => ({
-    'Thời gian': formatDateTimeForSheet(r.createdAt),
-    'Tên sản phẩm': r.productName,
-    'Khách hàng': r.customerName,
-    'Số lượng trả': r.qty,
-    'Giá trị hoàn (VND)': r.refundAmount,
-    'Ghi chú': r.note || ''
-  }))
-  const wsReturns = XLSX.utils.json_to_sheet(returnRows)
+  const wsReturns = buildStyledSheet({
+    headers: ['Thời gian', 'Tên sản phẩm', 'Khách hàng', 'Số lượng trả', 'Giá trị hoàn (VND)', 'Ghi chú'],
+    rows: (periodReturns || []).map((r) => [
+      formatDateTimeForSheet(r.createdAt),
+      r.productName,
+      r.customerName,
+      r.qty,
+      r.refundAmount,
+      r.note || ''
+    ]),
+    moneyCols: [4]
+  })
   XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
 
   const shopName = settings?.shopName || 'BanHang POS'
@@ -186,34 +214,38 @@ export function exportCustomerToExcel({
   const wb = XLSX.utils.book_new()
   const shopName = settings?.shopName || 'BanHang POS'
 
-  const header = [
-    ['Báo cáo hàng bán theo khách'],
-    ['Cửa hàng:', shopName],
-    ['Ngày lập:', new Date().toLocaleString('vi-VN')],
-    ['Kỳ báo cáo:', `${periodLabel} - ${rangeLabel}`],
-    ['Khách hàng:', customerName],
-    [],
-    ['Tên hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)']
-  ]
-  const rows = (productRows || []).map((r) => [r.name, r.qty, r.revenue, r.returnQty, r.returnValue, r.netRevenue])
-  const totalRow = [
-    'Tổng cộng',
-    customerStat.qty,
-    customerStat.revenue,
-    customerStat.returnQty,
-    customerStat.returnValue,
-    customerStat.netRevenue
-  ]
-  const ws = XLSX.utils.aoa_to_sheet([...header, ...rows, totalRow])
-  XLSX.utils.book_append_sheet(wb, ws, 'Ban hang theo khach')
+  const wsMain = buildStyledSheet({
+    title: 'Báo cáo hàng bán theo khách',
+    meta: [
+      ['Cửa hàng:', shopName],
+      ['Ngày lập:', new Date().toLocaleString('vi-VN')],
+      ['Kỳ báo cáo:', `${periodLabel} - ${rangeLabel}`],
+      ['Khách hàng:', customerName]
+    ],
+    headers: ['Tên hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)'],
+    rows: (productRows || []).map((r) => [r.name, r.qty, r.revenue, r.returnQty, r.returnValue, r.netRevenue]),
+    totalRow: [
+      'Tổng cộng',
+      customerStat.qty,
+      customerStat.revenue,
+      customerStat.returnQty,
+      customerStat.returnValue,
+      customerStat.netRevenue
+    ],
+    moneyCols: [2, 4, 5]
+  })
+  XLSX.utils.book_append_sheet(wb, wsMain, 'Ban hang theo khach')
 
-  const orderRows = (customerOrders || []).map((o) => ({
-    'Mã hóa đơn': `#${o.id.slice(-6).toUpperCase()}`,
-    'Thời gian': formatDateTimeForSheet(o.createdAt),
-    'Số sản phẩm': o.items.reduce((sum, i) => sum + i.qty, 0),
-    'Tổng tiền (VND)': o.total
-  }))
-  const wsOrders = XLSX.utils.json_to_sheet(orderRows)
+  const wsOrders = buildStyledSheet({
+    headers: ['Mã hóa đơn', 'Thời gian', 'Số sản phẩm', 'Tổng tiền (VND)'],
+    rows: (customerOrders || []).map((o) => [
+      `#${o.id.slice(-6).toUpperCase()}`,
+      formatDateTimeForSheet(o.createdAt),
+      o.items.reduce((sum, i) => sum + i.qty, 0),
+      o.total
+    ]),
+    moneyCols: [3]
+  })
   XLSX.utils.book_append_sheet(wb, wsOrders, 'Chi tiet hoa don')
 
   const shopSlug = slugify(shopName)
