@@ -175,7 +175,7 @@ export default function ProductFormSheet({ open, onClose, product }) {
         </div>
 
         {!product && (
-          <p className="text-[11px] text-slate-400 mt-1 mb-4">
+          <p className="text-[12px] text-slate-400 mt-1 mb-4">
             Số lượng tồn và giá bán sẽ được cập nhật ở mục "Nhập kho" sau khi lưu sản phẩm này.
           </p>
         )}

@@ -14,6 +14,20 @@ export default {
           700: '#2e7d32',
           800: '#1b5e20'
         }
+      },
+      fontSize: {
+        xs: ['0.8125rem', { lineHeight: '1.15rem' }],
+        sm: ['0.9375rem', { lineHeight: '1.35rem' }],
+        base: ['1.0625rem', { lineHeight: '1.55rem' }],
+        lg: ['1.1875rem', { lineHeight: '1.65rem' }],
+        xl: ['1.3125rem', { lineHeight: '1.8rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }]
+      },
+      fontWeight: {
+        normal: '500',
+        medium: '600',
+        semibold: '700',
+        bold: '800'
       }
     }
   },

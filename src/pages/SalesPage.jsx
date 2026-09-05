@@ -80,7 +80,7 @@ export default function SalesPage() {
         >
           <SettingsIcon className="h-6 w-6 text-slate-500" />
           {pendingApprovals > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[11px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
               {pendingApprovals}
             </span>
           )}

@@ -77,13 +77,13 @@ export default function OrdersPage() {
                   <p className="text-sm font-medium text-slate-800">
                     #{o.id.slice(-6).toUpperCase()}
                     {o.cancelled && (
-                      <span className="ml-1.5 text-[10px] font-semibold text-slate-500 bg-slate-100 rounded-full px-1.5 py-0.5">
+                      <span className="ml-1.5 text-[11px] font-semibold text-slate-500 bg-slate-100 rounded-full px-1.5 py-0.5">
                         Đã hủy
                       </span>
                     )}
                     {!o.cancelled && o.paymentMethod && o.paymentMethod !== 'cash' && (
                       <span
-                        className={`ml-1.5 text-[10px] font-semibold rounded-full px-1.5 py-0.5 ${
+                        className={`ml-1.5 text-[11px] font-semibold rounded-full px-1.5 py-0.5 ${
                           o.paymentMethod === 'debt' ? 'text-amber-600 bg-amber-50' : 'text-sky-600 bg-sky-50'
                         }`}
                       >

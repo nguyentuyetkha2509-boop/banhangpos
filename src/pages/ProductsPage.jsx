@@ -84,7 +84,7 @@ export default function ProductsPage() {
                     <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
                     <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
                     <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
-                    {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
+                    {p.barcode && <p className="text-[12px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
                   </div>
                 </button>
                 <div className="flex gap-1.5 shrink-0 ml-2">

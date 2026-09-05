@@ -131,7 +131,7 @@ export default function RestockSheet({ open, onClose, product }) {
             />
           </div>
         </div>
-        <p className="text-[11px] text-slate-400 -mt-2 mb-3">
+        <p className="text-[12px] text-slate-400 -mt-2 mb-3">
           Bỏ trống để giữ nguyên giá hiện tại. Giá bán mới sẽ áp dụng cho toàn bộ tồn kho sản phẩm này.
         </p>
 
@@ -168,7 +168,7 @@ export default function RestockSheet({ open, onClose, product }) {
                     <span className="text-sm font-medium text-slate-700">{m.productName}</span>
                     <span className="shrink-0 text-sm font-semibold text-emerald-600">+{m.qty}</span>
                   </div>
-                  <div className="mt-0.5 text-[11px] text-slate-400">
+                  <div className="mt-0.5 text-[12px] text-slate-400">
                     {new Date(m.createdAt).toLocaleString('vi-VN')}
                   </div>
                   {(m.costPrice > 0 || m.sellPrice > 0) && (
