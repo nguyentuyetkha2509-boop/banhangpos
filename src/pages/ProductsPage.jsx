@@ -6,11 +6,12 @@ import RestockSheet from '../components/RestockSheet'
 import ReturnSheet from '../components/ReturnSheet'
 
 export default function ProductsPage() {
-  const { products, deleteProduct } = useData()
+  const { products, deleteProduct, stockMovements } = useData()
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [showRestock, setShowRestock] = useState(false)
   const [showReturn, setShowReturn] = useState(false)
+  const [expandedId, setExpandedId] = useState(null)
 
   function openNew() {
     setEditing(null)
@@ -61,37 +62,67 @@ export default function ProductsPage() {
         {products.length === 0 && (
           <p className="text-center text-sm text-slate-400 py-10">Chưa có sản phẩm nào</p>
         )}
-        {products.map((p) => (
-          <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-3 flex items-center justify-between shadow-sm">
-            <div className="min-w-0">
-              <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
-              <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
-              <p className="text-brand-700 font-bold text-sm mt-0.5">
-                {formatVND(p.price)}
-                {p.costPrice > 0 && (
-                  <span className="text-slate-400 font-normal text-xs ml-1.5">
-                    (nhập {formatVND(p.costPrice)})
-                  </span>
-                )}
-              </p>
-              {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
+        {products.map((p) => {
+          const isExpanded = expandedId === p.id
+          const productMovements = stockMovements.filter((m) => m.productId === p.id)
+          return (
+            <div key={p.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-3 flex items-center justify-between">
+                <button onClick={() => setExpandedId(isExpanded ? null : p.id)} className="min-w-0 flex-1 text-left">
+                  <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
+                  <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
+                  <p className="text-brand-700 font-bold text-sm mt-0.5">
+                    {formatVND(p.price)}
+                    {p.costPrice > 0 && (
+                      <span className="text-slate-400 font-normal text-xs ml-1.5">
+                        (nhập {formatVND(p.costPrice)})
+                      </span>
+                    )}
+                  </p>
+                  {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
+                </button>
+                <div className="flex gap-1.5 shrink-0 ml-2">
+                  <button
+                    onClick={() => openEdit(p)}
+                    className="text-xs font-medium text-slate-600 bg-slate-100 rounded-lg px-3 py-1.5"
+                  >
+                    Sửa
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p)}
+                    className="text-xs font-medium text-red-500 bg-red-50 rounded-lg px-3 py-1.5"
+                  >
+                    Xóa
+                  </button>
+                </div>
+              </div>
+              {isExpanded && (
+                <div className="border-t border-slate-100 bg-slate-50 px-3 py-2">
+                  <h3 className="text-xs font-semibold text-slate-500 mb-1.5">Lịch sử nhập kho</h3>
+                  {productMovements.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-1">Chưa có lượt nhập kho nào</p>
+                  ) : (
+                    <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      {productMovements.map((m) => (
+                        <li key={m.id} className="rounded-lg bg-white border border-slate-100 px-2.5 py-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                              {new Date(m.createdAt).toLocaleString('vi-VN')}
+                            </span>
+                            <span className="text-xs font-semibold text-emerald-600">+{m.qty}</span>
+                          </div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            Giá nhập: {m.costPrice ? formatVND(m.costPrice) : '—'}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="flex gap-1.5 shrink-0 ml-2">
-              <button
-                onClick={() => openEdit(p)}
-                className="text-xs font-medium text-slate-600 bg-slate-100 rounded-lg px-3 py-1.5"
-              >
-                Sửa
-              </button>
-              <button
-                onClick={() => handleDelete(p)}
-                className="text-xs font-medium text-red-500 bg-red-50 rounded-lg px-3 py-1.5"
-              >
-                Xóa
-              </button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <ProductFormSheet open={showForm} onClose={() => setShowForm(false)} product={editing} />
