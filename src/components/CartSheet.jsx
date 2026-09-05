@@ -1,11 +1,18 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 
 export default function CartSheet({ open, onClose }) {
-  const { cart, setCartQty, removeFromCart, checkout, requestPrint } = useData()
+  const { cart, orders, returns, setCartQty, removeFromCart, checkout, requestPrint } = useData()
   const [successOrder, setSuccessOrder] = useState(null)
   const [customerName, setCustomerName] = useState('')
+
+  const knownCustomers = useMemo(() => {
+    const set = new Set()
+    orders.forEach((o) => { if (o.customerName) set.add(o.customerName) })
+    returns.forEach((r) => { if (r.customerName && r.customerName !== 'Khách lẻ') set.add(r.customerName) })
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
+  }, [orders, returns])
 
   if (!open) return null
 
@@ -90,12 +97,27 @@ export default function CartSheet({ open, onClose }) {
 
             <div className="p-4 border-t border-slate-100">
               <label className="block text-xs font-medium text-slate-500 mb-1">Tên khách hàng (tùy chọn)</label>
-              <input
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
-                placeholder="VD: Chị Lan"
-              />
+              <div className="flex gap-2 mb-3">
+                <input
+                  list="cart-customer-suggestions"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                  placeholder="VD: Chị Lan"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCustomerName('')}
+                  className="shrink-0 rounded-lg bg-slate-100 text-slate-500 px-3 text-sm font-medium"
+                >
+                  Khách lẻ
+                </button>
+                <datalist id="cart-customer-suggestions">
+                  {knownCustomers.map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
+              </div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-slate-500 text-sm">Tổng cộng</span>
                 <span className="font-bold text-lg text-slate-800">{formatVND(total)}</span>
