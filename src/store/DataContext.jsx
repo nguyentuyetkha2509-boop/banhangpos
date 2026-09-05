@@ -211,6 +211,14 @@ export function DataProvider({ children }) {
     ])
   }
 
+  function resetAllData() {
+    setProducts([])
+    setOrders([])
+    setStockMovements([])
+    setReturns([])
+    setCart([])
+  }
+
   function findProductByBarcode(code) {
     const trimmed = code.trim()
     if (!trimmed) return null
@@ -265,7 +273,8 @@ export function DataProvider({ children }) {
     findProductByBarcode,
     restockProduct,
     addReturn,
-    updateSettings
+    updateSettings,
+    resetAllData
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

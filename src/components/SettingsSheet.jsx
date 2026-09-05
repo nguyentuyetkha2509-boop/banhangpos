@@ -3,7 +3,7 @@ import { useData } from '../store/DataContext'
 import { useAuth } from '../store/AuthContext'
 
 export default function SettingsSheet({ open, onClose }) {
-  const { settings, updateSettings, products, orders, stockMovements, returns } = useData()
+  const { settings, updateSettings, products, orders, stockMovements, returns, resetAllData } = useData()
   const { user, signOut } = useAuth()
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
@@ -34,6 +34,15 @@ export default function SettingsSheet({ open, onClose }) {
     } finally {
       setExporting(false)
     }
+  }
+
+  function handleReset() {
+    const typed = window.prompt(
+      'Thao tác này sẽ XÓA VĨNH VIỄN toàn bộ sản phẩm, hóa đơn, lịch sử nhập kho và trả hàng (không xóa tên/địa chỉ cửa hàng đã cài đặt). Không thể hoàn tác.\n\nNhập chữ "XÓA" để xác nhận:'
+    )
+    if (typed !== 'XÓA') return
+    resetAllData()
+    onClose()
   }
 
   return (
@@ -91,7 +100,7 @@ export default function SettingsSheet({ open, onClose }) {
           </button>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-4">
           <button
             type="button"
             onClick={onClose}
@@ -102,6 +111,20 @@ export default function SettingsSheet({ open, onClose }) {
           <button type="submit" className="flex-1 rounded-xl py-3 font-medium text-white bg-brand-700">
             Lưu
           </button>
+        </div>
+
+        <div className="border-t border-slate-100 pt-3">
+          <p className="text-xs font-medium text-red-500 mb-1">Vùng nguy hiểm</p>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="w-full rounded-lg border border-red-200 text-red-600 text-sm font-semibold py-2.5"
+          >
+            🗑️ Xóa toàn bộ dữ liệu
+          </button>
+          <p className="text-xs text-slate-400 mt-1">
+            Xóa vĩnh viễn sản phẩm, hóa đơn, nhập kho, trả hàng để bắt đầu lại từ đầu. Nên xuất Excel sao lưu trước khi xóa.
+          </p>
         </div>
       </form>
     </div>
