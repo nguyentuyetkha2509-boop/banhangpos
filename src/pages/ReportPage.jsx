@@ -161,7 +161,7 @@ export default function ReportPage() {
             netRevenue: item.revenue - ret.value
           }
         })
-        .sort((a, b) => b.revenue - a.revenue)
+        .sort((a, b) => b.netRevenue - a.netRevenue)
       items.forEach((item) => rows.push({ customerName: c.name, ...item }))
     })
     return rows
@@ -332,9 +332,9 @@ export default function ReportPage() {
             ? Array.from(prodMap.entries())
                 .map(([productId, item]) => {
                   const ret = returnProductByCustomer.get(c.name)?.get(productId) || { qty: 0, value: 0 }
-                  return { ...item, returnQty: ret.qty }
+                  return { ...item, returnQty: ret.qty, returnValue: ret.value, netRevenue: item.revenue - ret.value }
                 })
-                .sort((a, b) => b.revenue - a.revenue)
+                .sort((a, b) => b.netRevenue - a.netRevenue)
             : []
           return (
             <div key={c.name} className={idx > 0 ? 'border-t border-slate-100' : ''}>
@@ -372,7 +372,16 @@ export default function ReportPage() {
                           {item.name} x{item.qty}
                           {item.returnQty > 0 ? ` (trả ${item.returnQty})` : ''}
                         </span>
-                        <span className="text-slate-800 font-medium shrink-0">{formatVND(item.revenue)}</span>
+                        {item.returnValue > 0 ? (
+                          <span className="text-right shrink-0">
+                            <span className="text-slate-800 font-medium">{formatVND(item.netRevenue)}</span>
+                            <span className="block text-[11px] text-red-500">
+                              {formatVND(item.revenue)} − {formatVND(item.returnValue)}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-800 font-medium shrink-0">{formatVND(item.revenue)}</span>
+                        )}
                       </div>
                     ))}
                   </div>
