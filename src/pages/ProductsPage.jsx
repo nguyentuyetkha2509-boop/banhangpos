@@ -56,7 +56,14 @@ export default function ProductsPage() {
             <div className="min-w-0">
               <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
               <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
-              <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
+              <p className="text-brand-700 font-bold text-sm mt-0.5">
+                {formatVND(p.price)}
+                {p.costPrice > 0 && (
+                  <span className="text-slate-400 font-normal text-xs ml-1.5">
+                    (nhập {formatVND(p.costPrice)})
+                  </span>
+                )}
+              </p>
               {p.barcode && <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}
             </div>
             <div className="flex gap-1.5 shrink-0 ml-2">

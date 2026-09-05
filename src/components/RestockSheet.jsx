@@ -7,14 +7,20 @@ export default function RestockSheet({ open, onClose, product }) {
   const { products, restockProduct, findProductByBarcode, stockMovements } = useData()
   const [productId, setProductId] = useState('')
   const [qty, setQty] = useState('')
+  const [costPrice, setCostPrice] = useState('')
+  const [sellPrice, setSellPrice] = useState('')
   const [note, setNote] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
 
   useEffect(() => {
     if (open) {
-      setProductId(product?.id || products[0]?.id || '')
+      const initialId = product?.id || products[0]?.id || ''
+      const initialProduct = products.find((p) => p.id === initialId)
+      setProductId(initialId)
       setQty('')
+      setCostPrice(initialProduct?.costPrice ? String(initialProduct.costPrice) : '')
+      setSellPrice(initialProduct?.price ? String(initialProduct.price) : '')
       setNote('')
       setScanMsg('')
     }
@@ -24,11 +30,18 @@ export default function RestockSheet({ open, onClose, product }) {
 
   const selected = products.find((p) => p.id === productId)
 
+  function handleProductChange(id) {
+    setProductId(id)
+    const p = products.find((item) => item.id === id)
+    setCostPrice(p?.costPrice ? String(p.costPrice) : '')
+    setSellPrice(p?.price ? String(p.price) : '')
+  }
+
   function handleDetected(code) {
     setScannerOpen(false)
     const found = findProductByBarcode(code)
     if (found) {
-      setProductId(found.id)
+      handleProductChange(found.id)
       setScanMsg(`Đã chọn: ${found.name}`)
     } else {
       setScanMsg(`Không tìm thấy sản phẩm với mã ${code}`)
@@ -39,7 +52,7 @@ export default function RestockSheet({ open, onClose, product }) {
     e.preventDefault()
     const addQty = Number(qty)
     if (!productId || !addQty || addQty <= 0) return
-    restockProduct(productId, addQty, note)
+    restockProduct(productId, addQty, note, costPrice, sellPrice)
     onClose()
   }
 
@@ -56,7 +69,7 @@ export default function RestockSheet({ open, onClose, product }) {
         <div className="flex gap-2 mb-1">
           <select
             value={productId}
-            onChange={(e) => setProductId(e.target.value)}
+            onChange={(e) => handleProductChange(e.target.value)}
             className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
           >
             {products.map((p) => (
@@ -91,6 +104,34 @@ export default function RestockSheet({ open, onClose, product }) {
             Tồn sau khi nhập: <span className="font-semibold text-brand-700">{selected.stock + Number(qty)}</span>
           </p>
         )}
+
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Giá nhập lần này (VND)</label>
+            <input
+              type="number"
+              min="0"
+              value={costPrice}
+              onChange={(e) => setCostPrice(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+              placeholder="VD: 8000"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Giá bán từ lô này (VND)</label>
+            <input
+              type="number"
+              min="0"
+              value={sellPrice}
+              onChange={(e) => setSellPrice(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+              placeholder="VD: 12000"
+            />
+          </div>
+        </div>
+        <p className="text-[11px] text-slate-400 -mt-2 mb-3">
+          Bỏ trống để giữ nguyên giá hiện tại. Giá bán mới sẽ áp dụng cho toàn bộ tồn kho sản phẩm này.
+        </p>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Ghi chú (tùy chọn)</label>
         <input
@@ -128,6 +169,12 @@ export default function RestockSheet({ open, onClose, product }) {
                   <div className="mt-0.5 text-[11px] text-slate-400">
                     {new Date(m.createdAt).toLocaleString('vi-VN')}
                   </div>
+                  {(m.costPrice > 0 || m.sellPrice > 0) && (
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      Giá nhập: {m.costPrice ? m.costPrice.toLocaleString('vi-VN') : '—'} · Giá bán:{' '}
+                      {m.sellPrice ? m.sellPrice.toLocaleString('vi-VN') : '—'}
+                    </div>
+                  )}
                   {m.note && <div className="mt-0.5 text-xs text-slate-500">Ghi chú: {m.note}</div>}
                 </li>
               ))}

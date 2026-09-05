@@ -25,6 +25,11 @@ export default function ReportPage() {
     (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
     0
   )
+  const totalCost = dayOrders.reduce(
+    (sum, o) => sum + o.items.reduce((s, i) => s + i.qty * (i.costPrice || 0), 0),
+    0
+  )
+  const totalProfit = totalRevenue - totalCost
 
   const soldByProduct = useMemo(() => {
     const map = new Map()
@@ -53,7 +58,7 @@ export default function ReportPage() {
         className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm mb-4 focus:outline-none focus:ring-2 focus:ring-brand-400"
       />
 
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="grid grid-cols-2 gap-3">
         <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
           <p className="text-xs text-slate-400">Doanh thu</p>
           <p className="text-lg font-bold text-brand-700 mt-0.5">{formatVND(totalRevenue)}</p>
@@ -62,11 +67,18 @@ export default function ReportPage() {
           <p className="text-xs text-slate-400">Số hóa đơn</p>
           <p className="text-lg font-bold text-slate-800 mt-0.5">{dayOrders.length}</p>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm col-span-2">
+        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
           <p className="text-xs text-slate-400">Số sản phẩm đã bán</p>
           <p className="text-lg font-bold text-slate-800 mt-0.5">{totalItemsSold}</p>
         </div>
+        <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+          <p className="text-xs text-slate-400">Lãi ước tính</p>
+          <p className="text-lg font-bold text-emerald-600 mt-0.5">{formatVND(totalProfit)}</p>
+        </div>
       </div>
+      <p className="text-[11px] text-slate-400 mt-1.5 mb-6">
+        Lãi ước tính tính theo giá nhập gần nhất của mỗi sản phẩm tại thời điểm bán.
+      </p>
 
       <h2 className="font-bold text-slate-800 mb-2">Sản phẩm đã bán trong ngày</h2>
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">

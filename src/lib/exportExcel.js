@@ -25,6 +25,7 @@ export function exportDataToExcel({ products, orders, stockMovements, settings }
   const productRows = products.map((p) => ({
     'Tên sản phẩm': p.name,
     'Danh mục': p.category || '',
+    'Giá nhập gần nhất (VND)': p.costPrice || 0,
     'Giá bán (VND)': p.price,
     'Tồn kho': p.stock,
     'Mã vạch': p.barcode || ''
@@ -61,6 +62,8 @@ export function exportDataToExcel({ products, orders, stockMovements, settings }
     'Thời gian': formatDateTimeForSheet(m.createdAt),
     'Tên sản phẩm': m.productName,
     'Số lượng nhập': m.qty,
+    'Giá nhập (VND)': m.costPrice || 0,
+    'Giá bán từ lô này (VND)': m.sellPrice || 0,
     'Ghi chú': m.note || ''
   }))
   const wsRestock = XLSX.utils.json_to_sheet(restockRows)

@@ -2,11 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { loadData, saveData, makeId } from '../lib/storage'
 
 const DEFAULT_PRODUCTS = [
-  { id: makeId(), name: 'Coca Cola lon', price: 12000, stock: 48, category: 'Nước giải khát', barcode: '8934588123451' },
-  { id: makeId(), name: 'Mì tôm Hảo Hảo', price: 4500, stock: 100, category: 'Thực phẩm', barcode: '8934588123468' },
-  { id: makeId(), name: 'Bánh mì sandwich', price: 20000, stock: 15, category: 'Đồ ăn', barcode: '' },
-  { id: makeId(), name: 'Nước suối Lavie 500ml', price: 6000, stock: 60, category: 'Nước giải khát', barcode: '8934588123475' },
-  { id: makeId(), name: 'Cà phê sữa đá', price: 18000, stock: 30, category: 'Đồ uống', barcode: '' }
+  { id: makeId(), name: 'Coca Cola lon', price: 12000, costPrice: 0, stock: 48, category: 'Nước giải khát', barcode: '8934588123451' },
+  { id: makeId(), name: 'Mì tôm Hảo Hảo', price: 4500, costPrice: 0, stock: 100, category: 'Thực phẩm', barcode: '8934588123468' },
+  { id: makeId(), name: 'Bánh mì sandwich', price: 20000, costPrice: 0, stock: 15, category: 'Đồ ăn', barcode: '' },
+  { id: makeId(), name: 'Nước suối Lavie 500ml', price: 6000, costPrice: 0, stock: 60, category: 'Nước giải khát', barcode: '8934588123475' },
+  { id: makeId(), name: 'Cà phê sữa đá', price: 18000, costPrice: 0, stock: 30, category: 'Đồ uống', barcode: '' }
 ]
 
 const DEFAULT_SETTINGS = { shopName: 'Bán Hàng POS', shopAddress: '' }
@@ -60,7 +60,10 @@ export function DataProvider({ children }) {
       if (existing) {
         return prev.map((c) => (c.productId === product.id ? { ...c, qty: c.qty + 1 } : c))
       }
-      return [...prev, { productId: product.id, name: product.name, price: product.price, qty: 1 }]
+      return [
+        ...prev,
+        { productId: product.id, name: product.name, price: product.price, costPrice: product.costPrice || 0, qty: 1 }
+      ]
     })
   }
 
@@ -77,16 +80,29 @@ export function DataProvider({ children }) {
     setCart((prev) => prev.filter((c) => c.productId !== productId))
   }
 
-  function restockProduct(productId, qty, note) {
+  function restockProduct(productId, qty, note, costPrice, sellPrice) {
     const addQty = Math.max(0, Number(qty) || 0)
     if (addQty <= 0) return
     const product = products.find((p) => p.id === productId)
     if (!product) return
+    const resolvedCost = costPrice === '' || costPrice == null ? product.costPrice || 0 : Math.max(0, Number(costPrice) || 0)
+    const resolvedSell = sellPrice === '' || sellPrice == null ? product.price : Math.max(0, Number(sellPrice) || 0)
     setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, stock: p.stock + addQty } : p))
+      prev.map((p) =>
+        p.id === productId ? { ...p, stock: p.stock + addQty, costPrice: resolvedCost, price: resolvedSell } : p
+      )
     )
     setStockMovements((prev) => [
-      { id: makeId(), productId, productName: product.name, qty: addQty, note: note.trim(), createdAt: new Date().toISOString() },
+      {
+        id: makeId(),
+        productId,
+        productName: product.name,
+        qty: addQty,
+        costPrice: resolvedCost,
+        sellPrice: resolvedSell,
+        note: note.trim(),
+        createdAt: new Date().toISOString()
+      },
       ...prev
     ])
   }
