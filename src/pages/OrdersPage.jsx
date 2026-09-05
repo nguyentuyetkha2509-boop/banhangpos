@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ReturnSheet from '../components/ReturnSheet'
@@ -12,10 +12,21 @@ export default function OrdersPage() {
   const { orders, requestPrint } = useData()
   const [openId, setOpenId] = useState(null)
   const [returnOrder, setReturnOrder] = useState(null)
+  const [query, setQuery] = useState('')
 
   const todayTotal = orders
     .filter((o) => new Date(o.createdAt).toDateString() === new Date().toDateString())
     .reduce((sum, o) => sum + o.total, 0)
+
+  const filteredOrders = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return orders
+    return orders.filter(
+      (o) =>
+        o.id.slice(-6).toLowerCase().includes(q) ||
+        (o.customerName || '').toLowerCase().includes(q)
+    )
+  }, [orders, query])
 
   return (
     <div className="max-w-md mx-auto px-4 pt-4">
@@ -24,11 +35,21 @@ export default function OrdersPage() {
         Hôm nay: <span className="font-semibold text-brand-700">{formatVND(todayTotal)}</span> · {orders.length} hóa đơn
       </p>
 
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Tìm theo tên khách hoặc mã hóa đơn..."
+        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm shadow-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
+      />
+
       <div className="space-y-2">
-        {orders.length === 0 && (
-          <p className="text-center text-sm text-slate-400 py-10">Chưa có hóa đơn nào</p>
+        {filteredOrders.length === 0 && (
+          <p className="text-center text-sm text-slate-400 py-10">
+            {orders.length === 0 ? 'Chưa có hóa đơn nào' : 'Không tìm thấy hóa đơn nào'}
+          </p>
         )}
-        {orders.map((o) => {
+        {filteredOrders.map((o) => {
           const isOpen = openId === o.id
           const itemCount = o.items.reduce((s, i) => s + i.qty, 0)
           return (
