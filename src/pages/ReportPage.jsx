@@ -14,6 +14,7 @@ export default function ReportPage() {
   const [period, setPeriod] = useState('day')
   const [refDate, setRefDate] = useState(() => new Date())
   const [exporting, setExporting] = useState(false)
+  const [exportingCustomer, setExportingCustomer] = useState(null)
   const [expandedCustomer, setExpandedCustomer] = useState(null)
 
   const [rangeStart, rangeEnd] = useMemo(() => getRange(period, refDate), [period, refDate])
@@ -200,6 +201,26 @@ export default function ReportPage() {
     }
   }
 
+  async function handleExportCustomer(c) {
+    setExportingCustomer(c.name)
+    try {
+      const { exportCustomerToExcel } = await import('../lib/exportExcel')
+      const customerOrders = periodOrders.filter((o) => customerKeyOf(o.customerName) === c.name)
+      const productRows = customerProductRows.filter((r) => r.customerName === c.name)
+      exportCustomerToExcel({
+        customerName: c.name,
+        periodLabel: periodMeta.label,
+        rangeLabel,
+        customerStat: c,
+        productRows,
+        customerOrders,
+        settings
+      })
+    } finally {
+      setExportingCustomer(null)
+    }
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-6">
       <h1 className="text-xl font-bold text-slate-800 mb-3">Báo cáo</h1>
@@ -334,16 +355,25 @@ export default function ReportPage() {
                 <span className="font-semibold text-sm text-slate-800 shrink-0">{c.netQty} sp</span>
               </button>
               {isExpanded && (
-                <div className="bg-slate-50 px-3 py-2 divide-y divide-slate-100">
-                  {productList.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-1.5 text-sm">
-                      <span className="text-slate-600 truncate mr-2">
-                        {item.name} x{item.qty}
-                        {item.returnQty > 0 ? ` (trả ${item.returnQty})` : ''}
-                      </span>
-                      <span className="text-slate-800 font-medium shrink-0">{formatVND(item.revenue)}</span>
-                    </div>
-                  ))}
+                <div className="bg-slate-50 px-3 py-2">
+                  <div className="divide-y divide-slate-100">
+                    {productList.map((item, i) => (
+                      <div key={i} className="flex items-center justify-between py-1.5 text-sm">
+                        <span className="text-slate-600 truncate mr-2">
+                          {item.name} x{item.qty}
+                          {item.returnQty > 0 ? ` (trả ${item.returnQty})` : ''}
+                        </span>
+                        <span className="text-slate-800 font-medium shrink-0">{formatVND(item.revenue)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => handleExportCustomer(c)}
+                    disabled={exportingCustomer === c.name}
+                    className="w-full mt-2 bg-white border border-slate-200 text-slate-600 text-xs font-medium rounded-lg py-2 disabled:opacity-40 active:scale-[0.98] transition"
+                  >
+                    {exportingCustomer === c.name ? 'Đang xuất...' : `📄 Xuất file riêng cho ${c.name}`}
+                  </button>
                 </div>
               )}
             </div>

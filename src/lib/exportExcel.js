@@ -173,3 +173,52 @@ export function exportReportToExcel({
   const dateStamp = new Date().toISOString().slice(0, 10)
   XLSX.writeFile(wb, `bao-cao-${periodSlug}-${shopSlug}-${dateStamp}.xlsx`)
 }
+
+export function exportCustomerToExcel({
+  customerName,
+  periodLabel,
+  rangeLabel,
+  customerStat,
+  productRows,
+  customerOrders,
+  settings
+}) {
+  const wb = XLSX.utils.book_new()
+  const shopName = settings?.shopName || 'BanHang POS'
+
+  const header = [
+    ['Báo cáo hàng bán theo khách'],
+    ['Cửa hàng:', shopName],
+    ['Ngày lập:', new Date().toLocaleString('vi-VN')],
+    ['Kỳ báo cáo:', `${periodLabel} - ${rangeLabel}`],
+    ['Khách hàng:', customerName],
+    [],
+    ['Tên hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)']
+  ]
+  const rows = (productRows || []).map((r) => [r.name, r.qty, r.revenue, r.returnQty, r.returnValue, r.netRevenue])
+  const totalRow = [
+    'Tổng cộng',
+    customerStat.qty,
+    customerStat.revenue,
+    customerStat.returnQty,
+    customerStat.returnValue,
+    customerStat.netRevenue
+  ]
+  const ws = XLSX.utils.aoa_to_sheet([...header, ...rows, totalRow])
+  XLSX.utils.book_append_sheet(wb, ws, 'Ban hang theo khach')
+
+  const orderRows = (customerOrders || []).map((o) => ({
+    'Mã hóa đơn': `#${o.id.slice(-6).toUpperCase()}`,
+    'Thời gian': formatDateTimeForSheet(o.createdAt),
+    'Số sản phẩm': o.items.reduce((sum, i) => sum + i.qty, 0),
+    'Tổng tiền (VND)': o.total
+  }))
+  const wsOrders = XLSX.utils.json_to_sheet(orderRows)
+  XLSX.utils.book_append_sheet(wb, wsOrders, 'Chi tiet hoa don')
+
+  const shopSlug = slugify(shopName)
+  const customerSlug = slugify(customerName)
+  const periodSlug = slugify(periodLabel)
+  const dateStamp = new Date().toISOString().slice(0, 10)
+  XLSX.writeFile(wb, `khach-hang-${customerSlug}-${periodSlug}-${shopSlug}-${dateStamp}.xlsx`)
+}
