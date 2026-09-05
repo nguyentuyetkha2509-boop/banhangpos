@@ -116,7 +116,7 @@ export default function ReportPage() {
           netRevenue: c.revenue - ret.value
         }
       })
-      .sort((a, b) => b.netQty - a.netQty)
+      .sort((a, b) => b.qty - a.qty)
   }, [periodOrders, returnByCustomer])
 
   const customerProductMap = useMemo(() => {
@@ -361,7 +361,7 @@ export default function ReportPage() {
                     {c.returnQty > 0 ? ` · trả ${c.returnQty}` : ''}
                   </p>
                 </div>
-                <span className="font-semibold text-sm text-slate-800 shrink-0">{c.netQty} sp</span>
+                <span className="font-semibold text-sm text-slate-800 shrink-0">{c.qty} sp</span>
               </button>
               {isExpanded && (
                 <div className="bg-slate-50 px-3 py-2">
