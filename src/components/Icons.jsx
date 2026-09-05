@@ -186,6 +186,21 @@ export function ClockIcon({ className }) {
   )
 }
 
+export function BarcodeIcon({ className }) {
+  return (
+    <svg viewBox="0 0 28 28" className={className}>
+      <rect x="4" y="6" width="1.6" height="16" fill="currentColor" />
+      <rect x="7.2" y="6" width="0.8" height="16" fill="currentColor" />
+      <rect x="9.6" y="6" width="2" height="16" fill="currentColor" />
+      <rect x="13.2" y="6" width="0.8" height="16" fill="currentColor" />
+      <rect x="15.2" y="6" width="1.6" height="16" fill="currentColor" />
+      <rect x="18" y="6" width="2" height="16" fill="currentColor" />
+      <rect x="21.6" y="6" width="0.8" height="16" fill="currentColor" />
+      <rect x="23.2" y="6" width="1.6" height="16" fill="currentColor" />
+    </svg>
+  )
+}
+
 export function PersonIcon({ className }) {
   return (
     <svg viewBox="0 0 28 28" className={className}>

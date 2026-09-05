@@ -33,4 +33,18 @@ body {
     overflow: visible !important;
     height: auto !important;
   }
+  .barcode-print-wrapper {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    height: auto !important;
+  }
+  .barcode-print-scroll {
+    flex: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .barcode-label {
+    break-inside: avoid;
+  }
 }

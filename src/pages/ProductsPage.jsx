@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { Suspense, lazy, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ProductFormSheet from '../components/ProductFormSheet'
 import RestockSheet from '../components/RestockSheet'
 import ReturnSheet from '../components/ReturnSheet'
-import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon } from '../components/Icons'
+import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon, BarcodeIcon } from '../components/Icons'
+
+const BarcodePrintModal = lazy(() => import('../components/BarcodePrintModal'))
 
 export default function ProductsPage() {
   const { products, deleteProduct, stockMovements } = useData()
@@ -13,6 +15,7 @@ export default function ProductsPage() {
   const [showRestock, setShowRestock] = useState(false)
   const [showReturn, setShowReturn] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
+  const [printingProduct, setPrintingProduct] = useState(null)
 
   function openNew() {
     setEditing(null)
@@ -88,6 +91,15 @@ export default function ProductsPage() {
                   </div>
                 </button>
                 <div className="flex gap-1.5 shrink-0 ml-2">
+                  {p.barcode && (
+                    <button
+                      onClick={() => setPrintingProduct(p)}
+                      aria-label="In mã vạch"
+                      className="text-slate-600 bg-slate-100 rounded-lg px-2.5 py-1.5"
+                    >
+                      <BarcodeIcon className="h-4 w-4" />
+                    </button>
+                  )}
                   <button
                     onClick={() => openEdit(p)}
                     className="text-xs font-medium text-slate-600 bg-slate-100 rounded-lg px-3 py-1.5"
@@ -134,6 +146,11 @@ export default function ProductsPage() {
       <ProductFormSheet open={showForm} onClose={() => setShowForm(false)} product={editing} />
       <RestockSheet open={showRestock} onClose={() => setShowRestock(false)} />
       <ReturnSheet open={showReturn} onClose={() => setShowReturn(false)} />
+      {printingProduct && (
+        <Suspense fallback={null}>
+          <BarcodePrintModal product={printingProduct} onClose={() => setPrintingProduct(null)} />
+        </Suspense>
+      )}
     </div>
   )
 }
