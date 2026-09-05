@@ -1,10 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
-  <rect width="192" height="192" rx="36" fill="#ffffff"/>
-  <path d="M48,46 L48,28 L66,28" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
-  <path d="M126,28 L144,28 L144,46" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
-  <path d="M48,54 L48,72 L66,72" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
-  <path d="M126,72 L144,72 L144,54" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
-  <line x1="54" y1="50" x2="138" y2="50" stroke="#ef4444" stroke-width="6" stroke-linecap="round" opacity="0.35"/>
-  <line x1="54" y1="50" x2="138" y2="50" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
-  <text x="96" y="152" font-family="Arial, sans-serif" font-size="74" font-weight="800" text-anchor="middle"><tspan fill="#16a34a">T</tspan><tspan fill="#2563eb">K</tspan></text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420" width="192" height="192">
+  <rect width="400" height="420" rx="74" fill="#ffffff"/>
+  <g transform="translate(-190,-110)">
+    <g stroke="#2E7D32" stroke-width="10" stroke-linecap="round" fill="none">
+      <path d="M225,205 L225,150 Q225,140 235,140 L280,140"/>
+      <path d="M420,140 L465,140 Q475,140 475,150 L475,205"/>
+    </g>
+    <line x1="255" y1="172" x2="445" y2="172" stroke="#D32F2F" stroke-width="14" stroke-linecap="round" opacity="0.3"/>
+    <line x1="255" y1="172" x2="445" y2="172" stroke="#D32F2F" stroke-width="5" stroke-linecap="round"/>
+
+    <path d="M330,260 C355,270 360,300 345,330 C325,320 315,290 330,260 Z" fill="#1565C0"/>
+
+    <path d="M300,215
+             C300,195 320,185 335,200
+             C345,210 345,225 335,235
+             L318,252
+             L318,470
+             C318,485 306,497 291,497
+             C276,497 264,485 264,470
+             L264,252
+             L247,235
+             C237,225 237,210 247,200
+             C262,185 282,195 282,215
+             Z" fill="#2E7D32"/>
+
+    <path d="M368,205 C420,212 465,235 505,272 C522,290 530,312 524,333
+             C498,322 468,302 438,276 C408,250 384,228 368,205 Z" fill="#2E7D32"/>
+
+    <g fill="#1565C0">
+      <rect x="360" y="215" width="34" height="282" rx="16"/>
+      <path d="M394,355 L470,220 C478,206 496,201 510,209 C524,217 529,235 521,249 L458,360 L525,468 C534,482 529,500 515,509 C501,518 483,513 474,499 L394,368 Z"/>
+    </g>
+
+    <g transform="translate(455,400) rotate(-8)">
+      <path d="M0,0 H120 V95 L108,105 L96,95 L84,105 L72,95 L60,105 L48,95 L36,105 L24,95 L12,105 L0,95 Z"
+            fill="#ffffff" stroke="#1565C0" stroke-width="4"/>
+      <rect x="18" y="18" width="6" height="34" fill="#1565C0"/>
+      <rect x="30" y="18" width="10" height="34" fill="#1565C0"/>
+      <rect x="46" y="18" width="4" height="34" fill="#1565C0"/>
+      <rect x="56" y="18" width="8" height="34" fill="#1565C0"/>
+      <rect x="70" y="18" width="6" height="34" fill="#1565C0"/>
+      <rect x="82" y="18" width="10" height="34" fill="#1565C0"/>
+      <rect x="98" y="18" width="4" height="34" fill="#1565C0"/>
+      <text x="60" y="82" font-family="Arial, sans-serif" font-size="30" font-weight="800" fill="#1565C0" text-anchor="middle">= $</text>
+    </g>
+  </g>
 </svg>
