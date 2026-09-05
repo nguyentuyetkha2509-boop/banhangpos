@@ -138,6 +138,21 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
   })
   XLSX.utils.book_append_sheet(wb, wsDebts, 'Cong no')
 
+  const wsDebtPayments = buildStyledSheet({
+    title: 'Lịch sử thu nợ',
+    meta,
+    headers: ['Thời gian', 'Khách hàng', 'Số tiền thu (VND)', 'Hình thức', 'Ghi chú'],
+    rows: (debtPayments || []).map((p) => [
+      formatDateTimeForSheet(p.createdAt),
+      p.customerName,
+      p.amount,
+      PAYMENT_LABELS[p.paymentMethod] || 'Tiền mặt',
+      p.note || ''
+    ]),
+    moneyCols: [2]
+  })
+  XLSX.utils.book_append_sheet(wb, wsDebtPayments, 'Thu no')
+
   const shopSlug = slugify(shopName)
   const dateStamp = new Date().toISOString().slice(0, 10)
   XLSX.writeFile(wb, `du-lieu-${shopSlug}-${dateStamp}.xlsx`)
@@ -177,7 +192,9 @@ export function exportReportToExcel({
       ['Số sản phẩm đã bán', totals.totalItemsSold],
       ['Tiền mặt (VND)', totals.paymentTotals?.cash || 0],
       ['Chuyển khoản (VND)', totals.paymentTotals?.transfer || 0],
-      ['Ghi nợ (VND)', totals.paymentTotals?.debt || 0]
+      ['Ghi nợ - bán trong kỳ (VND)', totals.paymentTotals?.debt || 0],
+      ['Thu nợ - tiền mặt (VND)', totals.debtCollectedTotals?.cash || 0],
+      ['Thu nợ - chuyển khoản (VND)', totals.debtCollectedTotals?.transfer || 0]
     ],
     moneyCols: [1],
     boldLabelRows: ['Doanh thu thuần (VND)', 'Lãi ước tính (VND)']

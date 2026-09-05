@@ -10,7 +10,7 @@ function customerKeyOf(name) {
 }
 
 export default function ReportPage() {
-  const { orders, returns, products, settings } = useData()
+  const { orders, returns, products, debtPayments, settings } = useData()
   const [period, setPeriod] = useState('day')
   const [refDate, setRefDate] = useState(() => new Date())
   const [exporting, setExporting] = useState(false)
@@ -29,6 +29,10 @@ export default function ReportPage() {
   const activeOrders = useMemo(() => orders.filter((o) => !o.cancelled), [orders])
   const periodOrders = useMemo(() => activeOrders.filter((o) => inRange(o.createdAt)), [activeOrders, rangeStart, rangeEnd])
   const periodReturns = useMemo(() => returns.filter((r) => inRange(r.createdAt)), [returns, rangeStart, rangeEnd])
+  const periodDebtPayments = useMemo(
+    () => debtPayments.filter((p) => inRange(p.createdAt)),
+    [debtPayments, rangeStart, rangeEnd]
+  )
 
   function returnCostPriceOf(r) {
     // Cac luot tra hang tao truoc khi tinh nang nay co khong luu san gia von -
@@ -62,6 +66,15 @@ export default function ReportPage() {
     })
     return map
   }, [periodOrders])
+
+  const debtCollectedTotals = useMemo(() => {
+    const map = { cash: 0, transfer: 0 }
+    periodDebtPayments.forEach((p) => {
+      const key = p.paymentMethod || 'cash'
+      map[key] = (map[key] || 0) + p.amount
+    })
+    return map
+  }, [periodDebtPayments])
 
   const soldByProduct = useMemo(() => {
     const map = new Map()
@@ -214,7 +227,8 @@ export default function ReportPage() {
           totalProfit,
           totalItemsSold,
           orderCount: periodOrders.length,
-          paymentTotals
+          paymentTotals,
+          debtCollectedTotals
         },
         settings
       })
@@ -343,9 +357,28 @@ export default function ReportPage() {
             <span className="font-medium text-slate-800">{formatVND(paymentTotals.transfer)}</span>
           </div>
           <div className="flex items-center justify-between px-3 py-2 text-sm border-t border-slate-50">
-            <span className="text-slate-600">Ghi nợ</span>
+            <span className="text-slate-600">Ghi nợ (bán trong kỳ)</span>
             <span className="font-medium text-amber-600">{formatVND(paymentTotals.debt)}</span>
           </div>
+        </div>
+      )}
+
+      {periodDebtPayments.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+          <div className="px-3 py-2 border-b border-slate-100">
+            <p className="text-xs font-semibold text-slate-500">Thu nợ trong kỳ</p>
+          </div>
+          <div className="flex items-center justify-between px-3 py-2 text-sm">
+            <span className="text-slate-600">Tiền mặt</span>
+            <span className="font-medium text-emerald-600">+{formatVND(debtCollectedTotals.cash)}</span>
+          </div>
+          <div className="flex items-center justify-between px-3 py-2 text-sm border-t border-slate-50">
+            <span className="text-slate-600">Chuyển khoản</span>
+            <span className="font-medium text-emerald-600">+{formatVND(debtCollectedTotals.transfer)}</span>
+          </div>
+          <p className="px-3 pb-2 text-[11px] text-slate-400">
+            Tiền thu nợ không tính vào doanh thu (đã tính khi bán ghi nợ), nhưng vẫn là tiền mặt/chuyển khoản thực nhận trong kỳ.
+          </p>
         </div>
       )}
 

@@ -3,6 +3,8 @@ import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import DebtPaymentSheet from '../components/DebtPaymentSheet'
 
+const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản' }
+
 function customerKeyOf(name) {
   return (name || '').trim() || 'Khách lẻ'
 }
@@ -96,7 +98,7 @@ export default function DebtPage() {
                         {c.payments.map((p) => (
                           <li key={p.id} className="flex items-center justify-between text-sm bg-white rounded-lg border border-slate-100 px-2.5 py-1.5">
                             <span className="text-slate-500 text-xs">
-                              {formatDateTime(p.createdAt)}
+                              {formatDateTime(p.createdAt)} · {PAYMENT_LABELS[p.paymentMethod] || 'Tiền mặt'}
                               {p.note ? ` · ${p.note}` : ''}
                             </span>
                             <span className="font-medium text-emerald-600">+{formatVND(p.amount)}</span>

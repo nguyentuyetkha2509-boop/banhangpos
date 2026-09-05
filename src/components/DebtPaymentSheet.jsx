@@ -2,15 +2,22 @@ import React, { useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 
+const PAYMENT_METHODS = [
+  { key: 'cash', label: 'Tiền mặt' },
+  { key: 'transfer', label: 'Chuyển khoản' }
+]
+
 export default function DebtPaymentSheet({ open, onClose, customerName, balance }) {
   const { addDebtPayment } = useData()
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('cash')
 
   useEffect(() => {
     if (open) {
       setAmount('')
       setNote('')
+      setPaymentMethod('cash')
     }
   }, [open])
 
@@ -19,7 +26,7 @@ export default function DebtPaymentSheet({ open, onClose, customerName, balance 
   function handleSubmit(e) {
     e.preventDefault()
     if (!amount || Number(amount) <= 0) return
-    addDebtPayment(customerName, amount, note)
+    addDebtPayment(customerName, amount, note, paymentMethod)
     onClose()
   }
 
@@ -53,6 +60,22 @@ export default function DebtPaymentSheet({ open, onClose, customerName, balance 
           >
             Thu đủ
           </button>
+        </div>
+
+        <label className="block text-xs font-medium text-slate-500 mb-1">Hình thức thu</label>
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {PAYMENT_METHODS.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              onClick={() => setPaymentMethod(m.key)}
+              className={`rounded-lg py-2 text-sm font-medium transition ${
+                paymentMethod === m.key ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-600'
+              }`}
+            >
+              {m.label}
+            </button>
+          ))}
         </div>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Ghi chú (tùy chọn)</label>

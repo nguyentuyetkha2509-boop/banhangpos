@@ -229,12 +229,19 @@ export function DataProvider({ children }) {
     setCart([])
   }
 
-  function addDebtPayment(customerName, amount, note) {
+  function addDebtPayment(customerName, amount, note, paymentMethod = 'cash') {
     const value = Math.max(0, Number(amount) || 0)
     const name = (customerName || '').trim()
     if (!name || value <= 0) return
     setDebtPayments((prev) => [
-      { id: makeId(), customerName: name, amount: value, note: (note || '').trim(), createdAt: new Date().toISOString() },
+      {
+        id: makeId(),
+        customerName: name,
+        amount: value,
+        paymentMethod,
+        note: (note || '').trim(),
+        createdAt: new Date().toISOString()
+      },
       ...prev
     ])
   }
