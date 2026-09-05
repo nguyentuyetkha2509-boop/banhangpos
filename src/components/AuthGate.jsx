@@ -50,6 +50,7 @@ export default function AuthGate({ children }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <img src="icon-192.svg" alt="T.K Pos" className="h-14 w-14 rounded-2xl mb-3" />
         <h1 className="text-xl font-bold text-slate-800 mb-1">T.K Pos</h1>
         <p className="text-sm text-slate-500 mb-5">
           {mode === 'signup' ? 'Tạo tài khoản để bắt đầu dùng và tự động lưu dữ liệu' : 'Đăng nhập để tiếp tục'}

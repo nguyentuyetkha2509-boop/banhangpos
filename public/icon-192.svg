@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
-  <rect width="192" height="192" rx="36" fill="#0f766e"/>
-  <circle cx="96" cy="90" r="70" fill="#2dd4bf" opacity="0.15"/>
-  <text x="96" y="118" font-family="Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-2" fill="#f0fdfa" text-anchor="middle">TK</text>
-  <rect x="62" y="134" width="68" height="8" rx="4" fill="#2dd4bf"/>
+  <rect width="192" height="192" rx="36" fill="#ffffff"/>
+  <path d="M48,46 L48,28 L66,28" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M126,28 L144,28 L144,46" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M48,54 L48,72 L66,72" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
+  <path d="M126,72 L144,72 L144,54" fill="none" stroke="#16a34a" stroke-width="5" stroke-linecap="round"/>
+  <line x1="54" y1="50" x2="138" y2="50" stroke="#ef4444" stroke-width="6" stroke-linecap="round" opacity="0.35"/>
+  <line x1="54" y1="50" x2="138" y2="50" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="96" y="152" font-family="Arial, sans-serif" font-size="74" font-weight="800" text-anchor="middle"><tspan fill="#16a34a">T</tspan><tspan fill="#2563eb">K</tspan></text>
 </svg>
