@@ -23,6 +23,7 @@ export function DataProvider({ children }) {
   const lastRemoteRef = useRef({})
 
   const [ready, setReady] = useState(false)
+  const [syncError, setSyncError] = useState(null)
   const [products, setProducts] = useState(DEFAULT_PRODUCTS)
   const [orders, setOrders] = useState([])
   const [stockMovements, setStockMovements] = useState([])
@@ -33,36 +34,47 @@ export function DataProvider({ children }) {
 
   useEffect(() => {
     setReady(false)
-    const unsub = onSnapshot(docRef, async (snap) => {
-      if (snap.exists()) {
-        const data = snap.data()
-        lastRemoteRef.current = data
-        setProducts(data.products ?? DEFAULT_PRODUCTS)
-        setOrders(data.orders ?? [])
-        setStockMovements(data.stockMovements ?? [])
-        setReturns(data.returns ?? [])
-        setSettings(data.settings ?? DEFAULT_SETTINGS)
-        setReady(true)
-      } else {
-        // Tai khoan moi: dua vao du lieu san co trong may (neu co, tu ban truoc khi
-        // dung tai khoan dam may) thay vi xoa mat, khong thi dung mac dinh
-        const initial = {
-          products: loadData('products', DEFAULT_PRODUCTS),
-          orders: loadData('orders', []),
-          stockMovements: loadData('stockMovements', []),
-          returns: loadData('returns', []),
-          settings: loadData('settings', DEFAULT_SETTINGS)
+    setSyncError(null)
+    const unsub = onSnapshot(
+      docRef,
+      async (snap) => {
+        if (snap.exists()) {
+          const data = snap.data()
+          lastRemoteRef.current = data
+          setProducts(data.products ?? DEFAULT_PRODUCTS)
+          setOrders(data.orders ?? [])
+          setStockMovements(data.stockMovements ?? [])
+          setReturns(data.returns ?? [])
+          setSettings(data.settings ?? DEFAULT_SETTINGS)
+          setReady(true)
+        } else {
+          // Tai khoan moi: dua vao du lieu san co trong may (neu co, tu ban truoc khi
+          // dung tai khoan dam may) thay vi xoa mat, khong thi dung mac dinh
+          const initial = {
+            products: loadData('products', DEFAULT_PRODUCTS),
+            orders: loadData('orders', []),
+            stockMovements: loadData('stockMovements', []),
+            returns: loadData('returns', []),
+            settings: loadData('settings', DEFAULT_SETTINGS)
+          }
+          lastRemoteRef.current = initial
+          setProducts(initial.products)
+          setOrders(initial.orders)
+          setStockMovements(initial.stockMovements)
+          setReturns(initial.returns)
+          setSettings(initial.settings)
+          setReady(true)
+          try {
+            await setDoc(docRef, initial)
+          } catch (err) {
+            setSyncError(err.message)
+          }
         }
-        lastRemoteRef.current = initial
-        setProducts(initial.products)
-        setOrders(initial.orders)
-        setStockMovements(initial.stockMovements)
-        setReturns(initial.returns)
-        setSettings(initial.settings)
-        setReady(true)
-        await setDoc(docRef, initial)
+      },
+      (err) => {
+        setSyncError(err.message)
       }
-    })
+    )
     return unsub
   }, [docRef])
 
@@ -229,6 +241,7 @@ export function DataProvider({ children }) {
 
   const value = {
     ready,
+    syncError,
     products,
     cart,
     orders,
