@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
+import { useAuth } from '../store/AuthContext'
 
 export default function SettingsSheet({ open, onClose }) {
   const { settings, updateSettings, products, orders, stockMovements, returns } = useData()
+  const { user, signOut } = useAuth()
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
   const [exporting, setExporting] = useState(false)
@@ -75,6 +77,18 @@ export default function SettingsSheet({ open, onClose }) {
           <p className="text-xs text-slate-400 mt-1">
             Tải về file chứa toàn bộ sản phẩm, hóa đơn, lịch sử nhập kho và trả hàng để lưu trữ riêng
           </p>
+        </div>
+
+        <div className="border-t border-slate-100 pt-3 mb-4">
+          <p className="text-xs font-medium text-slate-500 mb-1">Tài khoản</p>
+          <p className="text-xs text-slate-400 mb-2 truncate">Đang đăng nhập: {user.email}</p>
+          <button
+            type="button"
+            onClick={signOut}
+            className="w-full rounded-lg bg-red-50 text-red-600 text-sm font-semibold py-2.5"
+          >
+            Đăng xuất
+          </button>
         </div>
 
         <div className="flex gap-2">

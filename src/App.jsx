@@ -1,6 +1,8 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './store/AuthContext'
 import { DataProvider, useData } from './store/DataContext'
+import AuthGate from './components/AuthGate'
 import BottomNav from './components/BottomNav'
 import ReceiptModal from './components/ReceiptModal'
 import SalesPage from './pages/SalesPage'
@@ -9,7 +11,15 @@ import OrdersPage from './pages/OrdersPage'
 import ReportPage from './pages/ReportPage'
 
 function AppShell() {
-  const { printOrder, settings, closePrint } = useData()
+  const { ready, printOrder, settings, closePrint } = useData()
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-sm text-slate-400">Đang tải dữ liệu...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -31,8 +41,12 @@ function AppShell() {
 
 export default function App() {
   return (
-    <DataProvider>
-      <AppShell />
-    </DataProvider>
+    <AuthProvider>
+      <AuthGate>
+        <DataProvider>
+          <AppShell />
+        </DataProvider>
+      </AuthGate>
+    </AuthProvider>
   )
 }

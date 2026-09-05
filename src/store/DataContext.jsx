@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import { db } from '../lib/firebase'
+import { useAuth } from './AuthContext'
 import { loadData, saveData, makeId } from '../lib/storage'
 
 const DEFAULT_PRODUCTS = [
@@ -14,20 +17,81 @@ const DEFAULT_SETTINGS = { shopName: 'Bán Hàng POS', shopAddress: '' }
 const DataContext = createContext(null)
 
 export function DataProvider({ children }) {
-  const [products, setProducts] = useState(() => loadData('products', DEFAULT_PRODUCTS))
+  const { user } = useAuth()
+  const uid = user.uid
+  const docRef = useMemo(() => doc(db, 'shops', uid), [uid])
+  const lastRemoteRef = useRef({})
+
+  const [ready, setReady] = useState(false)
+  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [orders, setOrders] = useState([])
+  const [stockMovements, setStockMovements] = useState([])
+  const [returns, setReturns] = useState([])
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [cart, setCart] = useState(() => loadData('cart', []))
-  const [orders, setOrders] = useState(() => loadData('orders', []))
-  const [stockMovements, setStockMovements] = useState(() => loadData('stockMovements', []))
-  const [returns, setReturns] = useState(() => loadData('returns', []))
-  const [settings, setSettings] = useState(() => loadData('settings', DEFAULT_SETTINGS))
   const [printOrder, setPrintOrder] = useState(null)
 
-  useEffect(() => saveData('products', products), [products])
+  useEffect(() => {
+    setReady(false)
+    const unsub = onSnapshot(docRef, async (snap) => {
+      if (snap.exists()) {
+        const data = snap.data()
+        lastRemoteRef.current = data
+        setProducts(data.products ?? DEFAULT_PRODUCTS)
+        setOrders(data.orders ?? [])
+        setStockMovements(data.stockMovements ?? [])
+        setReturns(data.returns ?? [])
+        setSettings(data.settings ?? DEFAULT_SETTINGS)
+        setReady(true)
+      } else {
+        // Tai khoan moi: dua vao du lieu san co trong may (neu co, tu ban truoc khi
+        // dung tai khoan dam may) thay vi xoa mat, khong thi dung mac dinh
+        const initial = {
+          products: loadData('products', DEFAULT_PRODUCTS),
+          orders: loadData('orders', []),
+          stockMovements: loadData('stockMovements', []),
+          returns: loadData('returns', []),
+          settings: loadData('settings', DEFAULT_SETTINGS)
+        }
+        lastRemoteRef.current = initial
+        setProducts(initial.products)
+        setOrders(initial.orders)
+        setStockMovements(initial.stockMovements)
+        setReturns(initial.returns)
+        setSettings(initial.settings)
+        setReady(true)
+        await setDoc(docRef, initial)
+      }
+    })
+    return unsub
+  }, [docRef])
+
   useEffect(() => saveData('cart', cart), [cart])
-  useEffect(() => saveData('orders', orders), [orders])
-  useEffect(() => saveData('stockMovements', stockMovements), [stockMovements])
-  useEffect(() => saveData('returns', returns), [returns])
-  useEffect(() => saveData('settings', settings), [settings])
+
+  useEffect(() => {
+    if (!ready || products === lastRemoteRef.current.products) return
+    setDoc(docRef, { products }, { merge: true })
+  }, [ready, products, docRef])
+
+  useEffect(() => {
+    if (!ready || orders === lastRemoteRef.current.orders) return
+    setDoc(docRef, { orders }, { merge: true })
+  }, [ready, orders, docRef])
+
+  useEffect(() => {
+    if (!ready || stockMovements === lastRemoteRef.current.stockMovements) return
+    setDoc(docRef, { stockMovements }, { merge: true })
+  }, [ready, stockMovements, docRef])
+
+  useEffect(() => {
+    if (!ready || returns === lastRemoteRef.current.returns) return
+    setDoc(docRef, { returns }, { merge: true })
+  }, [ready, returns, docRef])
+
+  useEffect(() => {
+    if (!ready || settings === lastRemoteRef.current.settings) return
+    setDoc(docRef, { settings }, { merge: true })
+  }, [ready, settings, docRef])
 
   function updateSettings(patch) {
     setSettings((prev) => ({ ...prev, ...patch }))
@@ -164,6 +228,7 @@ export function DataProvider({ children }) {
   }
 
   const value = {
+    ready,
     products,
     cart,
     orders,
