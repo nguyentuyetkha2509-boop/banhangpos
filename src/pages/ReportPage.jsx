@@ -29,6 +29,13 @@ export default function ReportPage() {
   const periodOrders = useMemo(() => orders.filter((o) => inRange(o.createdAt)), [orders, rangeStart, rangeEnd])
   const periodReturns = useMemo(() => returns.filter((r) => inRange(r.createdAt)), [returns, rangeStart, rangeEnd])
 
+  function returnCostPriceOf(r) {
+    // Cac luot tra hang tao truoc khi tinh nang nay co khong luu san gia von -
+    // dung gia nhap hien tai cua san pham de uoc luong thay vi coi nhu bang 0
+    if (r.costPrice) return r.costPrice
+    return products.find((p) => p.id === r.productId)?.costPrice || 0
+  }
+
   const grossRevenue = periodOrders.reduce((sum, o) => sum + o.total, 0)
   const totalItemsSold = periodOrders.reduce(
     (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
@@ -40,7 +47,7 @@ export default function ReportPage() {
   )
   const totalReturnQty = periodReturns.reduce((sum, r) => sum + r.qty, 0)
   const totalReturnValue = periodReturns.reduce((sum, r) => sum + r.refundAmount, 0)
-  const totalReturnCost = periodReturns.reduce((sum, r) => sum + r.qty * (r.costPrice || 0), 0)
+  const totalReturnCost = periodReturns.reduce((sum, r) => sum + r.qty * returnCostPriceOf(r), 0)
   const netRevenue = grossRevenue - totalReturnValue
   const totalCost = grossCost - totalReturnCost
   const totalProfit = netRevenue - totalCost
