@@ -21,8 +21,17 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
 
     scanner
       .start(
-        { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-        { fps: 10, qrbox: { width: 300, height: 160 }, disableFlip: true },
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 300, height: 160 },
+          disableFlip: true,
+          videoConstraints: {
+            facingMode: 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        },
         (decodedText) => {
           if (cancelled) return
           cancelled = true
