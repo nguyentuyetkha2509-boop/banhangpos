@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import CartSheet from '../components/CartSheet'
@@ -16,7 +16,16 @@ export default function SalesPage() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [toast, setToast] = useState('')
+  const [highlightedId, setHighlightedId] = useState(null)
   const pendingApprovals = usePendingApprovalsCount()
+
+  useEffect(() => {
+    if (!highlightedId) return
+    const el = document.getElementById(`product-card-${highlightedId}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const timer = setTimeout(() => setHighlightedId(null), 1800)
+    return () => clearTimeout(timer)
+  }, [highlightedId])
 
   const categories = useMemo(() => {
     const set = new Set()
@@ -51,6 +60,8 @@ export default function SalesPage() {
     if (product) {
       addToCart(product)
       setQuery('')
+      setCategory('')
+      setHighlightedId(product.id)
       showToast(`Đã thêm: ${product.name}`)
     }
   }
@@ -60,6 +71,9 @@ export default function SalesPage() {
     const product = findProductByBarcode(code)
     if (product) {
       addToCart(product)
+      setQuery('')
+      setCategory('')
+      setHighlightedId(product.id)
       showToast(`Đã thêm: ${product.name}`)
     } else {
       showToast(`Không tìm thấy sản phẩm với mã ${code}`)
@@ -143,8 +157,13 @@ export default function SalesPage() {
           return (
             <div
               key={p.id}
+              id={`product-card-${p.id}`}
               className={`relative bg-white rounded-xl border p-3 transition ${
-                inCart > 0 ? 'border-brand-400 ring-2 ring-brand-100 shadow-md' : 'border-slate-200 shadow-sm'
+                highlightedId === p.id
+                  ? 'border-amber-400 ring-4 ring-amber-200 shadow-lg'
+                  : inCart > 0
+                  ? 'border-brand-400 ring-2 ring-brand-100 shadow-md'
+                  : 'border-slate-200 shadow-sm'
               }`}
             >
               <button
