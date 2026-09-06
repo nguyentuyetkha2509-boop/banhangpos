@@ -131,7 +131,6 @@ export default function ReturnSheet({ open, onClose, product, order }) {
               : products.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
-                    {p.category ? ` · ${p.category}` : ''}
                     {p.isPromotion ? ' · Khuyến mãi' : ''} (đang có {p.stock})
                   </option>
                 ))}
