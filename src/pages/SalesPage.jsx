@@ -23,21 +23,10 @@ export default function SalesPage() {
   useEffect(() => {
     if (!highlightedId) return
     const el = document.getElementById(`product-card-${highlightedId}`)
-    const scrollParent = el?.closest('main')
-    if (el && scrollParent) {
-      // Thanh gio hang noi (fixed bottom-20) + thanh dieu huong duoi cung che mat
-      // mot phan man hinh ma scrollIntoView khong biet - tinh thu cong de tranh vung do
-      const overlayHeight = cartCount > 0 ? 160 : 90
-      const elRect = el.getBoundingClientRect()
-      const parentRect = scrollParent.getBoundingClientRect()
-      const currentOffset = elRect.top - parentRect.top
-      const safeVisibleHeight = parentRect.height - overlayHeight
-      const desiredOffset = (safeVisibleHeight - el.offsetHeight) / 2
-      scrollParent.scrollBy({ top: currentOffset - desiredOffset, behavior: 'smooth' })
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     const timer = setTimeout(() => setHighlightedId(null), 1800)
     return () => clearTimeout(timer)
-  }, [highlightedId, cartCount])
+  }, [highlightedId])
 
   const categories = useMemo(() => {
     const set = new Set()
@@ -219,6 +208,10 @@ export default function SalesPage() {
           )
         })}
       </div>
+
+      {/* Chua them khoang trong de scrollIntoView co du cho dua san pham cuoi danh
+          sach ra giua man hinh, tranh bi thanh gio hang/thanh dieu huong duoi che mat */}
+      <div className={cartCount > 0 ? 'h-56' : 'h-32'} />
 
       {cartCount > 0 && (
         <button
