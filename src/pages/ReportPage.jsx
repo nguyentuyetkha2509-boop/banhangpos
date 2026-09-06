@@ -81,14 +81,16 @@ export default function ReportPage() {
     const map = new Map()
     periodOrders.forEach((o) => {
       o.items.forEach((item) => {
-        const cur = map.get(item.productId) || { name: item.name, qty: 0, revenue: 0 }
+        const cur =
+          map.get(item.productId) ||
+          { name: item.name, isPromotion: Boolean(products.find((p) => p.id === item.productId)?.isPromotion), qty: 0, revenue: 0 }
         cur.qty += item.qty
         cur.revenue += item.qty * item.price
         map.set(item.productId, cur)
       })
     })
     return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue)
-  }, [periodOrders])
+  }, [periodOrders, products])
 
   const returnByCustomer = useMemo(() => {
     const map = new Map()
@@ -150,7 +152,9 @@ export default function ReportPage() {
       const key = customerKeyOf(o.customerName)
       const prodMap = map.get(key) || new Map()
       o.items.forEach((item) => {
-        const cur = prodMap.get(item.productId) || { name: item.name, qty: 0, revenue: 0 }
+        const cur =
+          prodMap.get(item.productId) ||
+          { name: item.name, isPromotion: Boolean(products.find((p) => p.id === item.productId)?.isPromotion), qty: 0, revenue: 0 }
         cur.qty += item.qty
         cur.revenue += item.qty * item.price
         prodMap.set(item.productId, cur)
@@ -160,13 +164,15 @@ export default function ReportPage() {
     returnProductByCustomer.forEach((retProdMap, key) => {
       const prodMap = map.get(key) || new Map()
       retProdMap.forEach((ret, productId) => {
-        const cur = prodMap.get(productId) || { name: ret.name, qty: 0, revenue: 0 }
+        const cur =
+          prodMap.get(productId) ||
+          { name: ret.name, isPromotion: Boolean(products.find((p) => p.id === productId)?.isPromotion), qty: 0, revenue: 0 }
         prodMap.set(productId, cur)
       })
       map.set(key, prodMap)
     })
     return map
-  }, [periodOrders, returnProductByCustomer])
+  }, [periodOrders, returnProductByCustomer, products])
 
   const customerProductRows = useMemo(() => {
     const rows = []
@@ -179,6 +185,7 @@ export default function ReportPage() {
           const ret = retProdMap?.get(productId) || { qty: 0, value: 0 }
           return {
             name: item.name,
+            isPromotion: item.isPromotion,
             qty: item.qty,
             revenue: item.revenue,
             returnQty: ret.qty,
@@ -218,6 +225,7 @@ export default function ReportPage() {
         soldByProduct,
         customerStats,
         customerProductRows,
+        products,
         totals: {
           grossRevenue,
           totalDiscount,
@@ -443,7 +451,8 @@ export default function ReportPage() {
                     {productList.map((item, i) => (
                       <div key={i} className="flex items-center justify-between py-1.5 text-sm">
                         <span className="text-slate-600 truncate mr-2">
-                          {item.name} x{item.qty}
+                          {item.name}
+                          {item.isPromotion ? ' · Khuyến mãi' : ''} x{item.qty}
                           {item.returnQty > 0 ? ` (trả ${item.returnQty})` : ''}
                         </span>
                         {item.returnValue > 0 ? (
@@ -484,7 +493,10 @@ export default function ReportPage() {
                 className={`flex items-center justify-between px-3 py-2.5 ${idx > 0 ? 'border-t border-slate-100' : ''}`}
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{r.productName}</p>
+                  <p className="text-sm font-medium text-slate-800 truncate">
+                    {r.productName}
+                    {products.find((p) => p.id === r.productId)?.isPromotion ? ' · Khuyến mãi' : ''}
+                  </p>
                   <p className="text-xs text-slate-400">
                     {new Date(r.createdAt).toLocaleString('vi-VN')} · {r.customerName}
                   </p>
@@ -510,7 +522,10 @@ export default function ReportPage() {
             className={`flex items-center justify-between px-3 py-2.5 ${idx > 0 ? 'border-t border-slate-100' : ''}`}
           >
             <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
+              <p className="text-sm font-medium text-slate-800 truncate">
+                {item.name}
+                {item.isPromotion ? ' · Khuyến mãi' : ''}
+              </p>
               <p className="text-xs text-slate-400">Đã bán: {item.qty}</p>
             </div>
             <span className="font-semibold text-sm text-slate-800 shrink-0">{formatVND(item.revenue)}</span>
@@ -530,7 +545,10 @@ export default function ReportPage() {
               key={p.id}
               className={`flex items-center justify-between px-3 py-2.5 ${idx > 0 ? 'border-t border-slate-100' : ''}`}
             >
-              <p className="text-sm text-slate-700 truncate">{p.name}</p>
+              <p className="text-sm text-slate-700 truncate">
+                {p.name}
+                {p.isPromotion ? ' · Khuyến mãi' : ''}
+              </p>
               <span className={`text-sm font-semibold shrink-0 ${low ? 'text-red-500' : 'text-slate-800'}`}>
                 Còn {p.stock}
                 {low ? ' · Sắp hết' : ''}

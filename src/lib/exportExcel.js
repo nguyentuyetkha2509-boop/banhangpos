@@ -37,9 +37,9 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
   const wsProducts = buildStyledSheet({
     title: 'Danh sách sản phẩm',
     meta,
-    headers: ['Tên sản phẩm', 'Danh mục', 'Giá nhập gần nhất (VND)', 'Giá bán (VND)', 'Tồn kho', 'Mã vạch'],
-    rows: products.map((p) => [p.name, p.category || '', p.costPrice || 0, p.price, p.stock, p.barcode || '']),
-    moneyCols: [2, 3]
+    headers: ['Tên sản phẩm', 'Danh mục', 'Khuyến mãi', 'Giá nhập gần nhất (VND)', 'Giá bán (VND)', 'Tồn kho', 'Mã vạch'],
+    rows: products.map((p) => [p.name, p.category || '', p.isPromotion ? 'Có' : '', p.costPrice || 0, p.price, p.stock, p.barcode || '']),
+    moneyCols: [3, 4]
   })
   XLSX.utils.book_append_sheet(wb, wsProducts, 'San pham')
 
@@ -105,7 +105,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
     headers: ['Thời gian', 'Tên sản phẩm', 'Khách hàng', 'Số lượng trả', 'Giá trị hoàn (VND)', 'Ghi chú'],
     rows: (returns || []).map((r) => [
       formatDateTimeForSheet(r.createdAt),
-      r.productName,
+      `${r.productName}${products.find((p) => p.id === r.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
       r.customerName,
       r.qty,
       r.refundAmount,
@@ -166,6 +166,7 @@ export function exportReportToExcel({
   soldByProduct,
   customerStats,
   customerProductRows,
+  products,
   totals,
   settings
 }) {
@@ -225,7 +226,7 @@ export function exportReportToExcel({
     headers: ['Khách hàng', 'Tên hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)'],
     rows: (customerProductRows || []).map((r) => [
       r.customerName,
-      r.name,
+      `${r.name}${r.isPromotion ? ' (Khuyến mãi)' : ''}`,
       r.qty,
       r.revenue,
       r.returnQty,
@@ -240,7 +241,7 @@ export function exportReportToExcel({
     title: 'Sản phẩm đã bán',
     meta,
     headers: ['Tên sản phẩm', 'Số lượng đã bán', 'Doanh thu (VND)'],
-    rows: soldByProduct.map((p) => [p.name, p.qty, p.revenue]),
+    rows: soldByProduct.map((p) => [`${p.name}${p.isPromotion ? ' (Khuyến mãi)' : ''}`, p.qty, p.revenue]),
     moneyCols: [2]
   })
   XLSX.utils.book_append_sheet(wb, wsProducts, 'San pham ban')
@@ -268,7 +269,7 @@ export function exportReportToExcel({
     headers: ['Thời gian', 'Tên sản phẩm', 'Khách hàng', 'Số lượng trả', 'Giá trị hoàn (VND)', 'Ghi chú'],
     rows: (periodReturns || []).map((r) => [
       formatDateTimeForSheet(r.createdAt),
-      r.productName,
+      `${r.productName}${(products || []).find((p) => p.id === r.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
       r.customerName,
       r.qty,
       r.refundAmount,
@@ -306,7 +307,14 @@ export function exportCustomerToExcel({
     title: 'Báo cáo hàng bán theo khách',
     meta,
     headers: ['Tên hàng', 'SL mua', 'Doanh thu (VND)', 'SL Trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)'],
-    rows: (productRows || []).map((r) => [r.name, r.qty, r.revenue, r.returnQty, r.returnValue, r.netRevenue]),
+    rows: (productRows || []).map((r) => [
+      `${r.name}${r.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      r.qty,
+      r.revenue,
+      r.returnQty,
+      r.returnValue,
+      r.netRevenue
+    ]),
     totalRow: [
       'Tổng cộng',
       customerStat.qty,
