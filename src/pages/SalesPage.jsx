@@ -9,7 +9,7 @@ import { SettingsIcon, ScanIcon, CartIcon, BoxIcon } from '../components/Icons'
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
 export default function SalesPage() {
-  const { products, cart, addToCart, findProductByBarcode, settings } = useData()
+  const { products, cart, addToCart, setCartQty, findProductByBarcode, settings } = useData()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
@@ -141,30 +141,51 @@ export default function SalesPage() {
           const inCart = cartQtyOf(p.id)
           const outOfStock = p.stock <= 0
           return (
-            <button
+            <div
               key={p.id}
-              disabled={outOfStock || inCart >= p.stock}
-              onClick={() => addToCart(p)}
-              className="relative text-left bg-white rounded-xl border border-slate-200 p-3 shadow-sm active:scale-[0.97] transition disabled:opacity-50 disabled:active:scale-100"
+              className={`relative bg-white rounded-xl border p-3 transition ${
+                inCart > 0 ? 'border-brand-400 ring-2 ring-brand-100 shadow-md' : 'border-slate-200 shadow-sm'
+              }`}
             >
+              <button
+                disabled={outOfStock}
+                onClick={() => addToCart(p)}
+                className="w-full text-left active:scale-[0.97] transition disabled:opacity-50 disabled:active:scale-100"
+              >
+                <div className="w-full aspect-square rounded-lg border border-slate-100 bg-slate-50 overflow-hidden mb-2 flex items-center justify-center">
+                  {p.image ? (
+                    <img src={p.image} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <BoxIcon className="h-7 w-7 text-slate-300" />
+                  )}
+                </div>
+                <p className="font-medium text-sm text-slate-800 line-clamp-2 min-h-[2.5rem]">{p.name}</p>
+                <p className="text-brand-700 font-bold mt-1">{formatVND(p.price)}</p>
+                <p className={`text-xs mt-0.5 ${outOfStock ? 'text-red-500' : 'text-slate-400'}`}>
+                  {outOfStock ? 'Hết hàng' : `Còn ${p.stock}`}
+                </p>
+              </button>
               {inCart > 0 && (
-                <span className="absolute -top-2 -right-2 bg-brand-600 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow">
-                  {inCart}
-                </span>
+                <div className="mt-2 flex items-center justify-between bg-brand-50 rounded-lg px-1.5 py-1.5">
+                  <button
+                    onClick={() => setCartQty(p.id, inCart - 1)}
+                    aria-label="Giảm số lượng"
+                    className="h-8 w-8 shrink-0 rounded-full bg-white text-brand-700 font-bold shadow-sm active:scale-95 transition"
+                  >
+                    −
+                  </button>
+                  <span className="font-bold text-brand-700">{inCart}</span>
+                  <button
+                    onClick={() => setCartQty(p.id, inCart + 1)}
+                    disabled={inCart >= p.stock}
+                    aria-label="Tăng số lượng"
+                    className="h-8 w-8 shrink-0 rounded-full bg-white text-brand-700 font-bold shadow-sm active:scale-95 transition disabled:opacity-40"
+                  >
+                    +
+                  </button>
+                </div>
               )}
-              <div className="w-full aspect-square rounded-lg border border-slate-100 bg-slate-50 overflow-hidden mb-2 flex items-center justify-center">
-                {p.image ? (
-                  <img src={p.image} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <BoxIcon className="h-7 w-7 text-slate-300" />
-                )}
-              </div>
-              <p className="font-medium text-sm text-slate-800 line-clamp-2 min-h-[2.5rem]">{p.name}</p>
-              <p className="text-brand-700 font-bold mt-1">{formatVND(p.price)}</p>
-              <p className={`text-xs mt-0.5 ${outOfStock ? 'text-red-500' : 'text-slate-400'}`}>
-                {outOfStock ? 'Hết hàng' : `Còn ${p.stock}`}
-              </p>
-            </button>
+            </div>
           )
         })}
       </div>
