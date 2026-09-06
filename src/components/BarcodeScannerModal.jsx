@@ -5,6 +5,7 @@ const REGION_ID = 'barcode-scanner-region'
 
 export default function BarcodeScannerModal({ open, onClose, onDetected }) {
   const [error, setError] = useState('')
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
     if (!open) return
@@ -33,15 +34,17 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
         // Component co the da bi unmount truoc khi camera khoi dong xong
         if (cancelled) safeStop()
       })
-      .catch(() => {
-        if (!cancelled) setError('Không thể mở camera. Vui lòng cấp quyền camera cho trình duyệt.')
+      .catch((err) => {
+        if (cancelled) return
+        const detail = err?.message || err?.name || String(err)
+        setError(`Không thể mở camera (${detail}). Vui lòng cấp quyền camera cho trình duyệt và thử lại.`)
       })
 
     return () => {
       cancelled = true
       safeStop()
     }
-  }, [open])
+  }, [open, retryKey])
 
   if (!open) return null
 
@@ -54,7 +57,17 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
         </button>
       </div>
       <div id={REGION_ID} className="flex-1" />
-      {error && <p className="p-4 text-center text-sm text-red-300">{error}</p>}
+      {error && (
+        <div className="p-4 text-center">
+          <p className="text-sm text-red-300 mb-3">{error}</p>
+          <button
+            onClick={() => setRetryKey((k) => k + 1)}
+            className="rounded-lg bg-white/10 text-white text-sm font-medium px-4 py-2"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
       <p className="pb-6 pt-2 text-center text-xs text-white/60">
         Đưa mã vạch vào giữa khung hình, giữ yên, đủ sáng và cách camera khoảng 10-15cm
       </p>
