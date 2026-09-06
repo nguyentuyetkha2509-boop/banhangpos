@@ -16,6 +16,13 @@ function formatDateTime(iso) {
   })
 }
 
+function isStandaloneApp() {
+  return (
+    window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+  )
+}
+
 export default function ReceiptModal({ order, settings, onClose }) {
   const [sharing, setSharing] = useState(false)
 
@@ -23,6 +30,16 @@ export default function ReceiptModal({ order, settings, onClose }) {
 
   const shopName = settings?.shopName || DEFAULT_SHOP_NAME
   const shopAddress = settings?.shopAddress
+
+  function handlePrintClick() {
+    if (isStandaloneApp()) {
+      alert(
+        'In trực tiếp không hoạt động khi mở app từ icon màn hình chính (giới hạn của iOS/Android khi chạy như app riêng).\n\nCách khắc phục: bấm "Chia sẻ ảnh hóa đơn" bên dưới rồi in ảnh đó từ ứng dụng Ảnh/máy in, hoặc mở link app bằng trình duyệt (Safari/Chrome) thường để in trực tiếp.'
+      )
+      return
+    }
+    window.print()
+  }
 
   async function handleShareImage() {
     if (sharing) return
@@ -62,7 +79,7 @@ export default function ReceiptModal({ order, settings, onClose }) {
             ← Quay lại
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={handlePrintClick}
             className="flex-1 flex items-center justify-center gap-1.5 rounded-lg bg-brand-700 text-white text-sm font-semibold py-2.5"
           >
             <PrintIcon className="h-5 w-5" />

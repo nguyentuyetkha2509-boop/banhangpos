@@ -3,9 +3,26 @@ import { createPortal } from 'react-dom'
 import { generateBarcodeDataUrl } from '../lib/barcode'
 import { formatVND } from '../lib/storage'
 
+function isStandaloneApp() {
+  return (
+    window.navigator.standalone === true ||
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+  )
+}
+
 export default function BarcodePrintModal({ product, onClose }) {
   const [copiesInput, setCopiesInput] = useState('6')
   const copies = Math.max(1, Math.min(60, Number(copiesInput) || 1))
+
+  function handlePrintClick() {
+    if (isStandaloneApp()) {
+      alert(
+        'In trực tiếp không hoạt động khi mở app từ icon màn hình chính (giới hạn của iOS/Android khi chạy như app riêng).\n\nHãy mở link app bằng trình duyệt (Safari/Chrome) thường để in được.'
+      )
+      return
+    }
+    window.print()
+  }
 
   const dataUrl = useMemo(() => {
     if (!product?.barcode) return null
@@ -51,7 +68,7 @@ export default function BarcodePrintModal({ product, onClose }) {
             className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
           />
           <button
-            onClick={() => window.print()}
+            onClick={handlePrintClick}
             className="rounded-lg bg-brand-700 text-white px-5 text-sm font-medium"
           >
             In
