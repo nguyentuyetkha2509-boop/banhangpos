@@ -37,9 +37,16 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
   const wsProducts = buildStyledSheet({
     title: 'Danh sách sản phẩm',
     meta,
-    headers: ['Tên sản phẩm', 'Danh mục', 'Khuyến mãi', 'Giá nhập gần nhất (VND)', 'Giá bán (VND)', 'Tồn kho', 'Mã vạch'],
-    rows: products.map((p) => [p.name, p.category || '', p.isPromotion ? 'Có' : '', p.costPrice || 0, p.price, p.stock, p.barcode || '']),
-    moneyCols: [3, 4]
+    headers: ['Tên sản phẩm', 'Danh mục', 'Giá nhập gần nhất (VND)', 'Giá bán (VND)', 'Tồn kho', 'Mã vạch'],
+    rows: products.map((p) => [
+      `${p.name}${p.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      p.category || '',
+      p.costPrice || 0,
+      p.price,
+      p.stock,
+      p.barcode || ''
+    ]),
+    moneyCols: [2, 3]
   })
   XLSX.utils.book_append_sheet(wb, wsProducts, 'San pham')
 
