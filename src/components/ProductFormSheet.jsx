@@ -4,7 +4,7 @@ import { ImageIcon, ScanIcon } from './Icons'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
-const EMPTY = { name: '', category: '', barcode: '', image: '', price: '' }
+const EMPTY = { name: '', category: '', barcode: '', image: '', price: '', isPromotion: false }
 
 function resizeImageToDataUrl(file, maxSize = 240, quality = 0.7) {
   return new Promise((resolve, reject) => {
@@ -71,7 +71,8 @@ export default function ProductFormSheet({ open, onClose, product }) {
               category: product.category || '',
               barcode: product.barcode || '',
               image: product.image || '',
-              price: product.price ?? ''
+              price: product.price ?? '',
+              isPromotion: Boolean(product.isPromotion)
             }
           : EMPTY
       )
@@ -106,7 +107,8 @@ export default function ProductFormSheet({ open, onClose, product }) {
       name: form.name.trim(),
       category: form.category.trim(),
       barcode: form.barcode.trim(),
-      image: form.image || ''
+      image: form.image || '',
+      isPromotion: form.isPromotion
     }
     if (product) {
       updateProduct(product.id, { ...payload, price: Math.max(0, Number(form.price) || 0) })
@@ -243,6 +245,29 @@ export default function ProductFormSheet({ open, onClose, product }) {
             Quét
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => handleChange('isPromotion', !form.isPromotion)}
+          className={`w-full flex items-center justify-between rounded-lg px-3 py-2.5 mb-1 border transition ${
+            form.isPromotion ? 'bg-amber-50 border-amber-300' : 'bg-white border-slate-200'
+          }`}
+        >
+          <span className={`text-sm font-medium ${form.isPromotion ? 'text-amber-700' : 'text-slate-600'}`}>
+            Sản phẩm khuyến mãi
+          </span>
+          <span
+            className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+              form.isPromotion ? 'bg-amber-500' : 'bg-slate-300'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                form.isPromotion ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </span>
+        </button>
 
         {!product && (
           <p className="text-[14px] text-slate-400 mt-1 mb-4">

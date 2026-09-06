@@ -84,7 +84,14 @@ export default function ProductsPage() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-medium text-sm text-slate-800 truncate">{p.name}</p>
+                    <p className="font-medium text-sm text-slate-800 truncate">
+                      {p.name}
+                      {p.isPromotion && (
+                        <span className="ml-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50 rounded-full px-1.5 py-0.5">
+                          Khuyến mãi
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-slate-400">{p.category || 'Không phân loại'} · Tồn: {p.stock}</p>
                     <p className="text-brand-700 font-bold text-sm mt-0.5">{formatVND(p.price)}</p>
                     {p.barcode && <p className="text-[14px] text-slate-400 mt-0.5 font-mono">{p.barcode}</p>}

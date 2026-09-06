@@ -166,6 +166,11 @@ export default function SalesPage() {
                   : 'border-slate-200 shadow-sm'
               }`}
             >
+              {p.isPromotion && (
+                <span className="absolute -top-2 -left-2 z-10 bg-amber-500 text-white text-[11px] font-bold rounded-full px-2 py-0.5 shadow">
+                  Khuyến mãi
+                </span>
+              )}
               <button
                 disabled={outOfStock}
                 onClick={() => addToCart(p)}
