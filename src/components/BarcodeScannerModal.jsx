@@ -20,8 +20,8 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
 
     scanner
       .start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 260, height: 160 } },
+        { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+        { fps: 10, qrbox: { width: 300, height: 160 }, disableFlip: true },
         (decodedText) => {
           if (cancelled) return
           cancelled = true
@@ -55,7 +55,9 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
       </div>
       <div id={REGION_ID} className="flex-1" />
       {error && <p className="p-4 text-center text-sm text-red-300">{error}</p>}
-      <p className="pb-6 pt-2 text-center text-xs text-white/60">Đưa mã vạch vào giữa khung hình</p>
+      <p className="pb-6 pt-2 text-center text-xs text-white/60">
+        Đưa mã vạch vào giữa khung hình, giữ yên, đủ sáng và cách camera khoảng 10-15cm
+      </p>
     </div>
   )
 }
