@@ -74,7 +74,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
       orderItemRows.push([
         `#${o.id.slice(-6).toUpperCase()}`,
         formatDateTimeForSheet(o.createdAt),
-        item.name,
+        `${item.name}${products.find((p) => p.id === item.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
         item.qty,
         item.price,
         item.qty * item.price
@@ -96,7 +96,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
     headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng nhập', 'Giá nhập (VND)', 'Giá bán từ lô này (VND)', 'Ghi chú'],
     rows: stockMovements.map((m) => [
       formatDateTimeForSheet(m.createdAt),
-      m.productName,
+      `${m.productName}${products.find((p) => p.id === m.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
       m.qty,
       m.costPrice || 0,
       m.sellPrice || 0,
