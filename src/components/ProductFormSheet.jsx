@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { ImageIcon, ScanIcon } from './Icons'
 
@@ -31,10 +31,36 @@ function resizeImageToDataUrl(file, maxSize = 240, quality = 0.7) {
 }
 
 export default function ProductFormSheet({ open, onClose, product }) {
-  const { addProduct, updateProduct } = useData()
+  const { products, addProduct, updateProduct } = useData()
   const [form, setForm] = useState(EMPTY)
   const [scannerOpen, setScannerOpen] = useState(false)
   const [imageBusy, setImageBusy] = useState(false)
+  const [showNameSuggestions, setShowNameSuggestions] = useState(false)
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false)
+
+  const knownNames = useMemo(() => {
+    const set = new Set()
+    products.forEach((p) => { if (p.name) set.add(p.name) })
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
+  }, [products])
+
+  const knownCategories = useMemo(() => {
+    const set = new Set()
+    products.forEach((p) => { if (p.category) set.add(p.category) })
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'vi'))
+  }, [products])
+
+  const filteredNames = useMemo(() => {
+    const q = form.name.trim().toLowerCase()
+    if (!q) return knownNames
+    return knownNames.filter((n) => n.toLowerCase().includes(q))
+  }, [knownNames, form.name])
+
+  const filteredCategories = useMemo(() => {
+    const q = form.category.trim().toLowerCase()
+    if (!q) return knownCategories
+    return knownCategories.filter((c) => c.toLowerCase().includes(q))
+  }, [knownCategories, form.category])
 
   useEffect(() => {
     if (open) {
@@ -100,13 +126,35 @@ export default function ProductFormSheet({ open, onClose, product }) {
         <h2 className="font-bold text-slate-800 mb-3">{product ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}</h2>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Tên sản phẩm</label>
-        <input
-          autoFocus
-          value={form.name}
-          onChange={(e) => handleChange('name', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="VD: Coca Cola lon"
-        />
+        <div className="relative mb-3">
+          <input
+            autoFocus
+            value={form.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            onFocus={() => setShowNameSuggestions(true)}
+            onBlur={() => setShowNameSuggestions(false)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+            placeholder="VD: Coca Cola lon"
+          />
+          {showNameSuggestions && filteredNames.length > 0 && (
+            <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+              {filteredNames.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    handleChange('name', n)
+                    setShowNameSuggestions(false)
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-700 active:bg-slate-50"
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Hình ảnh sản phẩm (tùy chọn)</label>
         <div className="flex items-center gap-3 mb-3">
@@ -148,12 +196,34 @@ export default function ProductFormSheet({ open, onClose, product }) {
         )}
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Danh mục (tùy chọn)</label>
-        <input
-          value={form.category}
-          onChange={(e) => handleChange('category', e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
-          placeholder="VD: Nước giải khát"
-        />
+        <div className="relative mb-3">
+          <input
+            value={form.category}
+            onChange={(e) => handleChange('category', e.target.value)}
+            onFocus={() => setShowCategorySuggestions(true)}
+            onBlur={() => setShowCategorySuggestions(false)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+            placeholder="VD: Nước giải khát"
+          />
+          {showCategorySuggestions && filteredCategories.length > 0 && (
+            <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+              {filteredCategories.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    handleChange('category', c)
+                    setShowCategorySuggestions(false)
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-slate-700 active:bg-slate-50"
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Mã vạch (tùy chọn)</label>
         <div className="flex gap-2 mb-1">
