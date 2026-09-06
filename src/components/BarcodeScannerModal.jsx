@@ -10,7 +10,7 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
     if (!open) return
     let cancelled = false
     setError('')
-    const scanner = new Html5Qrcode(REGION_ID)
+    const scanner = new Html5Qrcode(REGION_ID, { useBarCodeDetectorIfSupported: false, verbose: false })
 
     function safeStop() {
       if (scanner.getState() === Html5QrcodeScannerState.SCANNING || scanner.getState() === Html5QrcodeScannerState.PAUSED) {
