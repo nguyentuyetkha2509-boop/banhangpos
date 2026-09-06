@@ -18,14 +18,26 @@ export default function SalesPage() {
   const [toast, setToast] = useState('')
   const [highlightedId, setHighlightedId] = useState(null)
   const pendingApprovals = usePendingApprovalsCount()
+  const cartCount = cart.reduce((sum, c) => sum + c.qty, 0)
 
   useEffect(() => {
     if (!highlightedId) return
     const el = document.getElementById(`product-card-${highlightedId}`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const scrollParent = el?.closest('main')
+    if (el && scrollParent) {
+      // Thanh gio hang noi (fixed bottom-20) + thanh dieu huong duoi cung che mat
+      // mot phan man hinh ma scrollIntoView khong biet - tinh thu cong de tranh vung do
+      const overlayHeight = cartCount > 0 ? 160 : 90
+      const elRect = el.getBoundingClientRect()
+      const parentRect = scrollParent.getBoundingClientRect()
+      const currentOffset = elRect.top - parentRect.top
+      const safeVisibleHeight = parentRect.height - overlayHeight
+      const desiredOffset = (safeVisibleHeight - el.offsetHeight) / 2
+      scrollParent.scrollBy({ top: currentOffset - desiredOffset, behavior: 'smooth' })
+    }
     const timer = setTimeout(() => setHighlightedId(null), 1800)
     return () => clearTimeout(timer)
-  }, [highlightedId])
+  }, [highlightedId, cartCount])
 
   const categories = useMemo(() => {
     const set = new Set()
@@ -42,7 +54,6 @@ export default function SalesPage() {
     })
   }, [products, query, category])
 
-  const cartCount = cart.reduce((sum, c) => sum + c.qty, 0)
   const cartTotal = cart.reduce((sum, c) => sum + c.qty * c.price, 0)
 
   function cartQtyOf(productId) {
