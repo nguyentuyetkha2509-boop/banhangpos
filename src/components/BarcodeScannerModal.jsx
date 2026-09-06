@@ -28,8 +28,8 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
           disableFlip: true,
           videoConstraints: {
             facingMode: 'environment',
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
           }
         },
         (decodedText) => {
