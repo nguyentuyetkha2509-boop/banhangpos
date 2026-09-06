@@ -4,6 +4,7 @@ import { formatVND } from '../lib/storage'
 import ProductFormSheet from '../components/ProductFormSheet'
 import RestockSheet from '../components/RestockSheet'
 import ReturnSheet from '../components/ReturnSheet'
+import EditStockMovementSheet from '../components/EditStockMovementSheet'
 import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon, BarcodeIcon } from '../components/Icons'
 
 const BarcodePrintModal = lazy(() => import('../components/BarcodePrintModal'))
@@ -16,6 +17,7 @@ export default function ProductsPage() {
   const [showReturn, setShowReturn] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [printingProduct, setPrintingProduct] = useState(null)
+  const [editingMovement, setEditingMovement] = useState(null)
 
   function openNew() {
     setEditing(null)
@@ -130,11 +132,20 @@ export default function ProductsPage() {
                     <ul className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                       {productMovements.map((m) => (
                         <li key={m.id} className="rounded-lg bg-white border border-slate-100 px-2.5 py-1.5">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <span className="text-xs text-slate-500">
                               {new Date(m.createdAt).toLocaleString('vi-VN')}
                             </span>
-                            <span className="text-xs font-semibold text-emerald-600">+{m.qty}</span>
+                            <span className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-xs font-semibold text-emerald-600">+{m.qty}</span>
+                              <button
+                                type="button"
+                                onClick={() => setEditingMovement(m)}
+                                className="text-[14px] font-medium text-slate-500 bg-slate-100 rounded px-1.5 py-0.5"
+                              >
+                                Sửa
+                              </button>
+                            </span>
                           </div>
                           <div className="text-xs text-slate-500 mt-0.5">
                             Giá nhập: {m.costPrice ? formatVND(m.costPrice) : '—'}
@@ -158,6 +169,11 @@ export default function ProductsPage() {
           <BarcodePrintModal product={printingProduct} onClose={() => setPrintingProduct(null)} />
         </Suspense>
       )}
+      <EditStockMovementSheet
+        open={Boolean(editingMovement)}
+        onClose={() => setEditingMovement(null)}
+        movement={editingMovement}
+      />
     </div>
   )
 }

@@ -199,6 +199,44 @@ export function DataProvider({ children }) {
     ])
   }
 
+  function updateStockMovement(movementId, { qty, costPrice, sellPrice, note }) {
+    const movement = stockMovements.find((m) => m.id === movementId)
+    if (!movement) return
+    const newQty = Math.max(0, Number(qty) || 0)
+    if (newQty <= 0) return
+    const delta = newQty - movement.qty
+    const resolvedCost = costPrice === '' || costPrice == null ? movement.costPrice || 0 : Math.max(0, Number(costPrice) || 0)
+    const resolvedSell = sellPrice === '' || sellPrice == null ? movement.sellPrice || 0 : Math.max(0, Number(sellPrice) || 0)
+    const isLatestForProduct = stockMovements.find((m) => m.productId === movement.productId)?.id === movementId
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id !== movement.productId) return p
+        const next = { ...p, stock: Math.max(0, p.stock + delta) }
+        if (isLatestForProduct) {
+          next.costPrice = resolvedCost
+          next.price = resolvedSell
+        }
+        return next
+      })
+    )
+    setStockMovements((prev) =>
+      prev.map((m) =>
+        m.id === movementId
+          ? { ...m, qty: newQty, costPrice: resolvedCost, sellPrice: resolvedSell, note: (note || '').trim() }
+          : m
+      )
+    )
+  }
+
+  function deleteStockMovement(movementId) {
+    const movement = stockMovements.find((m) => m.id === movementId)
+    if (!movement) return
+    setProducts((prev) =>
+      prev.map((p) => (p.id === movement.productId ? { ...p, stock: Math.max(0, p.stock - movement.qty) } : p))
+    )
+    setStockMovements((prev) => prev.filter((m) => m.id !== movementId))
+  }
+
   function addReturn(productId, qty, customerName, unitPrice, note, costPrice, orderId) {
     const returnQty = Math.max(0, Number(qty) || 0)
     if (returnQty <= 0) return
@@ -329,6 +367,8 @@ export function DataProvider({ children }) {
     checkout,
     findProductByBarcode,
     restockProduct,
+    updateStockMovement,
+    deleteStockMovement,
     addReturn,
     addDebtPayment,
     cancelOrder,

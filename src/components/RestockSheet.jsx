@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { ScanIcon } from './Icons'
+import EditStockMovementSheet from './EditStockMovementSheet'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -13,6 +14,7 @@ export default function RestockSheet({ open, onClose, product }) {
   const [note, setNote] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
+  const [editingMovement, setEditingMovement] = useState(null)
 
   useEffect(() => {
     if (open) {
@@ -168,7 +170,16 @@ export default function RestockSheet({ open, onClose, product }) {
                 <li key={m.id} className="rounded-lg bg-slate-50 px-3 py-2">
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-sm font-medium text-slate-700">{m.productName}</span>
-                    <span className="shrink-0 text-sm font-semibold text-emerald-600">+{m.qty}</span>
+                    <span className="shrink-0 flex items-center gap-1.5">
+                      <span className="text-sm font-semibold text-emerald-600">+{m.qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditingMovement(m)}
+                        className="text-[14px] font-medium text-slate-500 bg-white border border-slate-200 rounded px-1.5 py-0.5"
+                      >
+                        Sửa
+                      </button>
+                    </span>
                   </div>
                   <div className="mt-0.5 text-[14px] text-slate-400">
                     {new Date(m.createdAt).toLocaleString('vi-VN')}
@@ -192,6 +203,11 @@ export default function RestockSheet({ open, onClose, product }) {
           <BarcodeScannerModal open={scannerOpen} onClose={() => setScannerOpen(false)} onDetected={handleDetected} />
         </Suspense>
       )}
+      <EditStockMovementSheet
+        open={Boolean(editingMovement)}
+        onClose={() => setEditingMovement(null)}
+        movement={editingMovement}
+      />
     </div>
   )
 }
