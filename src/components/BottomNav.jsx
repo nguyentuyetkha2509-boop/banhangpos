@@ -12,7 +12,10 @@ const items = [
 
 export default function BottomNav() {
   return (
-    <nav className="no-print fixed bottom-0 inset-x-0 z-20 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]">
+    <nav
+      className="no-print fixed bottom-0 inset-x-0 z-20 bg-white border-t border-slate-100 shadow-[0_-4px_16px_rgba(15,23,42,0.06)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       <div className="max-w-md mx-auto grid grid-cols-5 px-1 py-2">
         {items.map(({ to, label, Icon }) => (
           <NavLink

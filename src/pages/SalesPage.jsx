@@ -221,7 +221,7 @@ export default function SalesPage() {
       {cartCount > 0 && (
         <button
           onClick={() => setCartOpen(true)}
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md bg-brand-700 text-white rounded-xl px-4 py-3 shadow-lg flex items-center justify-between active:scale-[0.98] transition"
+          className="fixed left-1/2 -translate-x-1/2 bottom-[calc(5rem+env(safe-area-inset-bottom))] w-[calc(100%-2rem)] max-w-md bg-brand-700 text-white rounded-xl px-4 py-3 shadow-lg flex items-center justify-between active:scale-[0.98] transition"
         >
           <span className="font-medium text-sm flex items-center gap-1.5">
             <CartIcon className="h-5 w-5" />
