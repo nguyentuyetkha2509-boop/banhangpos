@@ -59,6 +59,7 @@ export default function AdminApprovalSheet({ open, onClose }) {
         orders: acc.orders || [],
         stockMovements: acc.stockMovements || [],
         returns: acc.returns || [],
+        shrinkages: acc.shrinkages || [],
         debtPayments: acc.debtPayments || [],
         settings: acc.settings || {}
       })

@@ -4,8 +4,9 @@ import { formatVND } from '../lib/storage'
 import ProductFormSheet from '../components/ProductFormSheet'
 import RestockSheet from '../components/RestockSheet'
 import ReturnSheet from '../components/ReturnSheet'
+import ShrinkageSheet from '../components/ShrinkageSheet'
 import EditStockMovementSheet from '../components/EditStockMovementSheet'
-import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon, BarcodeIcon } from '../components/Icons'
+import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon, BarcodeIcon, TrashIcon } from '../components/Icons'
 
 const BarcodePrintModal = lazy(() => import('../components/BarcodePrintModal'))
 
@@ -15,6 +16,7 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false)
   const [showRestock, setShowRestock] = useState(false)
   const [showReturn, setShowReturn] = useState(false)
+  const [showShrinkage, setShowShrinkage] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [printingProduct, setPrintingProduct] = useState(null)
   const [editingMovement, setEditingMovement] = useState(null)
@@ -55,6 +57,13 @@ export default function ProductsPage() {
         >
           <ReturnIcon className="h-5 w-5" />
           Trả hàng
+        </button>
+        <button
+          onClick={() => setShowShrinkage(true)}
+          className="flex-1 flex items-center justify-center gap-1.5 bg-amber-50 text-amber-700 text-sm font-medium rounded-lg px-3 py-2.5 active:scale-[0.97] transition"
+        >
+          <TrashIcon className="h-5 w-5" />
+          Hao hụt
         </button>
       </div>
       <div className="mb-3">
@@ -164,6 +173,7 @@ export default function ProductsPage() {
       <ProductFormSheet open={showForm} onClose={() => setShowForm(false)} product={editing} />
       <RestockSheet open={showRestock} onClose={() => setShowRestock(false)} />
       <ReturnSheet open={showReturn} onClose={() => setShowReturn(false)} />
+      <ShrinkageSheet open={showShrinkage} onClose={() => setShowShrinkage(false)} />
       {printingProduct && (
         <Suspense fallback={null}>
           <BarcodePrintModal product={printingProduct} onClose={() => setPrintingProduct(null)} />

@@ -25,7 +25,7 @@ function customerKeyOf(name) {
   return (name || '').trim() || 'Khách lẻ'
 }
 
-export function exportDataToExcel({ products, orders, stockMovements, returns, debtPayments, settings }) {
+export function exportDataToExcel({ products, orders, stockMovements, returns, shrinkages, debtPayments, settings }) {
   const wb = XLSX.utils.book_new()
   const shopName = settings?.shopName || 'BanHang POS'
   const now = new Date().toLocaleString('vi-VN')
@@ -122,6 +122,22 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, d
   })
   XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
 
+  const wsShrinkages = buildStyledSheet({
+    title: 'Lịch sử hao hụt',
+    meta,
+    headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng', 'Lý do', 'Giá trị thiệt hại (VND)', 'Ghi chú'],
+    rows: (shrinkages || []).map((s) => [
+      formatDateTimeForSheet(s.createdAt),
+      `${s.productName}${products.find((p) => p.id === s.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      s.qty,
+      s.reason || '',
+      s.value || 0,
+      s.note || ''
+    ]),
+    moneyCols: [4]
+  })
+  XLSX.utils.book_append_sheet(wb, wsShrinkages, 'Hao hut')
+
   const debtMap = new Map()
   orders.forEach((o) => {
     if (o.cancelled || o.paymentMethod !== 'debt') return
@@ -170,6 +186,7 @@ export function exportReportToExcel({
   rangeLabel,
   periodOrders,
   periodReturns,
+  periodShrinkages,
   soldByProduct,
   customerStats,
   customerProductRows,
@@ -193,6 +210,8 @@ export function exportReportToExcel({
       ['Tổng giảm giá (VND)', totals.totalDiscount || 0],
       ['Số lượng trả hàng', totals.totalReturnQty],
       ['Giá trị trả hàng (VND)', totals.totalReturnValue],
+      ['Số lượng hao hụt', totals.totalShrinkageQty || 0],
+      ['Giá trị hao hụt (VND)', totals.totalShrinkageValue || 0],
       ['Doanh thu thuần (VND)', totals.netRevenue],
       ['Giá vốn (VND)', totals.totalCost],
       ['Lãi ước tính (VND)', totals.totalProfit],
@@ -285,6 +304,22 @@ export function exportReportToExcel({
     moneyCols: [4]
   })
   XLSX.utils.book_append_sheet(wb, wsReturns, 'Tra hang')
+
+  const wsShrinkages = buildStyledSheet({
+    title: 'Hao hụt trong kỳ',
+    meta,
+    headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng', 'Lý do', 'Giá trị thiệt hại (VND)', 'Ghi chú'],
+    rows: (periodShrinkages || []).map((s) => [
+      formatDateTimeForSheet(s.createdAt),
+      `${s.productName}${(products || []).find((p) => p.id === s.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      s.qty,
+      s.reason || '',
+      s.value || 0,
+      s.note || ''
+    ]),
+    moneyCols: [4]
+  })
+  XLSX.utils.book_append_sheet(wb, wsShrinkages, 'Hao hut')
 
   const shopSlug = slugify(shopName)
   const periodSlug = slugify(periodLabel)

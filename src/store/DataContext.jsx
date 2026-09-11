@@ -29,6 +29,7 @@ export function DataProvider({ children }) {
   const [orders, setOrders] = useState([])
   const [stockMovements, setStockMovements] = useState([])
   const [returns, setReturns] = useState([])
+  const [shrinkages, setShrinkages] = useState([])
   const [debtPayments, setDebtPayments] = useState([])
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [cart, setCart] = useState(() => loadData('cart', []))
@@ -47,6 +48,7 @@ export function DataProvider({ children }) {
           setOrders(data.orders ?? [])
           setStockMovements(data.stockMovements ?? [])
           setReturns(data.returns ?? [])
+          setShrinkages(data.shrinkages ?? [])
           setDebtPayments(data.debtPayments ?? [])
           setSettings(data.settings ?? DEFAULT_SETTINGS)
           setApproved(data.approved !== false)
@@ -59,6 +61,7 @@ export function DataProvider({ children }) {
             orders: loadData('orders', []),
             stockMovements: loadData('stockMovements', []),
             returns: loadData('returns', []),
+            shrinkages: loadData('shrinkages', []),
             debtPayments: loadData('debtPayments', []),
             settings: loadData('settings', DEFAULT_SETTINGS),
             approved: user.email === OWNER_EMAIL,
@@ -69,6 +72,7 @@ export function DataProvider({ children }) {
           setOrders(initial.orders)
           setStockMovements(initial.stockMovements)
           setReturns(initial.returns)
+          setShrinkages(initial.shrinkages)
           setDebtPayments(initial.debtPayments)
           setSettings(initial.settings)
           setApproved(initial.approved)
@@ -108,6 +112,11 @@ export function DataProvider({ children }) {
     if (!ready || returns === lastRemoteRef.current.returns) return
     setDoc(docRef, { returns }, { merge: true })
   }, [ready, returns, docRef])
+
+  useEffect(() => {
+    if (!ready || shrinkages === lastRemoteRef.current.shrinkages) return
+    setDoc(docRef, { shrinkages }, { merge: true })
+  }, [ready, shrinkages, docRef])
 
   useEffect(() => {
     if (!ready || debtPayments === lastRemoteRef.current.debtPayments) return
@@ -263,11 +272,46 @@ export function DataProvider({ children }) {
     ])
   }
 
+  function addShrinkage(productId, qty, reason, note) {
+    const lostQty = Math.max(0, Number(qty) || 0)
+    if (lostQty <= 0) return
+    const product = products.find((p) => p.id === productId)
+    if (!product) return
+    const cost = product.costPrice || 0
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, stock: Math.max(0, p.stock - lostQty) } : p))
+    )
+    setShrinkages((prev) => [
+      {
+        id: makeId(),
+        productId,
+        productName: product.name,
+        qty: lostQty,
+        costPrice: cost,
+        value: cost * lostQty,
+        reason: reason || 'Khác',
+        note: (note || '').trim(),
+        createdAt: new Date().toISOString()
+      },
+      ...prev
+    ])
+  }
+
+  function deleteShrinkage(shrinkageId) {
+    const shrinkage = shrinkages.find((s) => s.id === shrinkageId)
+    if (!shrinkage) return
+    setProducts((prev) =>
+      prev.map((p) => (p.id === shrinkage.productId ? { ...p, stock: p.stock + shrinkage.qty } : p))
+    )
+    setShrinkages((prev) => prev.filter((s) => s.id !== shrinkageId))
+  }
+
   function resetAllData() {
     setProducts([])
     setOrders([])
     setStockMovements([])
     setReturns([])
+    setShrinkages([])
     setDebtPayments([])
     setCart([])
   }
@@ -352,6 +396,7 @@ export function DataProvider({ children }) {
     orders,
     stockMovements,
     returns,
+    shrinkages,
     debtPayments,
     settings,
     printOrder,
@@ -370,6 +415,8 @@ export function DataProvider({ children }) {
     updateStockMovement,
     deleteStockMovement,
     addReturn,
+    addShrinkage,
+    deleteShrinkage,
     addDebtPayment,
     cancelOrder,
     updateSettings,

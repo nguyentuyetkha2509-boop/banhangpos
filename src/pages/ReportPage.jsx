@@ -11,7 +11,7 @@ function customerKeyOf(name) {
 }
 
 export default function ReportPage() {
-  const { orders, returns, products, debtPayments, settings } = useData()
+  const { orders, returns, shrinkages, products, debtPayments, settings } = useData()
   const [period, setPeriod] = useState('day')
   const [refDate, setRefDate] = useState(() => new Date())
   const [exporting, setExporting] = useState(false)
@@ -30,6 +30,10 @@ export default function ReportPage() {
   const activeOrders = useMemo(() => orders.filter((o) => !o.cancelled), [orders])
   const periodOrders = useMemo(() => activeOrders.filter((o) => inRange(o.createdAt)), [activeOrders, rangeStart, rangeEnd])
   const periodReturns = useMemo(() => returns.filter((r) => inRange(r.createdAt)), [returns, rangeStart, rangeEnd])
+  const periodShrinkages = useMemo(
+    () => shrinkages.filter((s) => inRange(s.createdAt)),
+    [shrinkages, rangeStart, rangeEnd]
+  )
   const periodDebtPayments = useMemo(
     () => debtPayments.filter((p) => inRange(p.createdAt)),
     [debtPayments, rangeStart, rangeEnd]
@@ -54,9 +58,11 @@ export default function ReportPage() {
   const totalReturnQty = periodReturns.reduce((sum, r) => sum + r.qty, 0)
   const totalReturnValue = periodReturns.reduce((sum, r) => sum + r.refundAmount, 0)
   const totalReturnCost = periodReturns.reduce((sum, r) => sum + r.qty * returnCostPriceOf(r), 0)
+  const totalShrinkageQty = periodShrinkages.reduce((sum, s) => sum + s.qty, 0)
+  const totalShrinkageValue = periodShrinkages.reduce((sum, s) => sum + (s.value || 0), 0)
   const netRevenue = grossRevenue - totalReturnValue
   const totalCost = grossCost - totalReturnCost
-  const totalProfit = netRevenue - totalCost
+  const totalProfit = netRevenue - totalCost - totalShrinkageValue
   const totalDiscount = periodOrders.reduce((sum, o) => sum + (o.discount || 0), 0)
 
   const paymentTotals = useMemo(() => {
@@ -222,6 +228,7 @@ export default function ReportPage() {
         rangeLabel,
         periodOrders,
         periodReturns,
+        periodShrinkages,
         soldByProduct,
         customerStats,
         customerProductRows,
@@ -231,6 +238,8 @@ export default function ReportPage() {
           totalDiscount,
           totalReturnQty,
           totalReturnValue,
+          totalShrinkageQty,
+          totalShrinkageValue,
           netRevenue,
           totalCost,
           totalProfit,
@@ -346,10 +355,18 @@ export default function ReportPage() {
             <p className="text-lg font-bold text-red-500 mt-0.5">−{formatVND(totalDiscount)}</p>
           </div>
         )}
+        {totalShrinkageQty > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm col-span-2">
+            <p className="text-xs text-slate-400">Hao hụt</p>
+            <p className="text-lg font-bold text-red-500 mt-0.5">
+              −{totalShrinkageQty} sp · −{formatVND(totalShrinkageValue)}
+            </p>
+          </div>
+        )}
       </div>
       <p className="text-[14px] text-slate-400 mt-1.5 mb-4">
         Doanh thu thuần đã trừ giá trị trả hàng. Lãi ước tính tính theo giá nhập gần nhất của mỗi sản phẩm tại thời
-        điểm bán. Hóa đơn đã hủy không được tính vào báo cáo.
+        điểm bán, đã trừ giá trị hao hụt. Hóa đơn đã hủy không được tính vào báo cáo.
       </p>
 
       {periodOrders.length > 0 && (
@@ -504,6 +521,34 @@ export default function ReportPage() {
                 <div className="text-right shrink-0">
                   <p className="font-semibold text-sm text-red-500">−{r.qty}</p>
                   <p className="text-xs text-slate-400">{formatVND(r.refundAmount)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {periodShrinkages.length > 0 && (
+        <>
+          <h2 className="font-bold text-slate-800 mb-2">Hao hụt trong kỳ</h2>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+            {periodShrinkages.map((s, idx) => (
+              <div
+                key={s.id}
+                className={`flex items-center justify-between px-3 py-2.5 ${idx > 0 ? 'border-t border-slate-100' : ''}`}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-slate-800 truncate">
+                    {s.productName}
+                    {products.find((p) => p.id === s.productId)?.isPromotion ? ' · Khuyến mãi' : ''}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {new Date(s.createdAt).toLocaleString('vi-VN')} · {s.reason}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-semibold text-sm text-red-500">−{s.qty}</p>
+                  <p className="text-xs text-slate-400">{formatVND(s.value || 0)}</p>
                 </div>
               </div>
             ))}
