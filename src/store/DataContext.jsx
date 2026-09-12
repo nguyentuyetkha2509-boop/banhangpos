@@ -181,6 +181,11 @@ export function DataProvider({ children }) {
     setCart((prev) => prev.filter((c) => c.productId !== productId))
   }
 
+  function setCartItemPrice(productId, price) {
+    const newPrice = Math.max(0, Number(price) || 0)
+    setCart((prev) => prev.map((c) => (c.productId === productId ? { ...c, price: newPrice } : c)))
+  }
+
   function restockProduct(productId, qty, note, costPrice, sellPrice) {
     const addQty = Math.max(0, Number(qty) || 0)
     if (addQty <= 0) return
@@ -407,6 +412,7 @@ export function DataProvider({ children }) {
     deleteProduct,
     addToCart,
     setCartQty,
+    setCartItemPrice,
     removeFromCart,
     clearCart,
     checkout,

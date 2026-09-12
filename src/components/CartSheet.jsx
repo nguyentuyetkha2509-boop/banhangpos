@@ -10,12 +10,15 @@ const PAYMENT_METHODS = [
 ]
 
 export default function CartSheet({ open, onClose }) {
-  const { cart, orders, returns, setCartQty, removeFromCart, checkout, requestPrint } = useData()
+  const { cart, orders, returns, products, setCartQty, setCartItemPrice, removeFromCart, checkout, requestPrint } =
+    useData()
   const [successOrder, setSuccessOrder] = useState(null)
   const [customerName, setCustomerName] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [discount, setDiscount] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('cash')
+  const [priceEditId, setPriceEditId] = useState(null)
+  const [priceEdits, setPriceEdits] = useState({})
 
   const knownCustomers = useMemo(() => {
     const set = new Set()
@@ -53,6 +56,18 @@ export default function CartSheet({ open, onClose }) {
     onClose()
   }
 
+  function startEditPrice(item) {
+    setPriceEditId(item.productId)
+    setPriceEdits((prev) => ({ ...prev, [item.productId]: String(item.price) }))
+  }
+
+  function commitEditPrice(item) {
+    const raw = priceEdits[item.productId]
+    const value = raw === undefined || raw === '' ? item.price : Math.max(0, Number(raw) || 0)
+    setCartItemPrice(item.productId, value)
+    setPriceEditId(null)
+  }
+
   return (
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40" onClick={onClose}>
       <div
@@ -87,35 +102,80 @@ export default function CartSheet({ open, onClose }) {
 
             <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-slate-100">
               {cart.length === 0 && <p className="text-center text-sm text-slate-400 py-8">Giỏ hàng trống</p>}
-              {cart.map((item) => (
-                <div key={item.productId} className="flex items-center justify-between py-3 gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
-                    <p className="text-xs text-slate-400">{formatVND(item.price)}</p>
+              {cart.map((item) => {
+                const original = products.find((p) => p.id === item.productId)?.price
+                const isDiscounted = original != null && item.price < original
+                const isEditing = priceEditId === item.productId
+                return (
+                  <div key={item.productId} className="py-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
+                        {isEditing ? (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <input
+                              type="number"
+                              min="0"
+                              autoFocus
+                              value={priceEdits[item.productId] ?? String(item.price)}
+                              onChange={(e) =>
+                                setPriceEdits((prev) => ({ ...prev, [item.productId]: e.target.value }))
+                              }
+                              onBlur={() => commitEditPrice(item)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  commitEditPrice(item)
+                                }
+                              }}
+                              className="w-24 rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-brand-400"
+                            />
+                            <span className="text-xs text-slate-400">/sp</span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => startEditPrice(item)}
+                            className="flex items-center gap-1.5 mt-0.5"
+                          >
+                            {isDiscounted && (
+                              <span className="text-xs text-slate-400 line-through">{formatVND(original)}</span>
+                            )}
+                            <span className={`text-xs font-medium ${isDiscounted ? 'text-red-500' : 'text-slate-400'}`}>
+                              {formatVND(item.price)}
+                            </span>
+                            <span className="text-[14px] text-brand-700 underline">Sửa giá</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => setCartQty(item.productId, item.qty - 1)}
+                          className="h-7 w-7 rounded-full bg-slate-100 text-slate-600 font-bold"
+                        >
+                          −
+                        </button>
+                        <span className="w-5 text-center text-sm font-medium">{item.qty}</span>
+                        <button
+                          onClick={() => setCartQty(item.productId, item.qty + 1)}
+                          className="h-7 w-7 rounded-full bg-slate-100 text-slate-600 font-bold"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => removeFromCart(item.productId)}
+                          className="text-red-400 text-xs ml-1"
+                        >
+                          Xóa
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-right text-xs text-slate-400 mt-1">
+                      Thành tiền: <span className="font-medium text-slate-600">{formatVND(item.price * item.qty)}</span>
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => setCartQty(item.productId, item.qty - 1)}
-                      className="h-7 w-7 rounded-full bg-slate-100 text-slate-600 font-bold"
-                    >
-                      −
-                    </button>
-                    <span className="w-5 text-center text-sm font-medium">{item.qty}</span>
-                    <button
-                      onClick={() => setCartQty(item.productId, item.qty + 1)}
-                      className="h-7 w-7 rounded-full bg-slate-100 text-slate-600 font-bold"
-                    >
-                      +
-                    </button>
-                    <button
-                      onClick={() => removeFromCart(item.productId)}
-                      className="text-red-400 text-xs ml-1"
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="p-4 border-t border-slate-100">
