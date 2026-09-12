@@ -163,7 +163,14 @@ export function DataProvider({ children }) {
       }
       return [
         ...prev,
-        { productId: product.id, name: product.name, price: product.price, costPrice: product.costPrice || 0, qty: 1 }
+        {
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          originalPrice: product.price,
+          costPrice: product.costPrice || 0,
+          qty: 1
+        }
       ]
     })
   }

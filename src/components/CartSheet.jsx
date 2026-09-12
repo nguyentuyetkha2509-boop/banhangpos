@@ -103,7 +103,7 @@ export default function CartSheet({ open, onClose }) {
             <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-slate-100">
               {cart.length === 0 && <p className="text-center text-sm text-slate-400 py-8">Giỏ hàng trống</p>}
               {cart.map((item) => {
-                const original = products.find((p) => p.id === item.productId)?.price
+                const original = item.originalPrice ?? products.find((p) => p.id === item.productId)?.price
                 const isDiscounted = original != null && item.price < original
                 const isEditing = priceEditId === item.productId
                 return (

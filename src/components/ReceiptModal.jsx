@@ -125,17 +125,30 @@ export default function ReceiptModal({ order, settings, onClose }) {
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <tbody>
-              {order.items.map((item) => (
-                <React.Fragment key={item.productId}>
-                  <tr>
-                    <td colSpan={2} style={{ paddingTop: 6 }}>{item.name}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ color: '#444' }}>{item.qty} x {formatVND(item.price)}</td>
-                    <td style={{ textAlign: 'right' }}>{formatVND(item.qty * item.price)}</td>
-                  </tr>
-                </React.Fragment>
-              ))}
+              {order.items.map((item) => {
+                const isDiscounted = item.originalPrice != null && item.price < item.originalPrice
+                return (
+                  <React.Fragment key={item.productId}>
+                    <tr>
+                      <td colSpan={2} style={{ paddingTop: 6 }}>{item.name}</td>
+                    </tr>
+                    {isDiscounted && (
+                      <tr>
+                        <td colSpan={2} style={{ color: '#999', fontSize: 11, textDecoration: 'line-through' }}>
+                          Giá gốc: {formatVND(item.originalPrice)}
+                        </td>
+                      </tr>
+                    )}
+                    <tr>
+                      <td style={{ color: '#444' }}>
+                        {item.qty} x {formatVND(item.price)}
+                        {isDiscounted && <span style={{ color: '#c0392b' }}> (đã giảm)</span>}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>{formatVND(item.qty * item.price)}</td>
+                    </tr>
+                  </React.Fragment>
+                )
+              })}
               {order.discount > 0 && (
                 <tr>
                   <td style={{ paddingTop: 8, color: '#444' }}>Giảm giá</td>
