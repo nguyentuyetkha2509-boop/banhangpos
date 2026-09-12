@@ -161,20 +161,34 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
   })
   XLSX.utils.book_append_sheet(wb, wsDebts, 'Cong no')
 
-  const wsDebtPayments = buildStyledSheet({
-    title: 'Lịch sử thu nợ',
-    meta,
-    headers: ['Thời gian', 'Khách hàng', 'Số tiền thu (VND)', 'Hình thức', 'Ghi chú'],
-    rows: (debtPayments || []).map((p) => [
-      formatDateTimeForSheet(p.createdAt),
-      p.customerName,
-      p.amount,
-      PAYMENT_LABELS[p.paymentMethod] || 'Tiền mặt',
-      p.note || ''
-    ]),
-    moneyCols: [2]
+  const customerMap = new Map()
+  orders.forEach((o) => {
+    if (o.cancelled) return
+    const key = customerKeyOf(o.customerName)
+    const qty = o.items.reduce((sum, i) => sum + i.qty, 0)
+    const cur = customerMap.get(key) || { name: key, orderCount: 0, qty: 0, revenue: 0, returnQty: 0, returnValue: 0 }
+    cur.orderCount += 1
+    cur.qty += qty
+    cur.revenue += o.total
+    customerMap.set(key, cur)
   })
-  XLSX.utils.book_append_sheet(wb, wsDebtPayments, 'Thu no')
+  ;(returns || []).forEach((r) => {
+    const key = customerKeyOf(r.customerName)
+    const cur = customerMap.get(key) || { name: key, orderCount: 0, qty: 0, revenue: 0, returnQty: 0, returnValue: 0 }
+    cur.returnQty += r.qty
+    cur.returnValue += r.refundAmount
+    customerMap.set(key, cur)
+  })
+  const wsCustomers = buildStyledSheet({
+    title: 'Danh sách khách hàng',
+    meta,
+    headers: ['Khách hàng', 'Số hóa đơn', 'SL mua', 'Doanh thu (VND)', 'SL trả', 'Giá trị trả (VND)', 'Doanh thu thuần (VND)'],
+    rows: Array.from(customerMap.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .map((c) => [c.name, c.orderCount, c.qty, c.revenue, c.returnQty, c.returnValue, c.revenue - c.returnValue]),
+    moneyCols: [3, 5, 6]
+  })
+  XLSX.utils.book_append_sheet(wb, wsCustomers, 'Khach hang')
 
   const shopSlug = slugify(shopName)
   const dateStamp = new Date().toISOString().slice(0, 10)
