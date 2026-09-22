@@ -19,35 +19,60 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
       }
     }
 
-    scanner
-      .start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: { width: 300, height: 160 },
-          disableFlip: true,
-          videoConstraints: {
-            facingMode: 'environment',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        },
-        (decodedText) => {
+    async function pickCameraDeviceId() {
+      // May iPhone Pro co nhieu ong kinh sau (wide/ultra-wide/telephoto); "environment" co
+      // the tra ve ong kinh ultra-wide, khong lay net duoc o khoang cach gan 10-15cm nhu
+      // huong dan tren man hinh. Uu tien chon dung ong kinh "Back Camera" thuong (goc rong
+      // tieu chuan) qua danh sach thiet bi thay vi de trinh duyet tu chon.
+      try {
+        const cameras = await Html5Qrcode.getCameras()
+        if (cameras && cameras.length > 0) {
+          const isUltraOrTele = (label) => /ultra|wide angle|telephoto|0\.5x|zoom/i.test(label || '')
+          const backCameras = cameras.filter((c) => /back|rear|environment/i.test(c.label || ''))
+          const preferred =
+            backCameras.find((c) => !isUltraOrTele(c.label)) || backCameras[0] || cameras[cameras.length - 1]
+          return preferred?.id || null
+        }
+      } catch {
+        // Khong lay duoc danh sach camera (vd chua cap quyen) -> fallback facingMode ben duoi
+      }
+      return null
+    }
+
+    pickCameraDeviceId().then((deviceId) => {
+      if (cancelled) return
+      const videoConstraints = deviceId
+        ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        : { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      scanner
+        .start(
+          deviceId || { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (viewfinderWidth, viewfinderHeight) => ({
+              width: Math.floor(viewfinderWidth * 0.85),
+              height: Math.floor(viewfinderHeight * 0.4)
+            }),
+            disableFlip: true,
+            videoConstraints
+          },
+          (decodedText) => {
+            if (cancelled) return
+            cancelled = true
+            onDetected(decodedText)
+          },
+          () => {}
+        )
+        .then(() => {
+          // Component co the da bi unmount truoc khi camera khoi dong xong
+          if (cancelled) safeStop()
+        })
+        .catch((err) => {
           if (cancelled) return
-          cancelled = true
-          onDetected(decodedText)
-        },
-        () => {}
-      )
-      .then(() => {
-        // Component co the da bi unmount truoc khi camera khoi dong xong
-        if (cancelled) safeStop()
-      })
-      .catch((err) => {
-        if (cancelled) return
-        const detail = err?.message || err?.name || String(err)
-        setError(`Không thể mở camera (${detail}). Vui lòng cấp quyền camera cho trình duyệt và thử lại.`)
-      })
+          const detail = err?.message || err?.name || String(err)
+          setError(`Không thể mở camera (${detail}). Vui lòng cấp quyền camera cho trình duyệt và thử lại.`)
+        })
+    })
 
     return () => {
       cancelled = true
