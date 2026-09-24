@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background-color: theme('colors.canvas');
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hanzi-target {
+  border: 2px dashed theme('colors.brand.200');
+  border-radius: 0.75rem;
+}
