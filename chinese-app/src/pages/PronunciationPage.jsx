@@ -1,8 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
-import { HSK1_WORDS } from '../data/hsk1'
+import { getLevel } from '../data/levels'
 import { useProgress } from '../store/ProgressContext'
 import { speakChinese, isTtsSupported } from '../lib/tts'
 import { VolumeIcon, MicIcon } from '../components/Icons'
+import LevelTabs from '../components/LevelTabs'
 
 const TONE_LABELS = {
   1: { mark: 'ˉ', name: 'Thanh 1 (ngang)' },
@@ -10,8 +11,6 @@ const TONE_LABELS = {
   3: { mark: 'ˇ', name: 'Thanh 3 (xuống rồi lên)' },
   4: { mark: 'ˋ', name: 'Thanh 4 (xuống mạnh)' }
 }
-
-const SINGLE_TONE_WORDS = HSK1_WORDS.filter((w) => w.tones.length === 1 && w.tones[0] !== 0)
 
 function shuffle(arr) {
   const a = [...arr]
@@ -22,15 +21,22 @@ function shuffle(arr) {
   return a
 }
 
-function pickToneQuestion() {
-  const word = SINGLE_TONE_WORDS[Math.floor(Math.random() * SINGLE_TONE_WORDS.length)]
-  return word
+function pickToneQuestion(pool) {
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
-function ToneQuiz() {
+function ToneQuiz({ words }) {
+  const singleToneWords = useMemo(
+    () => words.filter((w) => w.tones.length === 1 && w.tones[0] !== 0),
+    [words]
+  )
   const { recordToneAnswer, toneStats } = useProgress()
-  const [word, setWord] = useState(pickToneQuestion)
+  const [word, setWord] = useState(() => pickToneQuestion(singleToneWords))
   const [feedback, setFeedback] = useState(null)
+
+  if (!singleToneWords.length) {
+    return <p className="text-sm text-gray-500">Cấp độ này chưa có từ đơn âm để luyện thanh điệu.</p>
+  }
 
   function playCurrent() {
     speakChinese(word.hanzi)
@@ -43,7 +49,7 @@ function ToneQuiz() {
     setFeedback({ correct, tone })
     setTimeout(() => {
       setFeedback(null)
-      setWord(pickToneQuestion())
+      setWord(pickToneQuestion(singleToneWords))
     }, 900)
   }
 
@@ -91,8 +97,8 @@ function ToneQuiz() {
   )
 }
 
-function ListenBrowse() {
-  const [items] = useState(() => shuffle(HSK1_WORDS).slice(0, 30))
+function ListenBrowse({ words }) {
+  const items = useMemo(() => shuffle(words).slice(0, 30), [words])
   return (
     <div className="space-y-2">
       {items.map((word) => (
@@ -112,8 +118,8 @@ function ListenBrowse() {
   )
 }
 
-function RecordCompare() {
-  const [word, setWord] = useState(() => HSK1_WORDS[Math.floor(Math.random() * HSK1_WORDS.length)])
+function RecordCompare({ words }) {
+  const [word, setWord] = useState(() => words[Math.floor(Math.random() * words.length)])
   const [status, setStatus] = useState('idle') // idle | recording | recorded | error
   const [audioUrl, setAudioUrl] = useState(null)
   const mediaRecorderRef = useRef(null)
@@ -144,7 +150,7 @@ function RecordCompare() {
   }
 
   function nextWord() {
-    setWord(HSK1_WORDS[Math.floor(Math.random() * HSK1_WORDS.length)])
+    setWord(words[Math.floor(Math.random() * words.length)])
     setAudioUrl(null)
     setStatus('idle')
   }
@@ -201,6 +207,8 @@ const TABS = [
 
 export default function PronunciationPage() {
   const [tab, setTab] = useState('listen')
+  const [levelId, setLevelId] = useState('hsk1')
+  const level = getLevel(levelId)
   const ttsOk = useMemo(() => isTtsSupported(), [])
 
   return (
@@ -209,6 +217,9 @@ export default function PronunciationPage() {
       {!ttsOk && (
         <p className="mb-3 text-sm text-red-500">Trình duyệt không hỗ trợ đọc giọng tiếng Trung.</p>
       )}
+
+      <LevelTabs value={levelId} onChange={setLevelId} />
+
       <div className="mb-5 flex gap-2 overflow-x-auto">
         {TABS.map((t) => (
           <button
@@ -223,9 +234,9 @@ export default function PronunciationPage() {
         ))}
       </div>
 
-      {tab === 'listen' && <ListenBrowse />}
-      {tab === 'tone' && <ToneQuiz />}
-      {tab === 'record' && <RecordCompare />}
+      {tab === 'listen' && <ListenBrowse words={level.words} key={`listen-${levelId}`} />}
+      {tab === 'tone' && <ToneQuiz words={level.words} key={`tone-${levelId}`} />}
+      {tab === 'record' && <RecordCompare words={level.words} key={`record-${levelId}`} />}
     </div>
   )
 }

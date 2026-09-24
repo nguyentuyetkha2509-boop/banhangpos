@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HSK1_WORDS, getWordById } from '../data/hsk1'
+import { ALL_WORDS, getWordById } from '../data/levels'
 import { useProgress } from '../store/ProgressContext'
 import { getDueWordIds } from '../lib/srs'
 import { speakChinese } from '../lib/tts'
@@ -15,7 +15,7 @@ const RATINGS = [
 
 export default function FlashcardsPage() {
   const { srsState, rateCard } = useProgress()
-  const allIds = useMemo(() => HSK1_WORDS.map((w) => w.id), [])
+  const allIds = useMemo(() => ALL_WORDS.map((w) => w.id), [])
   const [queue, setQueue] = useState(() => getDueWordIds(allIds, srsState, 20))
   const [reviewed, setReviewed] = useState(0)
   const [flipped, setFlipped] = useState(false)

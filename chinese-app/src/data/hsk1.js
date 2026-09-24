@@ -152,21 +152,3 @@ export const HSK1_WORDS = [
   { id: 149, hanzi: '做', pinyin: 'zuò', meaning: 'làm', tones: [4] },
   { id: 150, hanzi: '坐', pinyin: 'zuò', meaning: 'ngồi', tones: [4] }
 ]
-
-const WORDS_PER_UNIT = 10
-
-export const HSK1_UNITS = Array.from(
-  { length: Math.ceil(HSK1_WORDS.length / WORDS_PER_UNIT) },
-  (_, i) => {
-    const words = HSK1_WORDS.slice(i * WORDS_PER_UNIT, (i + 1) * WORDS_PER_UNIT)
-    return {
-      id: i + 1,
-      title: `Bài ${i + 1}`,
-      words
-    }
-  }
-)
-
-export function getWordById(id) {
-  return HSK1_WORDS.find((w) => w.id === id)
-}

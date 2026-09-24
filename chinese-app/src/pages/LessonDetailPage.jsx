@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { HSK1_UNITS, HSK1_WORDS } from '../data/hsk1'
+import { getLevel, ALL_WORDS } from '../data/levels'
 import { useProgress } from '../store/ProgressContext'
 import { speakChinese } from '../lib/tts'
 import { ArrowLeftIcon, VolumeIcon, CheckIcon } from '../components/Icons'
@@ -14,26 +14,28 @@ function shuffle(arr) {
   return a
 }
 
-function buildQuiz(unitWords) {
+function buildQuiz(unitWords, levelWords) {
   return unitWords.map((word) => {
-    const others = shuffle(HSK1_WORDS.filter((w) => w.id !== word.id)).slice(0, 3)
+    const pool = levelWords.length > 4 ? levelWords : ALL_WORDS
+    const others = shuffle(pool.filter((w) => w.id !== word.id)).slice(0, 3)
     const options = shuffle([word, ...others])
     return { word, options }
   })
 }
 
 export default function LessonDetailPage() {
-  const { unitId } = useParams()
+  const { levelId, unitId } = useParams()
   const navigate = useNavigate()
-  const unit = HSK1_UNITS.find((u) => u.id === Number(unitId))
+  const level = getLevel(levelId)
+  const unit = level?.units.find((u) => u.id === Number(unitId))
   const { markUnitComplete } = useProgress()
   const [phase, setPhase] = useState('study') // study | quiz | done
-  const quiz = useMemo(() => (unit ? buildQuiz(unit.words) : []), [unit])
+  const quiz = useMemo(() => (unit ? buildQuiz(unit.words, level.words) : []), [unit, level])
   const [quizIndex, setQuizIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [selected, setSelected] = useState(null)
 
-  if (!unit) {
+  if (!level || !unit) {
     return (
       <div className="px-4 pt-6">
         <p>Không tìm thấy bài học.</p>
@@ -54,7 +56,7 @@ export default function LessonDetailPage() {
       if (quizIndex + 1 < quiz.length) {
         setQuizIndex((i) => i + 1)
       } else {
-        markUnitComplete(unit.id)
+        markUnitComplete(`${levelId}:${unit.id}`)
         setPhase('done')
       }
     }, 700)
@@ -66,7 +68,9 @@ export default function LessonDetailPage() {
         <button onClick={() => navigate('/bai-hoc')} className="text-gray-500">
           <ArrowLeftIcon />
         </button>
-        <h1 className="text-xl text-brand-800">{unit.title}</h1>
+        <h1 className="text-xl text-brand-800">
+          {level.label} · {unit.title}
+        </h1>
       </div>
 
       {phase === 'study' && (

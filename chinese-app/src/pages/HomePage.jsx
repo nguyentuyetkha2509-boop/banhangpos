@@ -1,15 +1,16 @@
 import { Link } from 'react-router-dom'
-import { HSK1_WORDS, HSK1_UNITS } from '../data/hsk1'
+import { LEVELS, ALL_WORDS } from '../data/levels'
 import { useProgress } from '../store/ProgressContext'
 import { getCardStats, getDueWordIds } from '../lib/srs'
 import { FireIcon, BookIcon, CardsIcon, MicIcon, PencilIcon } from '../components/Icons'
 
 export default function HomePage() {
   const { srsState, completedUnits, streak, toneStats } = useProgress()
-  const allIds = HSK1_WORDS.map((w) => w.id)
+  const allIds = ALL_WORDS.map((w) => w.id)
   const stats = getCardStats(allIds, srsState)
   const dueCount = getDueWordIds(allIds, srsState, 999).length
   const toneAccuracy = toneStats.total ? Math.round((toneStats.correct / toneStats.total) * 100) : null
+  const totalUnits = LEVELS.reduce((sum, l) => sum + l.units.length, 0)
   const unitsDone = completedUnits.length
 
   return (
@@ -26,18 +27,38 @@ export default function HomePage() {
       </header>
 
       <section className="mb-5 rounded-2xl bg-white p-4 shadow-sm">
-        <p className="text-xs text-gray-500">Tiến độ từ vựng HSK1</p>
+        <p className="text-xs text-gray-500">Tiến độ từ vựng HSK1-3</p>
         <div className="mt-1 flex items-end justify-between">
           <p className="text-xl text-brand-700">
             {stats.learned}/{stats.total} từ
           </p>
-          <p className="text-sm text-gray-500">{unitsDone}/{HSK1_UNITS.length} bài hoàn thành</p>
+          <p className="text-sm text-gray-500">{unitsDone}/{totalUnits} bài hoàn thành</p>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-brand-50">
           <div
             className="h-full rounded-full bg-brand-500"
             style={{ width: `${Math.min(100, (stats.learned / stats.total) * 100)}%` }}
           />
+        </div>
+
+        <div className="mt-4 space-y-2 border-t border-gray-100 pt-3">
+          {LEVELS.map((level) => {
+            const levelIds = level.words.map((w) => w.id)
+            const levelStats = getCardStats(levelIds, srsState)
+            const levelUnitsDone = level.units.filter((u) => completedUnits.includes(`${level.id}:${u.id}`)).length
+            return (
+              <Link
+                key={level.id}
+                to="/bai-hoc"
+                className="flex items-center justify-between text-sm text-gray-600"
+              >
+                <span className="font-semibold text-gray-700">{level.label}</span>
+                <span>
+                  {levelStats.learned}/{levelStats.total} từ · {levelUnitsDone}/{level.units.length} bài
+                </span>
+              </Link>
+            )
+          })}
         </div>
       </section>
 
@@ -50,7 +71,7 @@ export default function HomePage() {
         <Link to="/bai-hoc" className="rounded-2xl bg-white p-4 shadow-sm">
           <BookIcon width={22} height={22} className="text-brand-700" />
           <p className="mt-2 text-lg text-gray-800">Bài học</p>
-          <p className="text-xs text-gray-500">{HSK1_UNITS.length} bài HSK1</p>
+          <p className="text-xs text-gray-500">HSK1 · HSK2 · HSK3</p>
         </Link>
         <Link to="/phat-am" className="rounded-2xl bg-white p-4 shadow-sm">
           <MicIcon width={22} height={22} className="text-brand-700" />

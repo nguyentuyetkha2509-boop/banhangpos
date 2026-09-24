@@ -13,7 +13,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/bai-hoc" element={<LessonsPage />} />
-        <Route path="/bai-hoc/:unitId" element={<LessonDetailPage />} />
+        <Route path="/bai-hoc/:levelId/:unitId" element={<LessonDetailPage />} />
         <Route path="/on-tap" element={<FlashcardsPage />} />
         <Route path="/phat-am" element={<PronunciationPage />} />
         <Route path="/viet-chu" element={<WritingPage />} />
