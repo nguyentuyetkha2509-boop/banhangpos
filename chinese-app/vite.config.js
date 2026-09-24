@@ -2,7 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const BASE_PATH = '/hoc-tieng-trung/'
+// App POS (repo goc) da chiem GitHub Pages tai /banhangpos/, nen app nay deploy
+// long ghep vao duong dan con: https://<user>.github.io/banhangpos/hoc-tieng-trung/
+const BASE_PATH = process.env.VITE_BASE_PATH || '/banhangpos/hoc-tieng-trung/'
 
 export default defineConfig({
   base: BASE_PATH,

@@ -23,8 +23,23 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run build
+
+      - name: Build app ban hang (POS)
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build app hoc tieng Trung
+        working-directory: chinese-app
+        run: |
+          npm ci
+          npm run build
+
+      - name: Ghep 2 app vao chung mot lan deploy
+        run: |
+          mkdir -p dist/hoc-tieng-trung
+          cp -r chinese-app/dist/. dist/hoc-tieng-trung/
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
