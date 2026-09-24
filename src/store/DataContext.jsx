@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { doc, onSnapshot, setDoc } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDocs,
+  limit,
+  onSnapshot,
+  query,
+  setDoc,
+  updateDoc,
+  writeBatch
+} from 'firebase/firestore'
 import { db, OWNER_EMAIL } from '../lib/firebase'
 import { useAuth } from './AuthContext'
 import { loadData, saveData, makeId } from '../lib/storage'
+import { DATA_COLLECTIONS, emptyLegacyArrays, hasLegacyArrays, sortRecords } from '../lib/shopData'
 
 const DEFAULT_PRODUCTS = [
   { id: makeId(), name: 'Coca Cola lon', price: 12000, costPrice: 0, stock: 48, category: 'Nước giải khát', barcode: '8934588123451' },
@@ -14,18 +25,31 @@ const DEFAULT_PRODUCTS = [
 
 const DEFAULT_SETTINGS = { shopName: 'Bán Hàng POS', shopAddress: '' }
 
+// Firestore gioi han 500 thao tac/batch
+const BATCH_LIMIT = 400
+
 const DataContext = createContext(null)
 
+// Luu tru co 2 che do:
+// - 'v2': moi ban ghi (san pham, hoa don...) la 1 document rieng trong subcollection
+//   shops/{uid}/{ten}, tranh gioi han 1MB/document cua Firestore va chi ghi phan thay doi.
+// - 'legacy': toan bo du lieu nam trong mang cua document shops/{uid} (cach cu). Chi dung
+//   khi Firestore rules chua cho phep subcollection, de app khong bi hong.
 export function DataProvider({ children }) {
   const { user } = useAuth()
   const uid = user.uid
   const docRef = useMemo(() => doc(db, 'shops', uid), [uid])
   const lastRemoteRef = useRef({})
+  const modeRef = useRef(null)
+  const migratingRef = useRef(false)
+  const lastSyncedRef = useRef({})
 
   const [ready, setReady] = useState(false)
   const [approved, setApproved] = useState(true)
   const [syncError, setSyncError] = useState(null)
-  const [products, setProducts] = useState(DEFAULT_PRODUCTS)
+  const [storageMode, setStorageMode] = useState(null)
+  const [loadedCollections, setLoadedCollections] = useState({})
+  const [products, setProducts] = useState([])
   const [orders, setOrders] = useState([])
   const [stockMovements, setStockMovements] = useState([])
   const [returns, setReturns] = useState([])
@@ -35,93 +59,218 @@ export function DataProvider({ children }) {
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [printOrder, setPrintOrder] = useState(null)
 
+  const records = { products, orders, stockMovements, returns, shrinkages, debtPayments }
+  const settersRef = useRef({})
+  settersRef.current = {
+    products: setProducts,
+    orders: setOrders,
+    stockMovements: setStockMovements,
+    returns: setReturns,
+    shrinkages: setShrinkages,
+    debtPayments: setDebtPayments
+  }
+
   useEffect(() => {
+    let active = true
     setReady(false)
     setSyncError(null)
+    setStorageMode(null)
+    setLoadedCollections({})
+    modeRef.current = null
+    migratingRef.current = false
+    lastSyncedRef.current = {}
+
+    function switchMode(mode) {
+      modeRef.current = mode
+      setStorageMode(mode)
+    }
+
+    function applyLegacy(data) {
+      setProducts(data.products ?? DEFAULT_PRODUCTS)
+      setOrders(data.orders ?? [])
+      setStockMovements(data.stockMovements ?? [])
+      setReturns(data.returns ?? [])
+      setShrinkages(data.shrinkages ?? [])
+      setDebtPayments(data.debtPayments ?? [])
+      setReady(true)
+    }
+
+    async function canUseSubcollections() {
+      try {
+        await getDocs(query(collection(docRef, 'products'), limit(1)))
+        return true
+      } catch {
+        return false
+      }
+    }
+
+    async function migrateLegacy(data) {
+      const ops = []
+      DATA_COLLECTIONS.forEach((name) => {
+        if (!Array.isArray(data[name])) return
+        data[name].forEach((item, idx) => {
+          if (!item) return
+          const id = item.id || makeId()
+          const payload = { ...item, id }
+          if (name === 'products' && payload.position == null) payload.position = idx
+          ops.push([name, id, payload])
+        })
+      })
+      for (let i = 0; i < ops.length; i += BATCH_LIMIT) {
+        const batch = writeBatch(db)
+        ops.slice(i, i + BATCH_LIMIT).forEach(([name, id, payload]) => batch.set(doc(docRef, name, id), payload))
+        await batch.commit()
+      }
+      // Chi don mang cu sau khi da ghi xong toan bo sang subcollection
+      await updateDoc(docRef, { storageVersion: 2, ...emptyLegacyArrays() })
+    }
+
     const unsub = onSnapshot(
       docRef,
       async (snap) => {
-        if (snap.exists()) {
-          const data = snap.data()
-          lastRemoteRef.current = data
-          setProducts(data.products ?? DEFAULT_PRODUCTS)
-          setOrders(data.orders ?? [])
-          setStockMovements(data.stockMovements ?? [])
-          setReturns(data.returns ?? [])
-          setShrinkages(data.shrinkages ?? [])
-          setDebtPayments(data.debtPayments ?? [])
-          setSettings(data.settings ?? DEFAULT_SETTINGS)
-          setApproved(data.approved !== false)
-          setReady(true)
-        } else {
-          // Tai khoan moi: dua vao du lieu san co trong may (neu co, tu ban truoc khi
-          // dung tai khoan dam may) thay vi xoa mat, khong thi dung mac dinh
-          const initial = {
-            products: loadData('products', DEFAULT_PRODUCTS),
-            orders: loadData('orders', []),
-            stockMovements: loadData('stockMovements', []),
-            returns: loadData('returns', []),
-            shrinkages: loadData('shrinkages', []),
-            debtPayments: loadData('debtPayments', []),
+        if (!active) return
+
+        if (!snap.exists()) {
+          if (modeRef.current) return
+          const base = {
             settings: loadData('settings', DEFAULT_SETTINGS),
             approved: user.email === OWNER_EMAIL,
             accountEmail: user.email
           }
-          lastRemoteRef.current = initial
-          setProducts(initial.products)
-          setOrders(initial.orders)
-          setStockMovements(initial.stockMovements)
-          setReturns(initial.returns)
-          setShrinkages(initial.shrinkages)
-          setDebtPayments(initial.debtPayments)
-          setSettings(initial.settings)
-          setApproved(initial.approved)
-          setReady(true)
-          try {
-            await setDoc(docRef, initial)
-          } catch (err) {
-            setSyncError(err.message)
+          const v2 = await canUseSubcollections()
+          if (!active) return
+          setSettings(base.settings)
+          setApproved(base.approved)
+          if (v2) {
+            lastRemoteRef.current = base
+            switchMode('v2')
+            try {
+              await setDoc(docRef, { ...base, storageVersion: 2, ...emptyLegacyArrays() })
+            } catch (err) {
+              setSyncError(err.message)
+            }
+          } else {
+            const initial = { ...base, products: DEFAULT_PRODUCTS, orders: [], stockMovements: [], returns: [], shrinkages: [], debtPayments: [] }
+            lastRemoteRef.current = initial
+            switchMode('legacy')
+            applyLegacy(initial)
+            try {
+              await setDoc(docRef, initial)
+            } catch (err) {
+              setSyncError(err.message)
+            }
+          }
+          return
+        }
+
+        const data = snap.data()
+        lastRemoteRef.current = data
+        setSettings(data.settings ?? DEFAULT_SETTINGS)
+        setApproved(data.approved !== false)
+
+        if (modeRef.current === 'legacy') {
+          applyLegacy(data)
+          return
+        }
+
+        if (hasLegacyArrays(data)) {
+          if (migratingRef.current) return
+          migratingRef.current = true
+          const v2 = modeRef.current === 'v2' || (await canUseSubcollections())
+          let migrated = false
+          if (v2 && active) {
+            try {
+              await migrateLegacy(data)
+              migrated = true
+            } catch {
+              migrated = false
+            }
+          }
+          migratingRef.current = false
+          if (!active) return
+          if (!migrated && modeRef.current !== 'v2') {
+            switchMode('legacy')
+            applyLegacy(data)
+            return
           }
         }
+
+        if (modeRef.current !== 'v2') switchMode('v2')
       },
-      (err) => {
-        setSyncError(err.message)
-      }
+      (err) => setSyncError(err.message)
     )
-    return unsub
+    return () => {
+      active = false
+      unsub()
+    }
   }, [docRef])
+
+  useEffect(() => {
+    if (storageMode !== 'v2') return
+    const unsubs = DATA_COLLECTIONS.map((name) =>
+      onSnapshot(
+        collection(docRef, name),
+        (snap) => {
+          const list = sortRecords(
+            name,
+            snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+          )
+          lastSyncedRef.current[name] = list
+          settersRef.current[name](list)
+          setLoadedCollections((prev) => (prev[name] ? prev : { ...prev, [name]: true }))
+        },
+        (err) => setSyncError(err.message)
+      )
+    )
+    return () => unsubs.forEach((unsub) => unsub())
+  }, [storageMode, docRef])
+
+  useEffect(() => {
+    if (storageMode === 'v2' && DATA_COLLECTIONS.every((name) => loadedCollections[name])) setReady(true)
+  }, [storageMode, loadedCollections])
+
+  // Che do v2: so sanh voi lan dong bo truoc, chi ghi cac ban ghi them/sua/xoa
+  useEffect(() => {
+    if (storageMode !== 'v2') return
+    DATA_COLLECTIONS.forEach((name) => {
+      if (!loadedCollections[name]) return
+      const next = records[name]
+      const prev = lastSyncedRef.current[name] || []
+      if (next === prev) return
+      lastSyncedRef.current[name] = next
+      const prevById = new Map(prev.map((r) => [r.id, r]))
+      const nextIds = new Set()
+      const ops = []
+      next.forEach((r) => {
+        nextIds.add(r.id)
+        if (prevById.get(r.id) !== r) ops.push(['set', r])
+      })
+      prev.forEach((r) => {
+        if (!nextIds.has(r.id)) ops.push(['delete', r])
+      })
+      for (let i = 0; i < ops.length; i += BATCH_LIMIT) {
+        const batch = writeBatch(db)
+        ops.slice(i, i + BATCH_LIMIT).forEach(([op, r]) => {
+          const ref = doc(docRef, name, r.id)
+          if (op === 'set') batch.set(ref, r)
+          else batch.delete(ref)
+        })
+        batch.commit().catch((err) => setSyncError(err.message))
+      }
+    })
+  }, [storageMode, loadedCollections, products, orders, stockMovements, returns, shrinkages, debtPayments, docRef])
 
   useEffect(() => saveData('cart', cart), [cart])
 
+  // Che do legacy: ghi ca mang vao document chinh nhu truoc day
   useEffect(() => {
-    if (!ready || products === lastRemoteRef.current.products) return
-    setDoc(docRef, { products }, { merge: true })
-  }, [ready, products, docRef])
-
-  useEffect(() => {
-    if (!ready || orders === lastRemoteRef.current.orders) return
-    setDoc(docRef, { orders }, { merge: true })
-  }, [ready, orders, docRef])
-
-  useEffect(() => {
-    if (!ready || stockMovements === lastRemoteRef.current.stockMovements) return
-    setDoc(docRef, { stockMovements }, { merge: true })
-  }, [ready, stockMovements, docRef])
-
-  useEffect(() => {
-    if (!ready || returns === lastRemoteRef.current.returns) return
-    setDoc(docRef, { returns }, { merge: true })
-  }, [ready, returns, docRef])
-
-  useEffect(() => {
-    if (!ready || shrinkages === lastRemoteRef.current.shrinkages) return
-    setDoc(docRef, { shrinkages }, { merge: true })
-  }, [ready, shrinkages, docRef])
-
-  useEffect(() => {
-    if (!ready || debtPayments === lastRemoteRef.current.debtPayments) return
-    setDoc(docRef, { debtPayments }, { merge: true })
-  }, [ready, debtPayments, docRef])
+    if (storageMode !== 'legacy' || !ready) return
+    const patch = {}
+    DATA_COLLECTIONS.forEach((name) => {
+      if (records[name] !== lastRemoteRef.current[name]) patch[name] = records[name]
+    })
+    if (Object.keys(patch).length > 0) setDoc(docRef, patch, { merge: true })
+  }, [storageMode, ready, products, orders, stockMovements, returns, shrinkages, debtPayments, docRef])
 
   useEffect(() => {
     if (!ready || settings === lastRemoteRef.current.settings) return
@@ -141,7 +290,7 @@ export function DataProvider({ children }) {
   }
 
   function addProduct(product) {
-    setProducts((prev) => [...prev, { ...product, id: makeId() }])
+    setProducts((prev) => [...prev, { ...product, id: makeId(), position: Date.now() }])
   }
 
   function updateProduct(id, patch) {

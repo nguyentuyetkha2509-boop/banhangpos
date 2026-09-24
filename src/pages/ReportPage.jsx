@@ -27,6 +27,8 @@ export default function ReportPage() {
     return t >= rangeStart.getTime() && t <= rangeEnd.getTime()
   }
 
+  const promoIds = useMemo(() => new Set(products.filter((p) => p.isPromotion).map((p) => p.id)), [products])
+
   const activeOrders = useMemo(() => orders.filter((o) => !o.cancelled), [orders])
   const periodOrders = useMemo(() => activeOrders.filter((o) => inRange(o.createdAt)), [activeOrders, rangeStart, rangeEnd])
   const periodReturns = useMemo(() => returns.filter((r) => inRange(r.createdAt)), [returns, rangeStart, rangeEnd])
@@ -89,14 +91,14 @@ export default function ReportPage() {
       o.items.forEach((item) => {
         const cur =
           map.get(item.productId) ||
-          { name: item.name, isPromotion: Boolean(products.find((p) => p.id === item.productId)?.isPromotion), qty: 0, revenue: 0 }
+          { name: item.name, isPromotion: promoIds.has(item.productId), qty: 0, revenue: 0 }
         cur.qty += item.qty
         cur.revenue += item.qty * item.price
         map.set(item.productId, cur)
       })
     })
     return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue)
-  }, [periodOrders, products])
+  }, [periodOrders, promoIds])
 
   const returnByCustomer = useMemo(() => {
     const map = new Map()
@@ -160,7 +162,7 @@ export default function ReportPage() {
       o.items.forEach((item) => {
         const cur =
           prodMap.get(item.productId) ||
-          { name: item.name, isPromotion: Boolean(products.find((p) => p.id === item.productId)?.isPromotion), qty: 0, revenue: 0 }
+          { name: item.name, isPromotion: promoIds.has(item.productId), qty: 0, revenue: 0 }
         cur.qty += item.qty
         cur.revenue += item.qty * item.price
         prodMap.set(item.productId, cur)
@@ -172,13 +174,13 @@ export default function ReportPage() {
       retProdMap.forEach((ret, productId) => {
         const cur =
           prodMap.get(productId) ||
-          { name: ret.name, isPromotion: Boolean(products.find((p) => p.id === productId)?.isPromotion), qty: 0, revenue: 0 }
+          { name: ret.name, isPromotion: promoIds.has(productId), qty: 0, revenue: 0 }
         prodMap.set(productId, cur)
       })
       map.set(key, prodMap)
     })
     return map
-  }, [periodOrders, returnProductByCustomer, products])
+  }, [periodOrders, returnProductByCustomer, promoIds])
 
   const customerProductRows = useMemo(() => {
     const rows = []
@@ -512,7 +514,7 @@ export default function ReportPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">
                     {r.productName}
-                    {products.find((p) => p.id === r.productId)?.isPromotion ? ' · Khuyến mãi' : ''}
+                    {promoIds.has(r.productId) ? ' · Khuyến mãi' : ''}
                   </p>
                   <p className="text-xs text-slate-400">
                     {new Date(r.createdAt).toLocaleString('vi-VN')} · {r.customerName}
@@ -540,7 +542,7 @@ export default function ReportPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-slate-800 truncate">
                     {s.productName}
-                    {products.find((p) => p.id === s.productId)?.isPromotion ? ' · Khuyến mãi' : ''}
+                    {promoIds.has(s.productId) ? ' · Khuyến mãi' : ''}
                   </p>
                   <p className="text-xs text-slate-400">
                     {new Date(s.createdAt).toLocaleString('vi-VN')} · {s.reason}

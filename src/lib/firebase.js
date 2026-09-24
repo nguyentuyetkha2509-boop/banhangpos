@@ -16,5 +16,6 @@ export const OWNER_EMAIL = 'nguyentuyetkha2509@gmail.com'
 export const firebaseApp = initializeApp(firebaseConfig)
 export const auth = getAuth(firebaseApp)
 export const db = initializeFirestore(firebaseApp, {
+  ignoreUndefinedProperties: true,
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
 })

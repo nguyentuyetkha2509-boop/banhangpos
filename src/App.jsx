@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider, useAuth } from './store/AuthContext'
 import { DataProvider, useData } from './store/DataContext'
@@ -6,11 +6,12 @@ import AuthGate from './components/AuthGate'
 import BottomNav from './components/BottomNav'
 import ReceiptModal from './components/ReceiptModal'
 import SalesPage from './pages/SalesPage'
-import ProductsPage from './pages/ProductsPage'
-import OrdersPage from './pages/OrdersPage'
-import ReportPage from './pages/ReportPage'
-import DebtPage from './pages/DebtPage'
 import { ClockIcon } from './components/Icons'
+
+const ProductsPage = lazy(() => import('./pages/ProductsPage'))
+const OrdersPage = lazy(() => import('./pages/OrdersPage'))
+const ReportPage = lazy(() => import('./pages/ReportPage'))
+const DebtPage = lazy(() => import('./pages/DebtPage'))
 
 function AppShell() {
   const { ready, approved, syncError, printOrder, settings, closePrint } = useData()
@@ -89,13 +90,15 @@ function AppShell() {
     <div className="app-shell-root min-h-screen flex flex-col bg-canvas">
       <div className="app-main-content flex flex-col flex-1">
         <main className="flex-1 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))]">
-          <Routes>
-            <Route path="/" element={<SalesPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/report" element={<ReportPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/debts" element={<DebtPage />} />
-          </Routes>
+          <Suspense fallback={<p className="text-center text-sm text-slate-400 py-10">Đang tải...</p>}>
+            <Routes>
+              <Route path="/" element={<SalesPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/report" element={<ReportPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/debts" element={<DebtPage />} />
+            </Routes>
+          </Suspense>
         </main>
         <BottomNav />
       </div>

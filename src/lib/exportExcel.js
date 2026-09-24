@@ -25,6 +25,11 @@ function customerKeyOf(name) {
   return (name || '').trim() || 'Khách lẻ'
 }
 
+function makePromoLabeler(products) {
+  const promoIds = new Set((products || []).filter((p) => p.isPromotion).map((p) => p.id))
+  return (name, productId) => `${name}${promoIds.has(productId) ? ' (Khuyến mãi)' : ''}`
+}
+
 export function exportDataToExcel({ products, orders, stockMovements, returns, shrinkages, debtPayments, settings }) {
   const wb = XLSX.utils.book_new()
   const shopName = settings?.shopName || 'BanHang POS'
@@ -33,6 +38,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
     ['Cửa hàng:', shopName],
     ['Ngày xuất:', now]
   ]
+  const labelOf = makePromoLabeler(products)
 
   const wsProducts = buildStyledSheet({
     title: 'Danh sách sản phẩm',
@@ -74,7 +80,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
       orderItemRows.push([
         `#${o.id.slice(-6).toUpperCase()}`,
         formatDateTimeForSheet(o.createdAt),
-        `${item.name}${products.find((p) => p.id === item.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+        labelOf(item.name, item.productId),
         item.qty,
         item.price,
         item.qty * item.price
@@ -96,7 +102,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
     headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng nhập', 'Giá nhập (VND)', 'Giá bán từ lô này (VND)', 'Ghi chú'],
     rows: stockMovements.map((m) => [
       formatDateTimeForSheet(m.createdAt),
-      `${m.productName}${products.find((p) => p.id === m.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      labelOf(m.productName, m.productId),
       m.qty,
       m.costPrice || 0,
       m.sellPrice || 0,
@@ -112,7 +118,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
     headers: ['Thời gian', 'Tên sản phẩm', 'Khách hàng', 'Số lượng trả', 'Giá trị hoàn (VND)', 'Ghi chú'],
     rows: (returns || []).map((r) => [
       formatDateTimeForSheet(r.createdAt),
-      `${r.productName}${products.find((p) => p.id === r.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      labelOf(r.productName, r.productId),
       r.customerName,
       r.qty,
       r.refundAmount,
@@ -128,7 +134,7 @@ export function exportDataToExcel({ products, orders, stockMovements, returns, s
     headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng', 'Lý do', 'Giá trị thiệt hại (VND)', 'Ghi chú'],
     rows: (shrinkages || []).map((s) => [
       formatDateTimeForSheet(s.createdAt),
-      `${s.productName}${products.find((p) => p.id === s.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      labelOf(s.productName, s.productId),
       s.qty,
       s.reason || '',
       s.value || 0,
@@ -214,6 +220,7 @@ export function exportReportToExcel({
     ['Cửa hàng:', shopName],
     ['Kỳ báo cáo:', `${periodLabel} - ${rangeLabel}`]
   ]
+  const labelOf = makePromoLabeler(products)
 
   const wsOverview = buildStyledSheet({
     title: 'Tổng quan báo cáo',
@@ -309,7 +316,7 @@ export function exportReportToExcel({
     headers: ['Thời gian', 'Tên sản phẩm', 'Khách hàng', 'Số lượng trả', 'Giá trị hoàn (VND)', 'Ghi chú'],
     rows: (periodReturns || []).map((r) => [
       formatDateTimeForSheet(r.createdAt),
-      `${r.productName}${(products || []).find((p) => p.id === r.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      labelOf(r.productName, r.productId),
       r.customerName,
       r.qty,
       r.refundAmount,
@@ -325,7 +332,7 @@ export function exportReportToExcel({
     headers: ['Thời gian', 'Tên sản phẩm', 'Số lượng', 'Lý do', 'Giá trị thiệt hại (VND)', 'Ghi chú'],
     rows: (periodShrinkages || []).map((s) => [
       formatDateTimeForSheet(s.createdAt),
-      `${s.productName}${(products || []).find((p) => p.id === s.productId)?.isPromotion ? ' (Khuyến mãi)' : ''}`,
+      labelOf(s.productName, s.productId),
       s.qty,
       s.reason || '',
       s.value || 0,

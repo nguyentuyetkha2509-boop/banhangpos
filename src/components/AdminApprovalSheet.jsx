@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { formatVND } from '../lib/storage'
+import { fetchShopRecords, hasLegacyArrays } from '../lib/shopData'
 import { ExportIcon } from './Icons'
 
 function formatDateTime(iso) {
@@ -14,6 +15,7 @@ export default function AdminApprovalSheet({ open, onClose }) {
   const [approvingId, setApprovingId] = useState(null)
   const [expandedId, setExpandedId] = useState(null)
   const [exportingId, setExportingId] = useState(null)
+  const [recordsById, setRecordsById] = useState({})
 
   useEffect(() => {
     if (!open) return
@@ -50,19 +52,27 @@ export default function AdminApprovalSheet({ open, onClose }) {
     }
   }
 
+  async function loadRecords(acc) {
+    if (recordsById[acc.id]) return recordsById[acc.id]
+    const data = await fetchShopRecords(acc.id, acc)
+    setRecordsById((prev) => ({ ...prev, [acc.id]: data }))
+    return data
+  }
+
+  function handleToggle(acc) {
+    const next = expandedId === acc.id ? null : acc.id
+    setExpandedId(next)
+    if (next && acc.approved !== false && !hasLegacyArrays(acc)) loadRecords(acc).catch(() => {})
+  }
+
   async function handleExport(acc) {
     setExportingId(acc.id)
     try {
+      const data = hasLegacyArrays(acc) ? await fetchShopRecords(acc.id, acc) : await loadRecords(acc)
       const { exportDataToExcel } = await import('../lib/exportExcel')
-      exportDataToExcel({
-        products: acc.products || [],
-        orders: acc.orders || [],
-        stockMovements: acc.stockMovements || [],
-        returns: acc.returns || [],
-        shrinkages: acc.shrinkages || [],
-        debtPayments: acc.debtPayments || [],
-        settings: acc.settings || {}
-      })
+      exportDataToExcel({ ...data, settings: acc.settings || {} })
+    } catch {
+      alert('Không tải được dữ liệu tài khoản này, kiểm tra lại kết nối mạng và thử lại.')
     } finally {
       setExportingId(null)
     }
@@ -87,13 +97,14 @@ export default function AdminApprovalSheet({ open, onClose }) {
           {sorted.map((acc) => {
             const isPending = acc.approved === false
             const isExpanded = expandedId === acc.id
-            const orders = (acc.orders || []).filter((o) => !o.cancelled)
+            const accRecords = hasLegacyArrays(acc) ? acc : recordsById[acc.id]
+            const orders = (accRecords?.orders || []).filter((o) => !o.cancelled)
             const revenue = orders.reduce((sum, o) => sum + o.total, 0)
             const lastOrder = orders[0]
             return (
               <li key={acc.id} className="bg-slate-50 rounded-lg overflow-hidden">
                 <button
-                  onClick={() => setExpandedId(isExpanded ? null : acc.id)}
+                  onClick={() => handleToggle(acc)}
                   className="w-full flex items-center justify-between px-3 py-2.5"
                 >
                   <span className="text-sm text-slate-700 truncate mr-2 text-left">
@@ -125,8 +136,8 @@ export default function AdminApprovalSheet({ open, onClose }) {
                       Cửa hàng: <span className="font-medium text-slate-800">{acc.settings?.shopName || '—'}</span>
                     </p>
                     <p className="text-slate-500 mb-1">
-                      Sản phẩm: <span className="font-medium text-slate-800">{(acc.products || []).length}</span> · Hóa đơn:{' '}
-                      <span className="font-medium text-slate-800">{orders.length}</span>
+                      Sản phẩm: <span className="font-medium text-slate-800">{accRecords ? (accRecords.products || []).length : '…'}</span> · Hóa đơn:{' '}
+                      <span className="font-medium text-slate-800">{accRecords ? orders.length : '…'}</span>
                     </p>
                     <p className="text-slate-500 mb-1">
                       Doanh thu (chưa trừ trả hàng): <span className="font-medium text-slate-800">{formatVND(revenue)}</span>
