@@ -47,6 +47,20 @@ body {
     overflow: visible !important;
     height: auto !important;
   }
+  .delivery-print-wrapper {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    height: auto !important;
+  }
+  .delivery-print-scroll {
+    flex: none !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  .delivery-print-area {
+    zoom: 1 !important;
+  }
   .barcode-label {
     break-inside: avoid;
   }

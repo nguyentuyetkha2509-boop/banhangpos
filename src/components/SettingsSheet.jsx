@@ -12,6 +12,8 @@ export default function SettingsSheet({ open, onClose }) {
   const { user, signOut } = useAuth()
   const [shopName, setShopName] = useState('')
   const [shopAddress, setShopAddress] = useState('')
+  const [shopPhone, setShopPhone] = useState('')
+  const [bankInfo, setBankInfo] = useState('')
   const [exporting, setExporting] = useState(false)
   const [approvalOpen, setApprovalOpen] = useState(false)
   const isOwner = user.email === OWNER_EMAIL
@@ -21,8 +23,10 @@ export default function SettingsSheet({ open, onClose }) {
     if (open) {
       setShopName(settings.shopName || '')
       setShopAddress(settings.shopAddress || '')
+      setShopPhone(settings.shopPhone || '')
+      setBankInfo(settings.bankInfo || '')
     }
-  }, [open, settings.shopName, settings.shopAddress])
+  }, [open, settings.shopName, settings.shopAddress, settings.shopPhone, settings.bankInfo])
 
   if (!open) return null
 
@@ -30,7 +34,12 @@ export default function SettingsSheet({ open, onClose }) {
     e.preventDefault()
     const trimmedName = shopName.trim()
     if (!trimmedName) return
-    updateSettings({ shopName: trimmedName, shopAddress: shopAddress.trim() })
+    updateSettings({
+      shopName: trimmedName,
+      shopAddress: shopAddress.trim(),
+      shopPhone: shopPhone.trim(),
+      bankInfo: bankInfo.trim()
+    })
     onClose()
   }
 
@@ -66,7 +75,7 @@ export default function SettingsSheet({ open, onClose }) {
     <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/40" onClick={onClose}>
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white rounded-t-2xl p-4"
+        className="w-full max-w-md max-h-[88vh] overflow-y-auto bg-white rounded-t-2xl p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="font-bold text-slate-800 mb-3">Cài đặt cửa hàng</h2>
@@ -89,6 +98,24 @@ export default function SettingsSheet({ open, onClose }) {
           placeholder="VD: 123 Lê Lợi, Q.1, TP.HCM"
         />
         <p className="text-xs text-slate-400 mb-4">Địa chỉ sẽ hiện dưới tên cửa hàng trên hóa đơn</p>
+
+        <label className="block text-xs font-medium text-slate-500 mb-1">Số điện thoại (tùy chọn)</label>
+        <input
+          value={shopPhone}
+          onChange={(e) => setShopPhone(e.target.value)}
+          inputMode="tel"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          placeholder="VD: 0969211192"
+        />
+
+        <label className="block text-xs font-medium text-slate-500 mb-1">Tài khoản ngân hàng (tùy chọn)</label>
+        <input
+          value={bankInfo}
+          onChange={(e) => setBankInfo(e.target.value)}
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm mb-1 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          placeholder="VD: Vietcombank - 1057798999 - Nguyễn Văn A"
+        />
+        <p className="text-xs text-slate-400 mb-4">Số điện thoại và tài khoản sẽ hiện trên biên bản giao nhận hàng</p>
 
         <div className="border-t border-slate-100 pt-3 mb-4">
           <p className="text-xs font-medium text-slate-500 mb-1">Sao lưu dữ liệu</p>

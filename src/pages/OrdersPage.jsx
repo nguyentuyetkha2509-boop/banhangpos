@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ReturnSheet from '../components/ReturnSheet'
-import { PrintIcon, ReturnIcon } from '../components/Icons'
+import DeliveryNoteModal from '../components/DeliveryNoteModal'
+import { PrintIcon, ReceiptIcon, ReturnIcon } from '../components/Icons'
 
 const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
 
@@ -12,9 +13,10 @@ function formatTime(iso) {
 }
 
 export default function OrdersPage() {
-  const { orders, returns, requestPrint, cancelOrder } = useData()
+  const { orders, returns, settings, requestPrint, cancelOrder } = useData()
   const [openId, setOpenId] = useState(null)
   const [returnOrder, setReturnOrder] = useState(null)
+  const [deliveryOrder, setDeliveryOrder] = useState(null)
   const [query, setQuery] = useState('')
 
   const todayTotal = orders
@@ -132,6 +134,17 @@ export default function OrdersPage() {
                       </button>
                     </div>
                   )}
+                  {!o.cancelled && (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => setDeliveryOrder(o)}
+                        className="w-full flex items-center justify-center gap-1.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg py-2.5 active:scale-[0.98] transition"
+                      >
+                        <ReceiptIcon className="h-5 w-5" />
+                        Biên bản giao nhận hàng
+                      </button>
+                    </div>
+                  )}
                   {!o.cancelled && !hasReturns && (
                     <div className="pt-2">
                       <button
@@ -150,6 +163,9 @@ export default function OrdersPage() {
       </div>
 
       <ReturnSheet open={Boolean(returnOrder)} onClose={() => setReturnOrder(null)} order={returnOrder} />
+      {deliveryOrder && (
+        <DeliveryNoteModal order={deliveryOrder} settings={settings} onClose={() => setDeliveryOrder(null)} />
+      )}
     </div>
   )
 }
