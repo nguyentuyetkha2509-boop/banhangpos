@@ -30,7 +30,7 @@ export function columnLetter(index) {
 const FIELD_RULES = {
   name: (h) => /(^| )(ten hang|ten san pham|ten sp|san pham|ten hang hoa|hang hoa)( |$)/.test(h) && !/tang|loai/.test(h),
   code: (h) => /(^| )(ma hang|ma san pham|ma sp|ma vt|sku)( |$)/.test(h),
-  qty: (h) => /(^| )(so luong|sl)( |$)/.test(h) && !/tang|giao|km|khuyen/.test(h),
+  qty: (h) => /(^| )(so luong|sl)( |$)/.test(h) && !/tang|giao|km|khuyen|con lai|ton/.test(h),
   gift: (h) => /(^| )(so luong|sl)( |$)/.test(h) && /tang|khuyen mai/.test(h),
   unitCost: (h) => /(gia nhap|gia von|gia npp|don gia|gia mua)/.test(h) && !/vat/.test(h),
   lineTotal: (h) => /thanh tien|tong tien/.test(h) && !/vat/.test(h),
@@ -48,8 +48,8 @@ export function detectHeaderRow(rows) {
 }
 
 function firstMatch(headers, rule, preferExact) {
-  if (preferExact) {
-    const exact = headers.findIndex((h) => h === preferExact)
+  for (const text of [].concat(preferExact || [])) {
+    const exact = headers.findIndex((h) => h === text || h === `${text} vnd`)
     if (exact >= 0) return exact
   }
   return headers.findIndex((h) => h && rule(h))
@@ -61,14 +61,14 @@ export function detectColumns(headerRow) {
     const i = firstMatch(headers, FIELD_RULES[field], exact)
     return i >= 0 ? i : null
   }
-  const unitCost = find('unitCost')
+  const unitCost = find('unitCost', 'gia nhap lan nay')
   const lineTotal = find('lineTotal')
   return {
-    name: find('name', 'ten hang'),
+    name: find('name', ['ten san pham', 'ten hang']),
     code: find('code'),
-    qty: find('qty', 'so luong dat hang'),
+    qty: find('qty', ['so luong nhap them', 'so luong dat hang']),
     gift: find('gift'),
-    sell: find('sell'),
+    sell: find('sell', 'gia ban tu lo nay'),
     cost: unitCost != null ? `unit:${unitCost}` : lineTotal != null ? `total:${lineTotal}` : ''
   }
 }
@@ -118,6 +118,19 @@ export async function readWorkbookFile(file) {
     rows: XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '', raw: true })
   }))
   return sheets
+}
+
+export async function downloadTemplateFile() {
+  const { XLSX } = await import('./excelStyle')
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['Tên sản phẩm', 'Mã hàng', 'Số lượng nhập thêm', 'Số lượng hàng tặng', 'Giá nhập lần này (VND)', 'Giá bán từ lô này (VND)'],
+    ['Ví dụ: Bột hành Anpaso 50g', 'AADGVBGHANH050', 44, 4, 29000, 49000],
+    ['Ví dụ: Nước mắm cá cơm Anpaso 120ml', 'AADGVNMCACO120', 200, 40, 34000, 55000]
+  ])
+  ws['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 20 }, { wch: 20 }, { wch: 22 }, { wch: 24 }]
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Nhap kho')
+  XLSX.writeFile(wb, 'mau-nhap-kho.xlsx')
 }
 
 export function bestSheet(sheets) {

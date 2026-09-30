@@ -5,6 +5,7 @@ import {
   applyTemplate,
   bestSheet,
   columnLetter,
+  downloadTemplateFile,
   detectColumns,
   detectHeaderRow,
   findProductForLine,
@@ -188,6 +189,14 @@ export default function ImportStockSheet({ onClose }) {
               </label>
             )}
 
+            <button
+              type="button"
+              onClick={() => downloadTemplateFile()}
+              className="w-full text-xs text-brand-700 underline mb-2"
+            >
+              Tải file Excel mẫu (tiêu đề cột trùng tên trong app)
+            </button>
+
             <label className="flex items-center justify-center rounded-lg bg-brand-50 text-brand-700 text-sm font-semibold py-3 cursor-pointer mb-2">
               {loading ? 'Đang đọc file...' : fileName ? `Đổi file (${fileName})` : 'Chọn file Excel (.xlsx, .xls, .csv)'}
               <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFile} className="hidden" disabled={loading} />
@@ -224,19 +233,19 @@ export default function ImportStockSheet({ onClose }) {
                       className={inputClass}
                     />
                   </label>
-                  <ColumnSelect label="Tên hàng" required allowNone={false} value={map.name} onChange={(v) => setField('name', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Số lượng đặt" required allowNone={false} value={map.qty} onChange={(v) => setField('qty', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Số lượng tặng" value={map.gift} onChange={(v) => setField('gift', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Tên sản phẩm" required allowNone={false} value={map.name} onChange={(v) => setField('name', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Số lượng nhập thêm" required allowNone={false} value={map.qty} onChange={(v) => setField('qty', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Số lượng hàng tặng" value={map.gift} onChange={(v) => setField('gift', v)} headerRow={headerRow} />
                   <ColumnSelect label="Mã hàng" value={map.code} onChange={(v) => setField('code', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Giá bán lẻ" value={map.sell} onChange={(v) => setField('sell', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Giá bán từ lô này" value={map.sell} onChange={(v) => setField('sell', v)} headerRow={headerRow} />
                   <div>
-                    <ColumnSelect label="Giá vốn lấy từ cột" value={costCol} onChange={(v) => setCost(costType || 'unit', v)} headerRow={headerRow} />
+                    <ColumnSelect label="Giá nhập lần này" value={costCol} onChange={(v) => setCost(costType || 'unit', v)} headerRow={headerRow} />
                   </div>
                   <label className="block col-span-2">
-                    <span className="block text-xs font-medium text-slate-500 mb-1">Cột giá vốn là</span>
+                    <span className="block text-xs font-medium text-slate-500 mb-1">Cột "Giá nhập lần này" là</span>
                     <select value={costType || 'unit'} onChange={(e) => setCost(e.target.value, costCol)} className={inputClass}>
-                      <option value="unit">Giá vốn của 1 sản phẩm</option>
-                      <option value="total">Thành tiền cả dòng (app chia cho số lượng đặt)</option>
+                      <option value="unit">Giá nhập của 1 sản phẩm</option>
+                      <option value="total">Thành tiền cả dòng (app chia cho số lượng nhập thêm)</option>
                     </select>
                   </label>
                 </div>
@@ -267,7 +276,7 @@ export default function ImportStockSheet({ onClose }) {
                 </label>
 
                 {!ready ? (
-                  <p className="text-sm text-amber-600">Hãy chọn cột Tên hàng và cột Số lượng đặt để xem trước.</p>
+                  <p className="text-sm text-amber-600">Hãy chọn cột Tên sản phẩm và cột Số lượng nhập thêm để xem trước.</p>
                 ) : preview.length === 0 ? (
                   <p className="text-sm text-amber-600">Không có dòng nào có số lượng lớn hơn 0 trong trang tính này.</p>
                 ) : (
@@ -289,8 +298,8 @@ export default function ImportStockSheet({ onClose }) {
                               {!l.match && <span className="ml-1 text-[11px] font-bold text-sky-700 bg-sky-50 rounded-full px-1.5 py-0.5">Sản phẩm mới</span>}
                             </p>
                             <p className="text-xs text-slate-400">
-                              SL {l.qty} · vốn {formatVND(l.cost)}
-                              {!l.isGift && l.sell > 0 ? ` · bán ${formatVND(l.sell)}` : ''}
+                              SL {l.qty} · giá nhập {formatVND(l.cost)}
+                              {!l.isGift && l.sell > 0 ? ` · giá bán ${formatVND(l.sell)}` : ''}
                             </p>
                           </div>
                           <span className="shrink-0 text-sm font-medium text-slate-700">{formatVND(l.qty * l.cost)}</span>
@@ -298,7 +307,7 @@ export default function ImportStockSheet({ onClose }) {
                       ))}
                     </ul>
                     <p className="text-sm text-slate-600 mb-3">
-                      Nhập <b>{chosen.length}</b> dòng · <b>{totalQty}</b> sản phẩm · tiền vốn <b>{formatVND(totalCost)}</b>
+                      Nhập <b>{chosen.length}</b> dòng · <b>{totalQty}</b> sản phẩm · tiền nhập <b>{formatVND(totalCost)}</b>
                       {newCount > 0 ? ` · ${newCount} sản phẩm mới` : ''}
                     </p>
                   </>
