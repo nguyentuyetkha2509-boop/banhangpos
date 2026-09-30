@@ -1,29 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode'
-import { loadData, saveData } from '../lib/storage'
 
 const REGION_ID = 'barcode-scanner-region'
-const CAMERA_KEY = 'scannerCameraId'
-
-const label = (c) => (c.label || '').trim()
-const isBackCamera = (c) => /back|rear|environment/i.test(label(c))
-const isSpecialLens = (c) => /ultra|wide angle|telephoto|0\.5x|zoom|dual|triple|desk/i.test(label(c))
-
-function shortName(c) {
-  const l = label(c)
-  if (/ultra/i.test(l)) return 'Góc siêu rộng (quét sát, ~3-8cm)'
-  if (/tele/i.test(l)) return 'Tele (quét xa)'
-  if (/dual|triple/i.test(l)) return 'Tự động (Dual/Triple)'
-  if (/^back camera$/i.test(l)) return 'Camera chính'
-  return l.replace(/^back\s*/i, '') || 'Camera'
-}
 
 export default function BarcodeScannerModal({ open, onClose, onDetected }) {
   const [error, setError] = useState('')
   const [retryKey, setRetryKey] = useState(0)
-  const [cameras, setCameras] = useState([])
-  const [activeId, setActiveId] = useState(null)
-  const [chosenId, setChosenId] = useState(() => loadData(CAMERA_KEY, null))
 
   useEffect(() => {
     if (!open) return
@@ -38,27 +20,32 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
     }
 
     async function pickCameraDeviceId() {
-      // iPhone Pro co nhieu ong kinh (chinh/sieu rong/tele) va camera ao Dual/Triple;
-      // "environment" co the chon nham ong kinh khong lay net duoc. Chu dong chon camera,
-      // mac dinh la camera chinh, nguoi dung co the doi sang ong kinh khac bang nut tren man hinh.
+      // May iPhone Pro co nhieu ong kinh sau (wide/ultra-wide/telephoto); "environment" co
+      // the tra ve ong kinh ultra-wide, khong lay net duoc o khoang cach gan 10-15cm nhu
+      // huong dan tren man hinh. Uu tien chon dung ong kinh "Back Camera" thuong (goc rong
+      // tieu chuan) qua danh sach thiet bi thay vi de trinh duyet tu chon.
       try {
-        const list = await Html5Qrcode.getCameras()
-        let back = (list || []).filter(isBackCamera).filter((c) => !/desk/i.test(label(c)))
-        // Khong doc duoc ten camera (chua cap quyen) thi cho chon tat ca
-        if (back.length === 0) back = list || []
-        if (!cancelled) setCameras(back)
-        if (chosenId && back.some((c) => c.id === chosenId)) return chosenId
-        const preferred =
-          back.find((c) => /^back camera$/i.test(label(c))) || back.find((c) => !isSpecialLens(c)) || back[0]
-        return preferred?.id || null
+        const cameras = await Html5Qrcode.getCameras()
+        if (cameras && cameras.length > 0) {
+          const label = (c) => (c.label || '').trim()
+          const isSpecialLens = (c) => /ultra|wide angle|telephoto|0\.5x|zoom|dual|triple|desk/i.test(label(c))
+          const backCameras = cameras.filter((c) => /back|rear|environment/i.test(label(c)))
+          // iPhone Pro co them cac camera "ao" (Dual/Triple) tu dong doi ong kinh khi lay net
+          // gan, de gay mo hinh; uu tien camera chinh co ten dung la "Back Camera"
+          const preferred =
+            backCameras.find((c) => /^back camera$/i.test(label(c))) ||
+            backCameras.find((c) => !isSpecialLens(c)) ||
+            backCameras[0]
+          return preferred?.id || null
+        }
       } catch {
-        return null
+        // Khong lay duoc danh sach camera (vd chua cap quyen) -> fallback facingMode ben duoi
       }
+      return null
     }
 
     pickCameraDeviceId().then((deviceId) => {
       if (cancelled) return
-      setActiveId(deviceId)
       const videoConstraints = deviceId
         ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
         : { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
@@ -83,12 +70,7 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
         )
         .then(() => {
           // Component co the da bi unmount truoc khi camera khoi dong xong
-          if (cancelled) {
-            safeStop()
-            return
-          }
-          // Thu bat lay net lien tuc (khong phai trinh duyet nao cung ho tro, loi thi bo qua)
-          scanner.applyVideoConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {})
+          if (cancelled) safeStop()
         })
         .catch((err) => {
           if (cancelled) return
@@ -101,19 +83,9 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
       cancelled = true
       safeStop()
     }
-  }, [open, retryKey, chosenId])
-
-  function switchCamera() {
-    if (cameras.length < 2) return
-    const idx = cameras.findIndex((c) => c.id === activeId)
-    const next = cameras[(idx + 1) % cameras.length]
-    saveData(CAMERA_KEY, next.id)
-    setChosenId(next.id)
-  }
+  }, [open, retryKey])
 
   if (!open) return null
-
-  const active = cameras.find((c) => c.id === activeId)
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-black" onClick={(e) => e.stopPropagation()}>
@@ -135,21 +107,8 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
           </button>
         </div>
       )}
-      <div className="px-4 pt-2 text-center">
-        <button
-          onClick={switchCamera}
-          disabled={cameras.length < 2}
-          className="rounded-lg bg-white/15 text-white text-sm font-medium px-4 py-2.5 disabled:opacity-40"
-        >
-          Đổi ống kính{active ? `: ${shortName(active)}` : ''}
-        </button>
-        <p className="mt-1 text-[11px] text-white/40">
-          {cameras.length} ống kính · {active ? label(active) || 'không rõ tên' : 'tự động'} · bản 30/9-c
-        </p>
-      </div>
-      <p className="pb-6 pt-2 px-4 text-center text-xs text-white/60">
-        Giữ yên, đủ sáng. Nếu hình bị mờ: lùi ra xa 15-25cm, hoặc bấm "Đổi ống kính" sang góc siêu rộng rồi đưa mã vạch thật
-        sát (3-8cm).
+      <p className="pb-6 pt-2 text-center text-xs text-white/60">
+        Đưa mã vạch vào giữa khung hình, giữ yên, đủ sáng. Nếu hình bị mờ, lùi ra xa khoảng 15-25cm (iPhone Pro không lấy nét được quá gần)
       </p>
     </div>
   )
