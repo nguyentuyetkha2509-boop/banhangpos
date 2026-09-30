@@ -235,8 +235,16 @@ export default function ImportStockSheet({ onClose }) {
                 )}
 
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <label className="block col-span-2">
-                    <span className="block text-xs font-medium text-slate-500 mb-1">Dòng tiêu đề (số dòng trong Excel)</span>
+                  <ColumnSelect label="Tên sản phẩm" required allowNone={false} value={map.name} onChange={(v) => setField('name', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Số lượng nhập thêm" required allowNone={false} value={map.qty} onChange={(v) => setField('qty', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Tên hàng tặng" value={map.giftName} onChange={(v) => setField('giftName', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Số lượng hàng tặng" value={map.gift} onChange={(v) => setField('gift', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Giá nhập lần này" value={costCol} onChange={(v) => setCost(costType || 'unit', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Giá bán từ lô này" value={map.sell} onChange={(v) => setField('sell', v)} headerRow={headerRow} />
+                  <ColumnSelect label="Mã hàng" value={map.code} onChange={(v) => setField('code', v)} headerRow={headerRow} />
+                  <div />
+                  <label className="block">
+                    <span className="block text-xs font-medium text-slate-500 mb-1">Dòng tiêu đề (số dòng Excel)</span>
                     <input
                       type="number"
                       min="1"
@@ -245,20 +253,11 @@ export default function ImportStockSheet({ onClose }) {
                       className={inputClass}
                     />
                   </label>
-                  <ColumnSelect label="Tên sản phẩm" required allowNone={false} value={map.name} onChange={(v) => setField('name', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Số lượng nhập thêm" required allowNone={false} value={map.qty} onChange={(v) => setField('qty', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Số lượng hàng tặng" value={map.gift} onChange={(v) => setField('gift', v)} headerRow={headerRow} />
- <ColumnSelect label="Tên hàng tặng" value={map.giftName} onChange={(v) => setField('giftName', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Mã hàng" value={map.code} onChange={(v) => setField('code', v)} headerRow={headerRow} />
-                  <ColumnSelect label="Giá bán từ lô này" value={map.sell} onChange={(v) => setField('sell', v)} headerRow={headerRow} />
-                  <div>
-                    <ColumnSelect label="Giá nhập lần này" value={costCol} onChange={(v) => setCost(costType || 'unit', v)} headerRow={headerRow} />
-                  </div>
-                  <label className="block col-span-2">
-                    <span className="block text-xs font-medium text-slate-500 mb-1">Cột "Giá nhập lần này" là</span>
+                  <label className="block">
+                    <span className="block text-xs font-medium text-slate-500 mb-1">Cột giá nhập là</span>
                     <select value={costType || 'unit'} onChange={(e) => setCost(e.target.value, costCol)} className={inputClass}>
-                      <option value="unit">Giá nhập của 1 sản phẩm</option>
-                      <option value="total">Thành tiền cả dòng (app chia cho số lượng nhập thêm)</option>
+                      <option value="unit">Giá 1 sản phẩm</option>
+                      <option value="total">Thành tiền cả dòng</option>
                     </select>
                   </label>
                 </div>
