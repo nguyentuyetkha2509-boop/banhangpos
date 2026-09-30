@@ -9,6 +9,7 @@ import EditStockMovementSheet from '../components/EditStockMovementSheet'
 import { RestockIcon, ReturnIcon, PlusIcon, BoxIcon, BarcodeIcon, TrashIcon } from '../components/Icons'
 
 const BarcodePrintModal = lazy(() => import('../components/BarcodePrintModal'))
+const ImportStockSheet = lazy(() => import('../components/ImportStockSheet'))
 
 export default function ProductsPage() {
   const { products, deleteProduct, stockMovements } = useData()
@@ -17,6 +18,7 @@ export default function ProductsPage() {
   const [showRestock, setShowRestock] = useState(false)
   const [showReturn, setShowReturn] = useState(false)
   const [showShrinkage, setShowShrinkage] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [printingProduct, setPrintingProduct] = useState(null)
   const [editingMovement, setEditingMovement] = useState(null)
@@ -64,6 +66,15 @@ export default function ProductsPage() {
         >
           <TrashIcon className="h-5 w-5" />
           Hao hụt
+        </button>
+      </div>
+      <div className="mb-2">
+        <button
+          onClick={() => setShowImport(true)}
+          className="w-full flex items-center justify-center gap-1.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg px-3 py-2.5 active:scale-[0.97] transition"
+        >
+          <RestockIcon className="h-5 w-5" />
+          Nhập kho từ file Excel
         </button>
       </div>
       <div className="mb-3">
@@ -174,6 +185,11 @@ export default function ProductsPage() {
       <RestockSheet open={showRestock} onClose={() => setShowRestock(false)} />
       <ReturnSheet open={showReturn} onClose={() => setShowReturn(false)} />
       <ShrinkageSheet open={showShrinkage} onClose={() => setShowShrinkage(false)} />
+      {showImport && (
+        <Suspense fallback={null}>
+          <ImportStockSheet onClose={() => setShowImport(false)} />
+        </Suspense>
+      )}
       {printingProduct && (
         <Suspense fallback={null}>
           <BarcodePrintModal product={printingProduct} onClose={() => setPrintingProduct(null)} />

@@ -14,6 +14,7 @@ import { db, OWNER_EMAIL } from '../lib/firebase'
 import { useAuth } from './AuthContext'
 import { loadData, saveData, makeId } from '../lib/storage'
 import { DATA_COLLECTIONS, emptyLegacyArrays, hasLegacyArrays, sortRecords } from '../lib/shopData'
+import { findProductForLine } from '../lib/stockImport'
 
 const DEFAULT_PRODUCTS = [
   { id: makeId(), name: 'Coca Cola lon', price: 12000, costPrice: 0, stock: 48, category: 'Nước giải khát', barcode: '8934588123451' },
@@ -369,6 +370,61 @@ export function DataProvider({ children }) {
     ])
   }
 
+  function importStock(lines, { updateSellPrice = false, note = '' } = {}) {
+    const nextProducts = [...products]
+    const movements = []
+    const baseTime = Date.now()
+    let createdCount = 0
+    lines.forEach((line, i) => {
+      const qty = Math.max(0, Number(line.qty) || 0)
+      if (qty <= 0) return
+      let product = findProductForLine(nextProducts, line)
+      const isNew = !product
+      if (isNew) {
+        product = {
+          id: makeId(),
+          name: line.name,
+          category: '',
+          barcode: '',
+          image: '',
+          price: 0,
+          costPrice: 0,
+          stock: 0,
+          isPromotion: Boolean(line.isGift),
+          supplierCode: line.code || '',
+          position: baseTime + createdCount
+        }
+        createdCount += 1
+        nextProducts.push(product)
+      }
+      const cost = Math.max(0, Number(line.cost) || 0)
+      let price = product.price || 0
+      if (line.isGift) price = 0
+      else if ((isNew || updateSellPrice) && line.sell > 0) price = line.sell
+      const updated = {
+        ...product,
+        stock: (product.stock || 0) + qty,
+        costPrice: cost,
+        price,
+        supplierCode: product.supplierCode || line.code || ''
+      }
+      nextProducts[nextProducts.findIndex((p) => p.id === product.id)] = updated
+      movements.push({
+        id: makeId(),
+        productId: product.id,
+        productName: product.name,
+        qty,
+        costPrice: cost,
+        sellPrice: price,
+        note: note.trim(),
+        createdAt: new Date(baseTime + i).toISOString()
+      })
+    })
+    setProducts(nextProducts)
+    setStockMovements((prev) => [...movements.reverse(), ...prev])
+    return { lineCount: movements.length, createdCount }
+  }
+
   function updateStockMovement(movementId, { qty, costPrice, sellPrice, note }) {
     const movement = stockMovements.find((m) => m.id === movementId)
     if (!movement) return
@@ -579,6 +635,7 @@ export function DataProvider({ children }) {
     checkout,
     findProductByBarcode,
     restockProduct,
+    importStock,
     updateStockMovement,
     deleteStockMovement,
     addReturn,
