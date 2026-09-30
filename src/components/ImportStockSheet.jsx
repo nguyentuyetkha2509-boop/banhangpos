@@ -313,6 +313,11 @@ export default function ImportStockSheet({ onClose }) {
                               SL {l.qty} · giá nhập {formatVND(l.cost)}
                               {!l.isGift && l.sell > 0 ? ` · giá bán ${formatVND(l.sell)}` : ''}
                             </p>
+                            {l.isGift && l.match && !l.match.isPromotion && (
+                              <p className="mt-0.5 text-xs text-amber-600">
+                                Sản phẩm này chưa gắn nhãn Khuyến mãi: chỉ cộng tồn kho, giữ nguyên giá nhập và giá bán.
+                              </p>
+                            )}
                             {!l.exact && (
                               <select
                                 value={l.match ? l.match.id : 'new'}
@@ -323,6 +328,7 @@ export default function ImportStockSheet({ onClose }) {
                                 {l.ranked.map(({ product }) => (
                                   <option key={product.id} value={product.id}>
                                     Nhập vào: {product.name}
+                                    {l.isGift && !product.isPromotion ? ' (chưa gắn nhãn KM)' : ''}
                                   </option>
                                 ))}
                               </select>

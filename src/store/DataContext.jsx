@@ -398,9 +398,13 @@ export function DataProvider({ children }) {
         createdCount += 1
         nextProducts.push(product)
       }
-      const cost = Math.max(0, Number(line.cost) || 0)
+      // Hang tang nhap vao san pham chua gan nhan Khuyen mai: chi cong ton kho, giu nguyen
+      // gia nhap/gia ban de khong lam gia ban san pham do ve 0
+      const giftToRegular = Boolean(line.isGift && !isNew && !product.isPromotion)
+      const cost = giftToRegular ? product.costPrice || 0 : Math.max(0, Number(line.cost) || 0)
       let price = product.price || 0
-      if (line.isGift) price = 0
+      if (giftToRegular) price = product.price || 0
+      else if (line.isGift) price = 0
       else if ((isNew || updateSellPrice) && line.sell > 0) price = line.sell
       const updated = {
         ...product,

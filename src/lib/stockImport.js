@@ -146,11 +146,13 @@ export function compareNames(a, b) {
   return { score, safe: subset && coverage >= 0.75 && digits(ta) === digits(tb) }
 }
 
+// Hang thuong chi goi y san pham thuong. Hang tang goi y ca san pham co san chua gan nhan
+// Khuyen mai (san pham KM xep truoc) de nguoi dung co the chon nhap vao do.
 export function rankProducts(products, line) {
   return products
-    .filter((p) => Boolean(p.isPromotion) === line.isGift)
+    .filter((p) => line.isGift || !p.isPromotion)
     .map((product) => ({ product, ...compareNames(product.name, line.name) }))
-    .sort((x, y) => y.score - x.score)
+    .sort((x, y) => y.score - x.score || Number(Boolean(y.product.isPromotion)) - Number(Boolean(x.product.isPromotion)))
 }
 
 export async function readWorkbookFile(file) {
