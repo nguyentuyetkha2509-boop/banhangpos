@@ -252,12 +252,11 @@ export default function ImportStockSheet({ onClose }) {
                   <ColumnSelect label="Giá nhập lần này" value={costCol} onChange={(v) => setCost(costType || 'unit', v)} headerRow={headerRow} />
                   <ColumnSelect label="Giá bán từ lô này" value={map.sell} onChange={(v) => setField('sell', v)} headerRow={headerRow} />
                   <ColumnSelect label="Mã sản phẩm" value={map.code} onChange={(v) => setField('code', v)} headerRow={headerRow} />
-                  <div />
-                  <label className="block col-span-2">
-                    <span className="block text-xs font-medium text-slate-500 mb-1">Cột "Giá nhập lần này" là</span>
+                  <label className="block">
+                    <span className="block text-xs font-medium text-slate-500 mb-1">Cột giá nhập là</span>
                     <select value={costType || 'unit'} onChange={(e) => setCost(e.target.value, costCol)} className={inputClass}>
-                      <option value="unit">Giá nhập của 1 sản phẩm</option>
-                      <option value="total">Thành tiền cả dòng (app chia cho số lượng nhập thêm)</option>
+                      <option value="unit">Giá 1 sản phẩm</option>
+                      <option value="total">Thành tiền cả dòng</option>
                     </select>
                   </label>
                 </div>
