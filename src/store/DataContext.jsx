@@ -14,7 +14,7 @@ import { db, OWNER_EMAIL } from '../lib/firebase'
 import { useAuth } from './AuthContext'
 import { loadData, saveData, makeId } from '../lib/storage'
 import { DATA_COLLECTIONS, emptyLegacyArrays, hasLegacyArrays, sortRecords } from '../lib/shopData'
-import { findProductForLine } from '../lib/stockImport'
+import { findProductForLine, isPromoByName } from '../lib/stockImport'
 
 const DEFAULT_PRODUCTS = [
   { id: makeId(), name: 'Coca Cola lon', price: 12000, costPrice: 0, stock: 48, category: 'Nước giải khát', barcode: '8934588123451' },
@@ -400,7 +400,8 @@ export function DataProvider({ children }) {
       }
       // Hang tang nhap vao san pham chua gan nhan Khuyen mai: chi cong ton kho, giu nguyen
       // gia nhap/gia ban de khong lam gia ban san pham do ve 0
-      const giftToRegular = Boolean(line.isGift && !isNew && !product.isPromotion)
+      const nameSaysPromo = isPromoByName(product.name)
+      const giftToRegular = Boolean(line.isGift && !isNew && !product.isPromotion && !nameSaysPromo)
       const cost = giftToRegular ? product.costPrice || 0 : Math.max(0, Number(line.cost) || 0)
       let price = product.price || 0
       if (giftToRegular) price = product.price || 0
@@ -411,7 +412,8 @@ export function DataProvider({ children }) {
         stock: (product.stock || 0) + qty,
         costPrice: cost,
         price,
-        supplierCode: product.supplierCode || line.code || ''
+        supplierCode: product.supplierCode || line.code || '',
+        isPromotion: Boolean(product.isPromotion) || Boolean(line.isGift && nameSaysPromo)
       }
       nextProducts[nextProducts.findIndex((p) => p.id === product.id)] = updated
       movements.push({

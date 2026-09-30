@@ -8,6 +8,18 @@ export function normalizeText(value) {
     .trim()
 }
 
+// Ten san pham co ghi "khuyen mai" / "KM" / "hang tang" nhung chua gan nhan Khuyen mai
+const PROMO_WORDS = /(^| )(khuyen mai|km|hang tang)( |$)/g
+
+export function isPromoByName(name) {
+  PROMO_WORDS.lastIndex = 0
+  return PROMO_WORDS.test(normalizeText(name))
+}
+
+export function stripPromoWords(name) {
+  return normalizeText(name).replace(PROMO_WORDS, ' ').replace(/\s+/g, ' ').trim()
+}
+
 export function toNumber(value) {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
   const s = String(value ?? '').replace(/\s/g, '')
@@ -113,19 +125,23 @@ export function parseLines(rows, headerIndex, map) {
   return lines
 }
 
+export function isPromoProduct(p) {
+  return Boolean(p.isPromotion) || isPromoByName(p.name)
+}
+
 export function findProductForLine(products, line) {
   const code = normalizeText(line.code)
-  const name = normalizeText(line.name)
-  const candidates = products.filter((p) => Boolean(p.isPromotion) === line.isGift)
+  const name = stripPromoWords(line.name)
+  const candidates = products.filter((p) => isPromoProduct(p) === Boolean(line.isGift))
   return (
     (code && candidates.find((p) => p.supplierCode && normalizeText(p.supplierCode) === code)) ||
-    candidates.find((p) => normalizeText(p.name) === name) ||
+    candidates.find((p) => stripPromoWords(p.name) === name) ||
     null
   )
 }
 
 function tokensOf(text) {
-  return new Set(normalizeText(text).split(' ').filter(Boolean))
+  return new Set(stripPromoWords(text).split(' ').filter(Boolean))
 }
 
 // Diem giong nhau giua 2 ten (0..1). Chi tu dong khop khi ten nay chua tron ten kia,
@@ -150,9 +166,9 @@ export function compareNames(a, b) {
 // Khuyen mai (san pham KM xep truoc) de nguoi dung co the chon nhap vao do.
 export function rankProducts(products, line) {
   return products
-    .filter((p) => line.isGift || !p.isPromotion)
+    .filter((p) => line.isGift || !isPromoProduct(p))
     .map((product) => ({ product, ...compareNames(product.name, line.name) }))
-    .sort((x, y) => y.score - x.score || Number(Boolean(y.product.isPromotion)) - Number(Boolean(x.product.isPromotion)))
+    .sort((x, y) => y.score - x.score || Number(isPromoProduct(y.product)) - Number(isPromoProduct(x.product)))
 }
 
 export async function readWorkbookFile(file) {

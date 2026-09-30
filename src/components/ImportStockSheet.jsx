@@ -9,6 +9,7 @@ import {
   detectColumns,
   detectHeaderRow,
   findProductForLine,
+  isPromoByName,
   loadTemplates,
   parseLines,
   rankProducts,
@@ -313,7 +314,12 @@ export default function ImportStockSheet({ onClose }) {
                               SL {l.qty} · giá nhập {formatVND(l.cost)}
                               {!l.isGift && l.sell > 0 ? ` · giá bán ${formatVND(l.sell)}` : ''}
                             </p>
-                            {l.isGift && l.match && !l.match.isPromotion && (
+                            {l.isGift && l.match && !l.match.isPromotion && isPromoByName(l.match.name) && (
+                              <p className="mt-0.5 text-xs text-violet-600">
+                                Tên sản phẩm này có chữ khuyến mãi: app sẽ gắn nhãn Khuyến mãi cho nó, giá nhập và giá bán về 0.
+                              </p>
+                            )}
+                            {l.isGift && l.match && !l.match.isPromotion && !isPromoByName(l.match.name) && (
                               <p className="mt-0.5 text-xs text-amber-600">
                                 Sản phẩm này chưa gắn nhãn Khuyến mãi: chỉ cộng tồn kho, giữ nguyên giá nhập và giá bán.
                               </p>
@@ -328,7 +334,7 @@ export default function ImportStockSheet({ onClose }) {
                                 {l.ranked.map(({ product }) => (
                                   <option key={product.id} value={product.id}>
                                     Nhập vào: {product.name}
-                                    {l.isGift && !product.isPromotion ? ' (chưa gắn nhãn KM)' : ''}
+                                    {l.isGift && !product.isPromotion && !isPromoByName(product.name) ? ' (chưa gắn nhãn KM)' : ''}
                                   </option>
                                 ))}
                               </select>
