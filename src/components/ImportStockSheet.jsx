@@ -11,6 +11,7 @@ import {
   findProductForLine,
   loadTemplates,
   parseLines,
+  rankProducts,
   readWorkbookFile,
   saveTemplates,
   templateFromMapping
@@ -53,6 +54,7 @@ export default function ImportStockSheet({ onClose }) {
   const [templateName, setTemplateName] = useState('')
   const [updateSellPrice, setUpdateSellPrice] = useState(false)
   const [excluded, setExcluded] = useState({})
+  const [choices, setChoices] = useState({})
   const [done, setDone] = useState(null)
 
   const rows = sheets?.[sheetIndex]?.rows || []
@@ -67,6 +69,7 @@ export default function ImportStockSheet({ onClose }) {
     setHeaderIndex(header)
     setMap(tpl ? applyTemplate(tpl, sheetRows[header] || [], detected) : detected)
     setExcluded({})
+    setChoices({})
   }
 
   async function handleFile(e) {
@@ -135,8 +138,17 @@ export default function ImportStockSheet({ onClose }) {
   const ready = map && map.name != null && map.qty != null
   const lines = useMemo(() => (ready ? parseLines(rows, headerIndex, map) : []), [rows, headerIndex, map, ready])
   const preview = useMemo(
-    () => lines.map((line) => ({ ...line, match: findProductForLine(products, line) })),
-    [lines, products]
+    () =>
+      lines.map((line) => {
+        const exact = findProductForLine(products, line)
+        const ranked = exact ? [] : rankProducts(products, line)
+        const suggested = !exact && ranked[0]?.safe ? ranked[0].product : null
+        const choice = choices[line.key]
+        let match = exact || suggested
+        if (!exact && choice !== undefined) match = choice === 'new' ? null : products.find((p) => p.id === choice) || null
+        return { ...line, exact, ranked, match, fuzzy: Boolean(!exact && match) }
+      }),
+    [lines, products, choices]
   )
   const chosen = preview.filter((l) => !excluded[l.key])
   const totalQty = chosen.reduce((s, l) => s + l.qty, 0)
@@ -145,7 +157,7 @@ export default function ImportStockSheet({ onClose }) {
 
   function handleImport() {
     if (chosen.length === 0) return
-    const result = importStock(chosen, { updateSellPrice, note: `Nhập từ file ${fileName}` })
+    const result = importStock(chosen.map((l) => ({ ...l, productId: l.match?.id })), { updateSellPrice, note: `Nhập từ file ${fileName}` })
     setDone(result)
   }
 
@@ -296,11 +308,26 @@ export default function ImportStockSheet({ onClose }) {
                               {l.name}
                               {l.isGift && <span className="ml-1 text-[11px] font-bold text-amber-700 bg-amber-50 rounded-full px-1.5 py-0.5">Tặng</span>}
                               {!l.match && <span className="ml-1 text-[11px] font-bold text-sky-700 bg-sky-50 rounded-full px-1.5 py-0.5">Sản phẩm mới</span>}
+                              {l.fuzzy && <span className="ml-1 text-[11px] font-bold text-violet-700 bg-violet-50 rounded-full px-1.5 py-0.5">Tên gần giống</span>}
                             </p>
                             <p className="text-xs text-slate-400">
                               SL {l.qty} · giá nhập {formatVND(l.cost)}
                               {!l.isGift && l.sell > 0 ? ` · giá bán ${formatVND(l.sell)}` : ''}
                             </p>
+                            {!l.exact && (
+                              <select
+                                value={l.match ? l.match.id : 'new'}
+                                onChange={(e) => setChoices((prev) => ({ ...prev, [l.key]: e.target.value }))}
+                                className="mt-1 w-full rounded-md border border-slate-200 bg-white px-1.5 py-1 text-xs text-slate-600"
+                              >
+                                <option value="new">Tạo sản phẩm mới</option>
+                                {l.ranked.map(({ product }) => (
+                                  <option key={product.id} value={product.id}>
+                                    Nhập vào: {product.name}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
                           </div>
                           <span className="shrink-0 text-sm font-medium text-slate-700">{formatVND(l.qty * l.cost)}</span>
                         </li>

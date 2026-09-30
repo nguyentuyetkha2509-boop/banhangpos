@@ -109,6 +109,35 @@ export function findProductForLine(products, line) {
   )
 }
 
+function tokensOf(text) {
+  return new Set(normalizeText(text).split(' ').filter(Boolean))
+}
+
+// Diem giong nhau giua 2 ten (0..1). Chi tu dong khop khi ten nay chua tron ten kia,
+// cung bo so/kich co (50g, 120ml...) va phan trung du lon, de khong nham cac vi/loai khac nhau.
+export function compareNames(a, b) {
+  const ta = tokensOf(a)
+  const tb = tokensOf(b)
+  if (ta.size === 0 || tb.size === 0) return { score: 0, safe: false }
+  let inter = 0
+  ta.forEach((t) => {
+    if (tb.has(t)) inter += 1
+  })
+  const union = ta.size + tb.size - inter
+  const score = inter / union
+  const subset = inter === ta.size || inter === tb.size
+  const digits = (set) => [...set].filter((t) => /\d/.test(t)).sort().join(',')
+  const coverage = inter / Math.max(ta.size, tb.size)
+  return { score, safe: subset && coverage >= 0.75 && digits(ta) === digits(tb) }
+}
+
+export function rankProducts(products, line) {
+  return products
+    .filter((p) => Boolean(p.isPromotion) === line.isGift)
+    .map((product) => ({ product, ...compareNames(product.name, line.name) }))
+    .sort((x, y) => y.score - x.score)
+}
+
 export async function readWorkbookFile(file) {
   const { XLSX } = await import('./excelStyle')
   const buffer = await file.arrayBuffer()

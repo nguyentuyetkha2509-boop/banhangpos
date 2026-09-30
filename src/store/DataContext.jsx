@@ -378,7 +378,8 @@ export function DataProvider({ children }) {
     lines.forEach((line, i) => {
       const qty = Math.max(0, Number(line.qty) || 0)
       if (qty <= 0) return
-      let product = findProductForLine(nextProducts, line)
+      let product = line.productId ? nextProducts.find((p) => p.id === line.productId) : null
+      if (!product) product = findProductForLine(nextProducts, line)
       const isNew = !product
       if (isNew) {
         product = {
