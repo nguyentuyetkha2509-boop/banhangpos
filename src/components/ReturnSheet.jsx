@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import { ScanIcon } from './Icons'
@@ -16,6 +16,9 @@ export default function ReturnSheet({ open, onClose, product, order }) {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
+
+  const productsRef = useRef(products)
+  productsRef.current = products
 
   const fromOrder = Boolean(order)
   const orderItems = order?.items || []
@@ -48,8 +51,8 @@ export default function ReturnSheet({ open, onClose, product, order }) {
       setUnitPrice(initialItem?.price ? String(initialItem.price) : '')
       setCustomerName((order.customerName || '').trim() || 'Khách lẻ')
     } else {
-      const initialId = product?.id || products[0]?.id || ''
-      const initialProduct = products.find((p) => p.id === initialId)
+      const initialId = product?.id || productsRef.current[0]?.id || ''
+      const initialProduct = productsRef.current.find((p) => p.id === initialId)
       setProductId(initialId)
       setUnitPrice(initialProduct?.price ? String(initialProduct.price) : '')
       setCostPriceInput(initialProduct?.costPrice ? String(initialProduct.costPrice) : '')
@@ -58,7 +61,7 @@ export default function ReturnSheet({ open, onClose, product, order }) {
     setQty('')
     setNote('')
     setScanMsg('')
-  }, [open, product, products, order])
+  }, [open, product, order])
 
   if (!open) return null
 

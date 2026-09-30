@@ -514,7 +514,12 @@ export function DataProvider({ children }) {
   function findProductByBarcode(code) {
     const trimmed = code.trim()
     if (!trimmed) return null
-    return products.find((p) => p.barcode && p.barcode === trimmed) || null
+    const exact = products.find((p) => p.barcode && p.barcode.trim() === trimmed)
+    if (exact) return exact
+    // UPC-A (12 so) duoc may quet doc thanh EAN-13 them so 0 o dau va nguoc lai
+    const strip = (v) => v.replace(/^0+/, '')
+    const target = strip(trimmed)
+    return products.find((p) => p.barcode && strip(p.barcode.trim()) === target) || null
   }
 
   function clearCart() {

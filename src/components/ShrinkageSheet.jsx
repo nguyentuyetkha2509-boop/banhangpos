@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import { ScanIcon } from './Icons'
@@ -15,17 +15,19 @@ export default function ShrinkageSheet({ open, onClose, product }) {
   const [note, setNote] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
+  const productsRef = useRef(products)
+  productsRef.current = products
 
   useEffect(() => {
     if (open) {
-      const initialId = product?.id || products[0]?.id || ''
+      const initialId = product?.id || productsRef.current[0]?.id || ''
       setProductId(initialId)
       setQty('')
       setReason(REASONS[0])
       setNote('')
       setScanMsg('')
     }
-  }, [open, product, products])
+  }, [open, product])
 
   if (!open) return null
 

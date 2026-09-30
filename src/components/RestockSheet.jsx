@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { ScanIcon } from './Icons'
 import EditStockMovementSheet from './EditStockMovementSheet'
@@ -15,11 +15,15 @@ export default function RestockSheet({ open, onClose, product }) {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scanMsg, setScanMsg] = useState('')
   const [editingMovement, setEditingMovement] = useState(null)
+  // Danh sach san pham doi tham chieu moi khi dong bo; khong reset form khi do
+  const productsRef = useRef(products)
+  productsRef.current = products
 
   useEffect(() => {
     if (open) {
-      const initialId = product?.id || products[0]?.id || ''
-      const initialProduct = products.find((p) => p.id === initialId)
+      const list = productsRef.current
+      const initialId = product?.id || list[0]?.id || ''
+      const initialProduct = list.find((p) => p.id === initialId)
       setProductId(initialId)
       setQty('')
       setCostPrice(initialProduct?.costPrice ? String(initialProduct.costPrice) : '')
@@ -27,7 +31,7 @@ export default function RestockSheet({ open, onClose, product }) {
       setNote('')
       setScanMsg('')
     }
-  }, [open, product, products])
+  }, [open, product])
 
   if (!open) return null
 
