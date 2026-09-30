@@ -248,6 +248,7 @@ export default function ImportStockSheet({ onClose }) {
                   <ColumnSelect label="Tên sản phẩm" required allowNone={false} value={map.name} onChange={(v) => setField('name', v)} headerRow={headerRow} />
                   <ColumnSelect label="Số lượng nhập thêm" required allowNone={false} value={map.qty} onChange={(v) => setField('qty', v)} headerRow={headerRow} />
                   <ColumnSelect label="Số lượng hàng tặng" value={map.gift} onChange={(v) => setField('gift', v)} headerRow={headerRow} />
+ <ColumnSelect label="Tên hàng tặng" value={map.giftName} onChange={(v) => setField('giftName', v)} headerRow={headerRow} />
                   <ColumnSelect label="Mã hàng" value={map.code} onChange={(v) => setField('code', v)} headerRow={headerRow} />
                   <ColumnSelect label="Giá bán từ lô này" value={map.sell} onChange={(v) => setField('sell', v)} headerRow={headerRow} />
                   <div>

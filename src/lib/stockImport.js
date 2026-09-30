@@ -32,6 +32,7 @@ const FIELD_RULES = {
   code: (h) => /(^| )(ma hang|ma san pham|ma sp|ma vt|sku)( |$)/.test(h),
   qty: (h) => /(^| )(so luong|sl)( |$)/.test(h) && !/tang|giao|km|khuyen|con lai|ton/.test(h),
   gift: (h) => /(^| )(so luong|sl)( |$)/.test(h) && /tang|khuyen mai/.test(h),
+  giftName: (h) => /(hang tang|qua tang|hang khuyen mai)/.test(h) && !/(^| )(so luong|sl)( |$)/.test(h),
   unitCost: (h) => /(gia nhap|gia von|gia npp|don gia|gia mua)/.test(h) && !/vat/.test(h),
   lineTotal: (h) => /thanh tien|tong tien/.test(h) && !/vat/.test(h),
   sell: (h) => /(gia ntd|gia ban|gia le|gia niem yet)/.test(h)
@@ -68,6 +69,7 @@ export function detectColumns(headerRow) {
     code: find('code'),
     qty: find('qty', ['so luong nhap them', 'so luong dat hang']),
     gift: find('gift'),
+    giftName: find('giftName', ['hang tang khuyen mai', 'ten hang tang']),
     sell: find('sell', 'gia ban tu lo nay'),
     cost: unitCost != null ? `unit:${unitCost}` : lineTotal != null ? `total:${lineTotal}` : ''
   }
@@ -92,8 +94,21 @@ export function parseLines(rows, headerIndex, map) {
     }
     const sell = toNumber(cell(row, map.sell))
     const code = String(cell(row, map.code) ?? '').trim()
+    // Hang tang co the la san pham khac hang mua (vd mua rong bien tang khan sua)
+    const giftName = String(cell(row, map.giftName) ?? '').trim()
+    const giftIsOther = giftName && normalizeText(giftName) !== normalizeText(name)
     if (qty > 0) lines.push({ key: `${i}-m`, name, code, qty, cost: Math.round(cost), sell, isGift: false })
-    if (gift > 0) lines.push({ key: `${i}-g`, name, code, qty: gift, cost: 0, sell: 0, isGift: true })
+    if (gift > 0) {
+      lines.push({
+        key: `${i}-g`,
+        name: giftName || name,
+        code: giftIsOther ? '' : code,
+        qty: gift,
+        cost: 0,
+        sell: 0,
+        isGift: true
+      })
+    }
   }
   return lines
 }
@@ -190,6 +205,7 @@ export function templateFromMapping(headerRow, map) {
     code: head(map.code),
     qty: head(map.qty),
     gift: head(map.gift),
+    giftName: head(map.giftName),
     sell: head(map.sell),
     costType: costType || null,
     cost: costCol === undefined ? null : head(Number(costCol))
@@ -209,6 +225,7 @@ export function applyTemplate(template, headerRow, detected) {
     code: locate(template.code, detected.code),
     qty: locate(template.qty, detected.qty),
     gift: locate(template.gift, detected.gift),
+    giftName: locate(template.giftName, detected.giftName),
     sell: locate(template.sell, detected.sell),
     cost: costIdx >= 0 ? `${template.costType || 'unit'}:${costIdx}` : detected.cost
   }
