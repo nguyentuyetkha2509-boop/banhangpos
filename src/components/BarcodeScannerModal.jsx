@@ -13,6 +13,7 @@ function shortName(c) {
   const l = label(c)
   if (/ultra/i.test(l)) return 'Góc siêu rộng (quét sát, ~3-8cm)'
   if (/tele/i.test(l)) return 'Tele (quét xa)'
+  if (/dual|triple/i.test(l)) return 'Tự động (Dual/Triple)'
   if (/^back camera$/i.test(l)) return 'Camera chính'
   return l.replace(/^back\s*/i, '') || 'Camera'
 }
@@ -42,7 +43,9 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
       // mac dinh la camera chinh, nguoi dung co the doi sang ong kinh khac bang nut tren man hinh.
       try {
         const list = await Html5Qrcode.getCameras()
-        const back = (list || []).filter(isBackCamera).filter((c) => !/dual|triple|desk/i.test(label(c)))
+        let back = (list || []).filter(isBackCamera).filter((c) => !/desk/i.test(label(c)))
+        // Khong doc duoc ten camera (chua cap quyen) thi cho chon tat ca
+        if (back.length === 0) back = list || []
         if (!cancelled) setCameras(back)
         if (chosenId && back.some((c) => c.id === chosenId)) return chosenId
         const preferred =
@@ -132,16 +135,18 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
           </button>
         </div>
       )}
-      {cameras.length > 1 && (
-        <div className="px-4 pt-2 text-center">
-          <button
-            onClick={switchCamera}
-            className="rounded-lg bg-white/15 text-white text-sm font-medium px-4 py-2.5"
-          >
-            Đổi ống kính{active ? `: ${shortName(active)}` : ''}
-          </button>
-        </div>
-      )}
+      <div className="px-4 pt-2 text-center">
+        <button
+          onClick={switchCamera}
+          disabled={cameras.length < 2}
+          className="rounded-lg bg-white/15 text-white text-sm font-medium px-4 py-2.5 disabled:opacity-40"
+        >
+          Đổi ống kính{active ? `: ${shortName(active)}` : ''}
+        </button>
+        <p className="mt-1 text-[11px] text-white/40">
+          {cameras.length} ống kính · {active ? label(active) || 'không rõ tên' : 'tự động'} · bản 30/9-c
+        </p>
+      </div>
       <p className="pb-6 pt-2 px-4 text-center text-xs text-white/60">
         Giữ yên, đủ sáng. Nếu hình bị mờ: lùi ra xa 15-25cm, hoặc bấm "Đổi ống kính" sang góc siêu rộng rồi đưa mã vạch thật
         sát (3-8cm).
