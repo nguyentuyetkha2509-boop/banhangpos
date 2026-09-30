@@ -27,10 +27,15 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
       try {
         const cameras = await Html5Qrcode.getCameras()
         if (cameras && cameras.length > 0) {
-          const isUltraOrTele = (label) => /ultra|wide angle|telephoto|0\.5x|zoom/i.test(label || '')
-          const backCameras = cameras.filter((c) => /back|rear|environment/i.test(c.label || ''))
+          const label = (c) => (c.label || '').trim()
+          const isSpecialLens = (c) => /ultra|wide angle|telephoto|0\.5x|zoom|dual|triple|desk/i.test(label(c))
+          const backCameras = cameras.filter((c) => /back|rear|environment/i.test(label(c)))
+          // iPhone Pro co them cac camera "ao" (Dual/Triple) tu dong doi ong kinh khi lay net
+          // gan, de gay mo hinh; uu tien camera chinh co ten dung la "Back Camera"
           const preferred =
-            backCameras.find((c) => !isUltraOrTele(c.label)) || backCameras[0] || cameras[cameras.length - 1]
+            backCameras.find((c) => /^back camera$/i.test(label(c))) ||
+            backCameras.find((c) => !isSpecialLens(c)) ||
+            backCameras[0]
           return preferred?.id || null
         }
       } catch {
@@ -103,7 +108,7 @@ export default function BarcodeScannerModal({ open, onClose, onDetected }) {
         </div>
       )}
       <p className="pb-6 pt-2 text-center text-xs text-white/60">
-        Đưa mã vạch vào giữa khung hình, giữ yên, đủ sáng và cách camera khoảng 10-15cm
+        Đưa mã vạch vào giữa khung hình, giữ yên, đủ sáng. Nếu hình bị mờ, lùi ra xa khoảng 15-25cm (iPhone Pro không lấy nét được quá gần)
       </p>
     </div>
   )
