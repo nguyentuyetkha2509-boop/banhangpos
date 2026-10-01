@@ -10,6 +10,7 @@ import {
   detectHeaderRow,
   findProductForLine,
   isPromoByName,
+  isPromoProduct,
   loadTemplates,
   parseLines,
   rankProducts,
@@ -143,7 +144,10 @@ export default function ImportStockSheet({ onClose }) {
       lines.map((line) => {
         const exact = findProductForLine(products, line)
         const ranked = exact ? [] : rankProducts(products, line)
-        const suggested = !exact && ranked[0]?.safe ? ranked[0].product : null
+        // Hang tang chi tu dong chon san pham KM; san pham thuong phai do nguoi dung tu chon
+        const suggested = exact
+          ? null
+          : ranked.find((r) => r.safe && (!line.isGift || isPromoProduct(r.product)))?.product || null
         const choice = choices[line.key]
         let match = exact || suggested
         if (!exact && choice !== undefined) match = choice === 'new' ? null : products.find((p) => p.id === choice) || null
@@ -316,12 +320,12 @@ export default function ImportStockSheet({ onClose }) {
                             </p>
                             {l.isGift && l.match && !l.match.isPromotion && isPromoByName(l.match.name) && (
                               <p className="mt-0.5 text-xs text-violet-600">
-                                Tên sản phẩm này có chữ khuyến mãi: app sẽ gắn nhãn Khuyến mãi cho nó, giá nhập và giá bán về 0.
+                                Tên sản phẩm này có chữ khuyến mãi nên app tự gắn nhãn Khuyến mãi cho nó và đặt giá nhập, giá bán về 0.
                               </p>
                             )}
                             {l.isGift && l.match && !l.match.isPromotion && !isPromoByName(l.match.name) && (
                               <p className="mt-0.5 text-xs text-amber-600">
-                                Sản phẩm này chưa gắn nhãn Khuyến mãi: chỉ cộng tồn kho, giữ nguyên giá nhập và giá bán.
+                                Hàng tặng này đang cộng vào sản phẩm thường (không phải hàng khuyến mãi): chỉ tăng số lượng tồn, giá nhập và giá bán giữ nguyên.
                               </p>
                             )}
                             {!l.exact && (
@@ -330,11 +334,11 @@ export default function ImportStockSheet({ onClose }) {
                                 onChange={(e) => setChoices((prev) => ({ ...prev, [l.key]: e.target.value }))}
                                 className="mt-1 w-full rounded-md border border-slate-200 bg-white px-1.5 py-1 text-xs text-slate-600"
                               >
-                                <option value="new">Tạo sản phẩm mới</option>
+                                <option value="new">{l.isGift ? 'Tạo sản phẩm Khuyến mãi mới' : 'Tạo sản phẩm mới'}</option>
                                 {l.ranked.map(({ product }) => (
                                   <option key={product.id} value={product.id}>
                                     Nhập vào: {product.name}
-                                    {l.isGift && !product.isPromotion && !isPromoByName(product.name) ? ' (chưa gắn nhãn KM)' : ''}
+                                    {l.isGift && !product.isPromotion && !isPromoByName(product.name) ? ' (sản phẩm thường)' : ''}
                                   </option>
                                 ))}
                               </select>
