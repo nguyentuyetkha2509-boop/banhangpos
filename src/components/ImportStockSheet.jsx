@@ -338,7 +338,7 @@ export default function ImportStockSheet({ onClose }) {
                                 {l.ranked.map(({ product }) => (
                                   <option key={product.id} value={product.id}>
                                     Nhập vào: {product.name}
-                                    {l.isGift && !product.isPromotion && !isPromoByName(product.name) ? ' (sản phẩm thường)' : ''}
+                                    {l.isGift ? (isPromoProduct(product) ? ' · Khuyến mãi' : ' · Hàng thường') : ''}
                                   </option>
                                 ))}
                               </select>
