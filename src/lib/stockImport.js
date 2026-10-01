@@ -9,7 +9,7 @@ export function normalizeText(value) {
 }
 
 // Ten san pham co ghi "khuyen mai" / "KM" / "hang tang" nhung chua gan nhan Khuyen mai
-const PROMO_WORDS = /(^| )(khuyen mai|km|hang tang)( |$)/g
+const PROMO_WORDS = /(^| )(khuyen mai|km|hang tang|tang kem|qua tang|hang km)( |$)/g
 
 export function isPromoByName(name) {
   PROMO_WORDS.lastIndex = 0
