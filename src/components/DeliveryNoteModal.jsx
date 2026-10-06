@@ -2,16 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { loadData, saveData } from '../lib/storage'
 import { buildDeliveryNote, formatNumber, renderDeliveryNoteToBlob } from '../lib/deliveryNote'
+import { isStandaloneApp, shareOrDownloadImage } from '../lib/share'
 import { PrintIcon, ShareIcon } from './Icons'
 
 const RECIPIENTS_KEY = 'deliveryRecipients'
-
-function isStandaloneApp() {
-  return (
-    window.navigator.standalone === true ||
-    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-  )
-}
 
 const cell = { border: '1px solid #333', padding: '6px 8px' }
 const headCell = { ...cell, background: '#f1f5f9', fontWeight: 700, textAlign: 'center', whiteSpace: 'nowrap' }
@@ -67,21 +61,7 @@ export default function DeliveryNoteModal({ order, settings, onClose }) {
     try {
       const blob = await renderDeliveryNoteToBlob(note)
       const fileName = `bien-ban-giao-hang-${note.code}.png`
-      const file = new File([blob], fileName, { type: 'image/png' })
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: 'Biên bản giao nhận hàng' })
-        } catch {
-          // Nguoi dung huy chia se
-        }
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = fileName
-        a.click()
-        URL.revokeObjectURL(url)
-      }
+      await shareOrDownloadImage(blob, fileName, 'Biên bản giao nhận hàng')
     } finally {
       setSharing(false)
     }

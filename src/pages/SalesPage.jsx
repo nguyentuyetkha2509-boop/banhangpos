@@ -178,7 +178,7 @@ export default function SalesPage() {
               >
                 <div className="w-full aspect-square rounded-lg border border-slate-100 bg-slate-50 overflow-hidden mb-2 flex items-center justify-center">
                   {p.image ? (
-                    <img src={p.image} alt="" className="w-full h-full object-cover" />
+                    <img src={p.image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     <BoxIcon className="h-7 w-7 text-slate-300" />
                   )}

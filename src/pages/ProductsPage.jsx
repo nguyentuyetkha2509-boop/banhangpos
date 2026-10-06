@@ -93,14 +93,14 @@ export default function ProductsPage() {
         )}
         {products.map((p) => {
           const isExpanded = expandedId === p.id
-          const productMovements = stockMovements.filter((m) => m.productId === p.id)
+          const productMovements = isExpanded ? stockMovements.filter((m) => m.productId === p.id) : []
           return (
             <div key={p.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-3 flex items-center justify-between">
                 <button onClick={() => setExpandedId(isExpanded ? null : p.id)} className="min-w-0 flex-1 text-left flex items-center gap-2.5">
                   <div className="w-11 h-11 shrink-0 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center">
                     {p.image ? (
-                      <img src={p.image} alt="" className="w-full h-full object-cover" />
+                      <img src={p.image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     ) : (
                       <BoxIcon className="h-5 w-5 text-slate-300" />
                     )}

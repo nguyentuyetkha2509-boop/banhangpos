@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ReturnSheet from '../components/ReturnSheet'
 import DeliveryNoteModal from '../components/DeliveryNoteModal'
 import { PrintIcon, ReceiptIcon, ReturnIcon } from '../components/Icons'
+
+const PAGE_SIZE = 50
 
 const PAYMENT_LABELS = { cash: 'Tiền mặt', transfer: 'Chuyển khoản', debt: 'Ghi nợ' }
 
@@ -18,6 +20,7 @@ export default function OrdersPage() {
   const [returnOrder, setReturnOrder] = useState(null)
   const [deliveryOrder, setDeliveryOrder] = useState(null)
   const [query, setQuery] = useState('')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const todayTotal = orders
     .filter((o) => !o.cancelled && new Date(o.createdAt).toDateString() === new Date().toDateString())
@@ -32,6 +35,11 @@ export default function OrdersPage() {
         (o.customerName || '').toLowerCase().includes(q)
     )
   }, [orders, query])
+
+  useEffect(() => setVisibleCount(PAGE_SIZE), [query])
+
+  const returnedOrderIds = useMemo(() => new Set(returns.map((r) => r.orderId).filter(Boolean)), [returns])
+  const visibleOrders = filteredOrders.slice(0, visibleCount)
 
   function handleCancel(order) {
     if (confirm(`Hủy hóa đơn #${order.id.slice(-6).toUpperCase()}? Sản phẩm sẽ được cộng lại vào tồn kho.`)) {
@@ -60,10 +68,10 @@ export default function OrdersPage() {
             {orders.length === 0 ? 'Chưa có hóa đơn nào' : 'Không tìm thấy hóa đơn nào'}
           </p>
         )}
-        {filteredOrders.map((o) => {
+        {visibleOrders.map((o) => {
           const isOpen = openId === o.id
           const itemCount = o.items.reduce((s, i) => s + i.qty, 0)
-          const hasReturns = returns.some((r) => r.orderId === o.id)
+          const hasReturns = returnedOrderIds.has(o.id)
           return (
             <div
               key={o.id}
@@ -161,6 +169,16 @@ export default function OrdersPage() {
           )
         })}
       </div>
+
+      {filteredOrders.length > visibleCount && (
+        <button
+          onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+          className="w-full mt-3 rounded-lg bg-white border border-slate-200 text-slate-600 text-sm font-medium py-2.5"
+        >
+          Xem thêm hóa đơn ({filteredOrders.length - visibleCount} còn lại)
+        </button>
+      )}
+      <div className="h-6" />
 
       <ReturnSheet open={Boolean(returnOrder)} onClose={() => setReturnOrder(null)} order={returnOrder} />
       {deliveryOrder && (

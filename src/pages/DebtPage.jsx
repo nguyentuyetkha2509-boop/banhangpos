@@ -25,22 +25,23 @@ export default function DebtPage() {
     orders.forEach((o) => {
       if (o.cancelled || o.paymentMethod !== 'debt') return
       const key = customerKeyOf(o.customerName)
-      const cur = map.get(key) || { name: key, owed: 0, paid: 0, debtOrders: [] }
+      const cur = map.get(key) || { name: key, owed: 0, paid: 0, debtOrders: [], payments: [] }
       cur.owed += o.total
       cur.debtOrders.push(o)
       map.set(key, cur)
     })
     debtPayments.forEach((p) => {
       const key = customerKeyOf(p.customerName)
-      const cur = map.get(key) || { name: key, owed: 0, paid: 0, debtOrders: [] }
+      const cur = map.get(key) || { name: key, owed: 0, paid: 0, debtOrders: [], payments: [] }
       cur.paid += p.amount
+      cur.payments.push(p)
       map.set(key, cur)
     })
     return Array.from(map.values())
       .map((c) => ({
         ...c,
-        balance: c.owed - c.paid,
-        payments: debtPayments.filter((p) => customerKeyOf(p.customerName) === c.name)
+        payments: c.payments || [],
+        balance: c.owed - c.paid
       }))
       .sort((a, b) => b.balance - a.balance)
   }, [orders, debtPayments])

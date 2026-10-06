@@ -2,13 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { generateBarcodeDataUrl } from '../lib/barcode'
 import { formatVND } from '../lib/storage'
-
-function isStandaloneApp() {
-  return (
-    window.navigator.standalone === true ||
-    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-  )
-}
+import { isStandaloneApp } from '../lib/share'
 
 export default function BarcodePrintModal({ product, onClose }) {
   const [copiesInput, setCopiesInput] = useState('6')

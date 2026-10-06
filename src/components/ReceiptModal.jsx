@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { formatVND } from '../lib/storage'
 import { renderReceiptToBlob } from '../lib/receiptImage'
+import { isStandaloneApp, shareOrDownloadImage } from '../lib/share'
 import { PrintIcon, ShareIcon } from './Icons'
 
 const DEFAULT_SHOP_NAME = 'Bán Hàng POS'
@@ -14,13 +15,6 @@ function formatDateTime(iso) {
     hour: '2-digit',
     minute: '2-digit'
   })
-}
-
-function isStandaloneApp() {
-  return (
-    window.navigator.standalone === true ||
-    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
-  )
 }
 
 export default function ReceiptModal({ order, settings, onClose }) {
@@ -47,22 +41,7 @@ export default function ReceiptModal({ order, settings, onClose }) {
     try {
       const blob = await renderReceiptToBlob(order, settings)
       const fileName = `hoa-don-${order.id.slice(-6).toUpperCase()}.png`
-      const file = new File([blob], fileName, { type: 'image/png' })
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: 'Hóa đơn' })
-        } catch {
-          // Nguoi dung huy chia se - khong lam gi them
-        }
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = fileName
-        a.click()
-        URL.revokeObjectURL(url)
-      }
+      await shareOrDownloadImage(blob, fileName, 'Hóa đơn')
     } finally {
       setSharing(false)
     }
