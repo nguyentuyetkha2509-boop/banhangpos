@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import { PrintIcon } from './Icons'
@@ -10,7 +10,7 @@ const PAYMENT_METHODS = [
 ]
 
 export default function CartSheet({ open, onClose }) {
-  const { cart, orders, returns, products, setCartQty, setCartItemPrice, removeFromCart, checkout, requestPrint } =
+  const { cart, orders, returns, products, setCartQty, setCartItemPrice, removeFromCart, checkout, requestPrint, pendingEdit, clearPendingEdit } =
     useData()
   const [successOrder, setSuccessOrder] = useState(null)
   const [customerName, setCustomerName] = useState('')
@@ -19,6 +19,17 @@ export default function CartSheet({ open, onClose }) {
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [priceEditId, setPriceEditId] = useState(null)
   const [priceEdits, setPriceEdits] = useState({})
+  const [editingCode, setEditingCode] = useState('')
+
+  useEffect(() => {
+    if (!pendingEdit) return
+    setCustomerName(pendingEdit.customerName)
+    setDiscount(pendingEdit.discount ? String(pendingEdit.discount) : '')
+    setPaymentMethod(pendingEdit.paymentMethod)
+    setEditingCode(pendingEdit.code)
+    setSuccessOrder(null)
+    clearPendingEdit()
+  }, [pendingEdit])
 
   const knownCustomers = useMemo(() => {
     const set = new Set()
@@ -48,6 +59,7 @@ export default function CartSheet({ open, onClose }) {
       setCustomerName('')
       setDiscount('')
       setPaymentMethod('cash')
+      setEditingCode('')
     }
   }
 
@@ -96,7 +108,12 @@ export default function CartSheet({ open, onClose }) {
         ) : (
           <>
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <h2 className="font-bold text-slate-800">Giỏ hàng</h2>
+              <h2 className="font-bold text-slate-800">
+                Giỏ hàng
+                {editingCode && (
+                  <span className="ml-1.5 text-xs font-normal text-amber-600">· đang sửa HĐ #{editingCode}</span>
+                )}
+              </h2>
               <button onClick={onClose} className="text-slate-400 text-sm">Đóng</button>
             </div>
 

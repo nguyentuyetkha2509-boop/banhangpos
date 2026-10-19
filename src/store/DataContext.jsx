@@ -59,6 +59,7 @@ export function DataProvider({ children }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [printOrder, setPrintOrder] = useState(null)
+  const [pendingEdit, setPendingEdit] = useState(null)
 
   const records = { products, orders, stockMovements, returns, shrinkages, debtPayments }
   const settersRef = useRef({})
@@ -574,6 +575,36 @@ export function DataProvider({ children }) {
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, cancelled: true } : o)))
   }
 
+  // Sua hoa don: huy hoa don cu (hoan ton kho) roi dua nguyen cac dong vao gio hang
+  // de chi can chinh cho sai, khong phai nhap lai tung mon
+  function editOrder(orderId) {
+    const order = orders.find((o) => o.id === orderId)
+    if (!order || order.cancelled) return false
+    if (returns.some((r) => r.orderId === orderId)) {
+      alert('Hóa đơn này đã có trả hàng nên không sửa được.')
+      return false
+    }
+    setProducts((prev) =>
+      prev.map((p) => {
+        const item = order.items.find((c) => c.productId === p.id)
+        return item ? { ...p, stock: p.stock + item.qty } : p
+      })
+    )
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, cancelled: true, editedForNewOrder: true } : o)))
+    setCart(order.items.map((i) => ({ ...i })))
+    setPendingEdit({
+      code: order.id.slice(-6).toUpperCase(),
+      customerName: order.customerName || '',
+      discount: order.discount || 0,
+      paymentMethod: order.paymentMethod || 'cash'
+    })
+    return true
+  }
+
+  function clearPendingEdit() {
+    setPendingEdit(null)
+  }
+
   function findProductByBarcode(code) {
     const trimmed = code.trim()
     if (!trimmed) return null
@@ -650,6 +681,9 @@ export function DataProvider({ children }) {
     deleteShrinkage,
     addDebtPayment,
     cancelOrder,
+    editOrder,
+    pendingEdit,
+    clearPendingEdit,
     updateSettings,
     resetAllData
   }

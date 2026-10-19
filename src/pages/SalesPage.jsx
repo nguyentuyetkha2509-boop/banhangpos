@@ -9,7 +9,7 @@ import { SettingsIcon, ScanIcon, CartIcon, BoxIcon } from '../components/Icons'
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
 export default function SalesPage() {
-  const { products, cart, addToCart, setCartQty, findProductByBarcode, settings } = useData()
+  const { products, cart, addToCart, setCartQty, findProductByBarcode, settings, pendingEdit } = useData()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
@@ -19,6 +19,10 @@ export default function SalesPage() {
   const [highlightedId, setHighlightedId] = useState(null)
   const pendingApprovals = usePendingApprovalsCount()
   const cartCount = cart.reduce((sum, c) => sum + c.qty, 0)
+
+  useEffect(() => {
+    if (pendingEdit) setCartOpen(true)
+  }, [pendingEdit])
 
   useEffect(() => {
     if (!highlightedId) return

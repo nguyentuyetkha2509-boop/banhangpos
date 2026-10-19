@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ReturnSheet from '../components/ReturnSheet'
@@ -15,7 +16,8 @@ function formatTime(iso) {
 }
 
 export default function OrdersPage() {
-  const { orders, returns, settings, requestPrint, cancelOrder } = useData()
+  const { orders, returns, settings, requestPrint, cancelOrder, editOrder, cart } = useData()
+  const navigate = useNavigate()
   const [openId, setOpenId] = useState(null)
   const [returnOrder, setReturnOrder] = useState(null)
   const [deliveryOrder, setDeliveryOrder] = useState(null)
@@ -44,6 +46,17 @@ export default function OrdersPage() {
   function handleCancel(order) {
     if (confirm(`Hủy hóa đơn #${order.id.slice(-6).toUpperCase()}? Sản phẩm sẽ được cộng lại vào tồn kho.`)) {
       cancelOrder(order.id)
+    }
+  }
+
+  function handleEdit(order) {
+    const warn = cart.length > 0 ? '\n\nGiỏ hàng hiện tại đang có sản phẩm, sẽ bị thay bằng hóa đơn này.' : ''
+    if (
+      confirm(
+        `Sửa hóa đơn #${order.id.slice(-6).toUpperCase()}?\nHóa đơn cũ sẽ được hủy (tồn kho cộng lại) và các món được đưa vào giỏ hàng để bạn chỉnh rồi thanh toán lại.${warn}`
+      )
+    ) {
+      if (editOrder(order.id)) navigate('/')
     }
   }
 
@@ -88,7 +101,7 @@ export default function OrdersPage() {
                     #{o.id.slice(-6).toUpperCase()}
                     {o.cancelled && (
                       <span className="ml-1.5 text-[13px] font-semibold text-slate-500 bg-slate-100 rounded-full px-1.5 py-0.5">
-                        Đã hủy
+                        {o.editedForNewOrder ? 'Đã sửa' : 'Đã hủy'}
                       </span>
                     )}
                     {!o.cancelled && o.paymentMethod && o.paymentMethod !== 'cash' && (
@@ -122,6 +135,16 @@ export default function OrdersPage() {
                     <div className="flex items-center justify-between py-1.5 text-sm">
                       <span className="text-slate-500">Giảm giá</span>
                       <span className="text-red-500 font-medium shrink-0">−{formatVND(o.discount)}</span>
+                    </div>
+                  )}
+                  {!o.cancelled && !hasReturns && (
+                    <div className="pt-2">
+                      <button
+                        onClick={() => handleEdit(o)}
+                        className="w-full bg-amber-50 text-amber-700 text-sm font-medium rounded-lg py-2.5 active:scale-[0.98] transition"
+                      >
+                        Sửa hóa đơn (chỉnh lại giá, số lượng)
+                      </button>
                     </div>
                   )}
                   {!o.cancelled && (
