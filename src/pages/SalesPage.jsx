@@ -9,7 +9,7 @@ import { SettingsIcon, ScanIcon, CartIcon, BoxIcon } from '../components/Icons'
 const BarcodeScannerModal = lazy(() => import('../components/BarcodeScannerModal'))
 
 export default function SalesPage() {
-  const { products, cart, addToCart, setCartQty, findProductByBarcode, settings, pendingEdit } = useData()
+  const { products, cart, addToCart, setCartQty, findProductByBarcode, settings, pendingEdit, editingOrderCode, clearCart } = useData()
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
@@ -122,6 +122,20 @@ export default function SalesPage() {
           <ScanIcon className="h-6 w-6" />
         </button>
       </div>
+
+      {editingOrderCode && (
+        <div className="mt-2 flex items-center justify-between gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+          <span>Đang sửa HĐ #{editingOrderCode}: chọn thêm hàng bên dưới, rồi mở giỏ để thanh toán.</span>
+          <button
+            onClick={() => {
+              if (confirm('Bỏ việc sửa và xóa giỏ hàng? Hóa đơn cũ vẫn đã bị hủy.')) clearCart()
+            }}
+            className="shrink-0 font-semibold underline"
+          >
+            Bỏ
+          </button>
+        </div>
+      )}
 
       {toast && (
         <p className="mt-2 rounded-lg bg-slate-800 text-white text-xs px-3 py-2 text-center">{toast}</p>

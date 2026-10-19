@@ -60,6 +60,7 @@ export function DataProvider({ children }) {
   const [cart, setCart] = useState(() => loadData('cart', []))
   const [printOrder, setPrintOrder] = useState(null)
   const [pendingEdit, setPendingEdit] = useState(null)
+  const [editingOrderCode, setEditingOrderCode] = useState('')
 
   const records = { products, orders, stockMovements, returns, shrinkages, debtPayments }
   const settersRef = useRef({})
@@ -592,6 +593,7 @@ export function DataProvider({ children }) {
     )
     setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, cancelled: true, editedForNewOrder: true } : o)))
     setCart(order.items.map((i) => ({ ...i })))
+    setEditingOrderCode(order.id.slice(-6).toUpperCase())
     setPendingEdit({
       code: order.id.slice(-6).toUpperCase(),
       customerName: order.customerName || '',
@@ -618,6 +620,7 @@ export function DataProvider({ children }) {
 
   function clearCart() {
     setCart([])
+    setEditingOrderCode('')
   }
 
   function checkout(customerName, options = {}) {
@@ -683,6 +686,7 @@ export function DataProvider({ children }) {
     cancelOrder,
     editOrder,
     pendingEdit,
+    editingOrderCode,
     clearPendingEdit,
     updateSettings,
     resetAllData
