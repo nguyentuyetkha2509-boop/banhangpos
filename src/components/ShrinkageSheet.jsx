@@ -1,6 +1,7 @@
 import React, { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
+import ProductPicker from './ProductPicker'
 import { ScanIcon } from './Icons'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
@@ -69,18 +70,7 @@ export default function ShrinkageSheet({ open, onClose, product }) {
 
         <label className="block text-xs font-medium text-slate-500 mb-1">Sản phẩm</label>
         <div className="flex gap-2 mb-1">
-          <select
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-            className="flex-1 min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
-          >
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-                {p.isPromotion ? ' · Khuyến mãi' : ''} (đang có {p.stock})
-              </option>
-            ))}
-          </select>
+          <ProductPicker products={products} value={productId} onChange={setProductId} />
           <button
             type="button"
             onClick={() => setScannerOpen(true)}
