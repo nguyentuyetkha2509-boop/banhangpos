@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react'
+import React, { Suspense, lazy, useMemo, useState } from 'react'
 import { useData } from '../store/DataContext'
 import { formatVND } from '../lib/storage'
 import ProductFormSheet from '../components/ProductFormSheet'
@@ -23,6 +23,19 @@ export default function ProductsPage() {
   const [printingProduct, setPrintingProduct] = useState(null)
   const [editingMovement, setEditingMovement] = useState(null)
 
+  const inventory = useMemo(() => {
+    let cost = 0
+    let retail = 0
+    let qty = 0
+    products.forEach((p) => {
+      const stock = Math.max(0, Number(p.stock) || 0)
+      qty += stock
+      cost += stock * (Number(p.costPrice) || 0)
+      retail += stock * (Number(p.price) || 0)
+    })
+    return { cost, retail, qty }
+  }, [products])
+
   function openNew() {
     setEditing(null)
     setShowForm(true)
@@ -43,6 +56,15 @@ export default function ProductsPage() {
     <div className="max-w-md mx-auto px-4 pt-4">
       <div className="flex items-center justify-between mb-3">
         <h1 className="text-xl font-bold text-slate-800">Sản phẩm ({products.length})</h1>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-3 mb-3">
+        <p className="text-xs text-slate-500">Tổng tiền hàng tồn kho (theo giá nhập)</p>
+        <p className="text-xl font-bold text-brand-700">{formatVND(inventory.cost)}</p>
+        <p className="text-xs text-slate-400 mt-0.5">
+          {inventory.qty.toLocaleString('vi-VN')} sản phẩm trong kho · Nếu bán hết theo giá bán:{' '}
+          <span className="font-medium text-slate-600">{formatVND(inventory.retail)}</span>
+        </p>
       </div>
 
       <div className="flex gap-2 mb-2">
